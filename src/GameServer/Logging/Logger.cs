@@ -57,7 +57,7 @@ namespace GameServer.Logging
 
         public void StartServer()
         {
-            Program.Server = new Server(7777, 100);
+            Program.Server = new Server(8888, 100);
             new Thread(Program.Server.Start).Start(); // Initialize server on thread 2
         }
 
@@ -92,8 +92,10 @@ namespace GameServer.Logging
         {
             if (obj == null) obj = "undefined";
             var time = $"{DateTime.Now:HH:mm:ss}";
-            var message = new LoggerMessage($"{time} [{typeColor[LogType.Info].Name}] {obj.ToString()}");
-            message.TextColor = typeColor[LogType.Info].Color;
+            var message = new LoggerMessage($"{time} [{typeColor[LogType.Info].Name}] {obj}")
+            {
+                TextColor = typeColor[LogType.Info].Color
+            };
             return message;
         }
 

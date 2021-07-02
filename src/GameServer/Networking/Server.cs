@@ -27,8 +27,8 @@ namespace GameServer.Networking
 
         public static byte ChannelID = 0;
 
-        private ushort port;
-        private int maxClients;
+        private readonly ushort port;
+        private readonly int maxClients;
 
         private bool serverRunning;
 
@@ -50,11 +50,12 @@ namespace GameServer.Networking
         public void Start()
         {
             Library.Initialize();
-
             Host = new Host();
 
-            var address = new Address();
-            address.Port = port;
+            var address = new Address
+            {
+                Port = port
+            };
             Host.Create(address, maxClients);
             serverRunning = true;
 
@@ -62,7 +63,6 @@ namespace GameServer.Networking
 
             //int packetCounter = 0;
             //int i = 0;
-            Event netEvent;
 
             while (serverRunning)
             {
@@ -73,7 +73,7 @@ namespace GameServer.Networking
                     if (!Host.IsSet)
                         return;
 
-                    if (Host.CheckEvents(out netEvent) <= 0)
+                    if (Host.CheckEvents(out Event netEvent) <= 0)
                     {
                         if (Host.Service(15, out netEvent) <= 0)
                             break;

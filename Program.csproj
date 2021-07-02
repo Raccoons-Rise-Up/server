@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ENet-CSharp" Version="2.3.8" />
+    <PackageReference Include="ENet-CSharp" Version="2.4.7" />
     <PackageReference Include="Terminal.Gui" Version="0.81.0" />
   </ItemGroup>
   <ItemGroup>
