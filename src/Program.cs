@@ -1,16 +1,21 @@
 ﻿using System;
+using System.IO;
+using Common.Networking.Packet;
+using Common.Networking.IO;
 using ENet;
+using GameServer.Packets;
 
-namespace test
+namespace GameServer
 {
     class Program
     {
         static void Main(string[] args)
         {
-			ENet.Library.Initialize();
+			Library.Initialize();
 
-			int maxClients = 100;
+			var maxClients = 100;
 			ushort port = 8888;
+
 			using (var server = new Host())
 			{
                 var address = new Address
@@ -53,7 +58,27 @@ namespace test
 
                             case EventType.Receive:
                                 Console.WriteLine("Packet received from - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP + ", Channel ID: " + netEvent.ChannelID + ", Data length: " + netEvent.Packet.Length);
-                                netEvent.Packet.Dispose();
+
+                                var packet = netEvent.Packet;
+
+                                var readBuffer = new byte[1024];
+                                var readStream = new MemoryStream(readBuffer);
+                                var reader = new BinaryReader(readStream);
+
+                                readStream.Position = 0;
+                                netEvent.Packet.CopyTo(readBuffer);
+                                //var packetID = (ClientPacketType)reader.ReadByte();
+
+                                //Console.WriteLine(packetID);
+
+                                var data = new PacketPurchaseItem();
+                                var packetReader = new PacketReader(readBuffer);
+                                data.Read(packetReader);
+
+                                Console.WriteLine(data.m_ID);
+                                Console.WriteLine(data.m_ItemID);
+
+                                packet.Dispose();
                                 break;
                         }
                     }
@@ -62,7 +87,7 @@ namespace test
                 server.Flush();
 			}
 
-			ENet.Library.Deinitialize();
+			Library.Deinitialize();
 		}
     }
 }
