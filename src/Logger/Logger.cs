@@ -5,9 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Text;
 using System.Threading.Tasks;
-using Terminal.Gui;
-
-using Attribute = Terminal.Gui.Attribute; // Fixes error CS0104	'Attribute' is an ambiguous reference between 'Terminal.Gui.Attribute' and 'System.Attribute'
 
 namespace GameServer
 {
@@ -17,87 +14,63 @@ namespace GameServer
 
         public static void WorkerThread()
         {
-            Application.Init();
+            var loggerMessageRow = 0;
+            //var textFieldRow = Console.WindowHeight - 2;
+            var textFieldRow = 10;
 
-            // The main console view
-            var view = new LoggerView
-            {
-                X = 0,
-                Y = 0,
-                Width = Application.Driver.Clip.Width,
-                Height = Application.Driver.Clip.Height
-            };
-            Application.GrabMouse(view);
-            Application.Top.Add(view);
+            var messageLines = 0;
 
-            CreateInputField(view);
+            //Program.StartServer(); // Finished setting up Logger, now start the server
 
-            
-
-            var label = new Label("Hello World")
-            {
-                X = 0,
-                Y = 0,
-                Width = view.Width,
-                Height = 1
-            };
-
-            var label2 = new Label("bye world")
-            {
-                X = 0,
-                Y = 1,
-                Width = view.Width,
-                Height = 1
-            };
-
-            view.Add(label);
-            view.Add(label2);
-
-            Program.StartServer(); // Finished setting up Logger, now start the server
+            m_Messages.Enqueue("Hello world");
+            //new Thread(Test).Start();
 
             while (true)
             {
                 while (m_Messages.TryDequeue(out string message))
                 {
-                    AddLabel(view, message);
+                    //Console.WriteLine(message);
                 }
+
+                
+
+                // Set cursor to the beginning of the text input field
+                Console.SetCursorPosition(0, textFieldRow);
+
+                // Clear the text input field
+                Console.Write(new string(' ', Console.WindowWidth));
+
+                // If the logger message row is >= text field row then move the text field row one down
+                if (loggerMessageRow >= textFieldRow)
+                    textFieldRow += messageLines;
+
+                // Set cursor back to the beginning of the text input field
+                Console.SetCursorPosition(0, textFieldRow);
+
+                // Read the command the user typed and pressed enter
+                var input = Console.ReadLine();
+
+                var lines = (int)Math.Ceiling(input.Length / (float)Console.WindowWidth);
+
+                // Set cursor to logging area
+                Console.SetCursorPosition(0, loggerMessageRow);
+
+                // Print the message to the logger (Console.Write() is not used as everything would get distorted the window gets resized)
+                Console.WriteLine(input);
+
+                // Increment row by the number of lines from input
+                loggerMessageRow += lines;
+                messageLines = lines;
             }
-
-            Application.Run();
-
         }
 
-        private static void AddLabel(LoggerView view, object obj) 
+        private static void Test() 
         {
-            var label = new Label(obj.ToString())
+            while (true) 
             {
-                X = 0,
-                Y = 2,
-                Width = view.Width,
-                Height = 1
-            };
-
-            view.Add(label);
-        }
-
-        private static void Log(object obj) 
-        {
-            var time = $"{DateTime.Now:HH:mm:ss}";
-            var message = $"{time} {obj}";
-
-            m_Messages.Enqueue(message);
-        }
-
-        private static void CreateInputField(LoggerView view)
-        {
-            var input = new TextField("")
-            {
-                X = 0,
-                Y = view.Bounds.Height - 1,
-                Width = view.Width
-            };
-
-            view.Add(input);
+                Thread.Sleep(1000);
+                Console.WriteLine("Yes");
+            }
         }
     }
 }
