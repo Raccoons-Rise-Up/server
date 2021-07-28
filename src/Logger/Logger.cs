@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Text;
 using System.Threading.Tasks;
 using Terminal.Gui;
@@ -10,51 +11,81 @@ using Attribute = Terminal.Gui.Attribute; // Fixes error CS0104	'Attribute' is a
 
 namespace GameServer
 {
-    public class Logger
+    public static class Logger
     {
+        public static ConcurrentQueue<string> m_Messages = new ConcurrentQueue<string>();
+
         public static void WorkerThread()
         {
             Application.Init();
 
             // The main console view
-            //var loggerView = new LoggerView();
-            //Application.GrabMouse(loggerView);
-            //Application.Top.Add(loggerView);
-
-            //CreateInputField(loggerView);
-
-            var colorScheme = new ColorScheme
+            var view = new LoggerView
             {
-                Normal = Attribute.Make(Color.White, Color.Black)
+                X = 0,
+                Y = 0,
+                Width = Application.Driver.Clip.Width,
+                Height = Application.Driver.Clip.Height
             };
+            Application.GrabMouse(view);
+            Application.Top.Add(view);
+
+            CreateInputField(view);
+
+            
 
             var label = new Label("Hello World")
             {
-                ColorScheme = colorScheme,
                 X = 0,
                 Y = 0,
-                Width = 10,
+                Width = view.Width,
                 Height = 1
             };
 
-            //loggerView.Add(label);
-            //Application.Refresh();
-
-            var scrollView = new View
+            var label2 = new Label("bye world")
             {
-                Text = "123",
                 X = 0,
-                Y = 0,
-                Width = 10,
-                Height = 10
+                Y = 1,
+                Width = view.Width,
+                Height = 1
             };
-            scrollView.Add(label);
-            Application.Top.Add(scrollView);
-            
+
+            view.Add(label);
+            view.Add(label2);
 
             Program.StartServer(); // Finished setting up Logger, now start the server
 
+            while (true)
+            {
+                while (m_Messages.TryDequeue(out string message))
+                {
+                    AddLabel(view, message);
+                }
+            }
+
             Application.Run();
+
+        }
+
+        private static void AddLabel(LoggerView view, object obj) 
+        {
+            var label = new Label(obj.ToString())
+            {
+                X = 0,
+                Y = 2,
+                Width = view.Width,
+                Height = 1
+            };
+
+            view.Add(label);
+        }
+
+        private static void Log(object obj) 
+        {
+            var time = $"{DateTime.Now:HH:mm:ss}";
+            var message = $"{time} {obj}";
+
+            m_Messages.Enqueue(message);
         }
 
         private static void CreateInputField(LoggerView view)
@@ -62,8 +93,8 @@ namespace GameServer
             var input = new TextField("")
             {
                 X = 0,
-                Y = LoggerView.Driver.Clip.Bottom - 1,
-                Width = LoggerView.Driver.Clip.Width
+                Y = view.Bounds.Height - 1,
+                Width = view.Width
             };
 
             view.Add(input);

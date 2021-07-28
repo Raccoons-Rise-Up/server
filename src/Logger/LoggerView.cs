@@ -13,8 +13,8 @@ namespace GameServer
         {
             var colorScheme = new ColorScheme
             {
-                Normal = Application.Driver.MakeAttribute(Color.Red, Color.Blue), // Labels
-                Focus = Application.Driver.MakeAttribute(Color.Red, Color.Blue), // Text Fields
+                Normal = Application.Driver.MakeAttribute(Color.White, Color.Blue), // Labels
+                Focus = Application.Driver.MakeAttribute(Color.White, Color.Red), // Text Fields
 
                 // These attributes are not needed, however if they do come up for whatever reason
                 // they will be visible with vibrant notable colors.
@@ -32,7 +32,7 @@ namespace GameServer
 
             if (e.Key == Key.F) { }
 
-            return false;
+            return true;
         }
     }
 }
