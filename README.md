@@ -1,4 +1,5 @@
 # Game Server
+The game server that connects to all the clients.
 
 ## Contributing
 Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
