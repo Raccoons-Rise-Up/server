@@ -1,3 +1,9 @@
+## Setup
+### Entity Framework Core - SQLite
+If you are not familiar with setting up EFC, please read [Getting started with Entity Framework Core and SQLite](https://docs.microsoft.com/en-us/ef/core/get-started/overview/first-app?tabs=netcore-cli), you will need to setup EFC to see SQLite work properly when you run the server.
+
+
+
 ## Formatting Rules
 - Methods should follow PascalFormat
 - If using `{}` please fully expand
