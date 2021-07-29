@@ -12,8 +12,6 @@ dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 
-If you should have any questions please contact me on Discord (`valk#9904`) or email me at `sebastianbelle074@protonmail.com`
-
 ## Formatting Rules
 - Methods should follow PascalFormat
 - If using `{}` please fully expand
