@@ -1,4 +1,4 @@
 # Game Server
 
-## Entity Framework Core - SQLite
-[Getting started with Entity Framework Core and SQLite](https://docs.microsoft.com/en-us/ef/core/get-started/overview/first-app?tabs=netcore-cli)
+## Contributing
+Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
