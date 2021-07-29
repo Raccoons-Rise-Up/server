@@ -1,8 +1,16 @@
+# Contributing
+
 ## Setup
+### .NET
+Make sure you have all the required tools to run dotnet projects. (I'm not sure myself how I setup this up, maybe someone can reinforce this part of the CONTRIBUTING.md document)
+
 ### Entity Framework Core - SQLite
-If you are not familiar with setting up EFC, please read [Getting started with Entity Framework Core and SQLite](https://docs.microsoft.com/en-us/ef/core/get-started/overview/first-app?tabs=netcore-cli), you will need to setup EFC to see SQLite work properly when you run the server.
-
-
+Run the following commands
+```
+dotnet tool install --global dotnet-ef
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
 
 ## Formatting Rules
 - Methods should follow PascalFormat
