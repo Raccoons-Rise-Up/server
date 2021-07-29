@@ -108,7 +108,7 @@ namespace GameServer
             }
             else 
             {
-                Console.CursorLeft = s_TextFieldColumn;
+                Console.CursorLeft = s_TextFieldColumn - s_TextFieldHeight;
             }
         }
 
