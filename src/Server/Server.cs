@@ -22,16 +22,16 @@ namespace GameServer
                 db.SaveChanges();
 
                 // Read
-                Console.WriteLine("Query for player");
+                //Console.WriteLine("Query for player");
                 var player = db.Players.First();
 
                 // Update
-                Console.WriteLine("Updating the player");
+                //Console.WriteLine("Updating the player");
                 player.Gold = 200;
                 db.SaveChanges();
 
                 // Delete
-                Console.WriteLine("Delete the player");
+                //Console.WriteLine("Delete the player");
                 db.Remove(player);
                 db.SaveChanges();
             }
@@ -70,7 +70,8 @@ namespace GameServer
                                 break;
 
                             case EventType.Connect:
-                                Console.WriteLine("Client connected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
+                                //Console.WriteLine("Client connected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
+                                Logger.m_Messages.Enqueue("Hello world");
                                 break;
 
                             case EventType.Disconnect:
