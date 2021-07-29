@@ -86,8 +86,8 @@ namespace GameServer
         private static void AddMessageToConsole(string message, bool fromUserKeyboard) 
         {
             // Set the cursor to the logger area
-            Console.CursorLeft = 0; // Is this really necessary?
-            Console.CursorTop = loggerMessageRow; // Is this really necessary?
+            Console.CursorLeft = 0;
+            Console.CursorTop = loggerMessageRow;
             Console.WriteLine(message); // Console.WriteLine will place a new line character (Console.WriteLine also ensures no funny business happens when resizing the terminal)
             Console.CursorTop += (1 + textFieldRowExpansion); // Move down more to get back to text field input
 
@@ -105,9 +105,6 @@ namespace GameServer
             {
                 Console.CursorLeft = textFieldColumn;
             }
-                
-
-            
         }
 
         private static void MoveTextInputFieldDown() 
