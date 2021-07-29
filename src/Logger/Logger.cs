@@ -10,14 +10,14 @@ namespace GameServer
 {
     public class Logger
     {
-        public static readonly ConcurrentQueue<string> m_Messages = new();
+        public static readonly ConcurrentQueue<string> s_Messages = new();
 
-        private static readonly object threadLock = new();
-        private static string input = "";
-        private static int loggerMessageRow = 0;
-        private static int textFieldColumn = 0;
-        private static int textFieldRow = 1;
-        private static int textFieldRowExpansion = 0; // For multi-line input text field
+        private static readonly object s_ThreadLock = new();
+        private static string s_Input = "";
+        private static int s_LoggerMessageRow = 0;
+        private static int s_TextFieldColumn = 0;
+        private static int s_TextFieldRow = 1;
+        private static int s_TextFieldHeight = 0; // For multi-line input text field
 
         public static void MessagesThread()
         {
@@ -27,14 +27,14 @@ namespace GameServer
                 {
                     Task.Delay(100).Wait(); // Otherwise CPU resources will go to waste
 
-                    while (m_Messages.TryDequeue(out string message))
+                    while (s_Messages.TryDequeue(out string message))
                     {
 
 
                     }
 
                     Thread.Sleep(3000);
-                    lock (threadLock) 
+                    lock (s_ThreadLock) 
                     {
                         MoveTextInputFieldDown();
                         AddMessageToConsole("Test", false);
@@ -47,12 +47,12 @@ namespace GameServer
         {
             while (true)
             {
-                lock (threadLock)
-                    Console.CursorTop = textFieldRow + textFieldRowExpansion;
+                lock (s_ThreadLock)
+                    Console.CursorTop = s_TextFieldRow + s_TextFieldHeight;
 
                 var keyInfo = Console.ReadKey(true);
 
-                lock (threadLock) 
+                lock (s_ThreadLock) 
                 {
                     switch (keyInfo.Key) 
                     {
@@ -62,23 +62,23 @@ namespace GameServer
                             continue;
                         case ConsoleKey.Enter:
                             ClearTextInputField();
-                            AddMessageToConsole(input, true);
-                            input = "";
+                            AddMessageToConsole(s_Input, true);
+                            s_Input = "";
                             continue;
                     }
 
                     Console.Write(keyInfo.KeyChar);
-                    textFieldColumn++;
+                    s_TextFieldColumn++;
 
                     // Go to next line if text is long as window width
                     if (Console.CursorLeft == Console.WindowWidth - 1)
                     {
-                        textFieldRowExpansion++;
+                        s_TextFieldHeight++;
                         Console.CursorLeft = 0;
-                        textFieldColumn = 0;
+                        s_TextFieldColumn = 0;
                     }
 
-                    input += keyInfo.KeyChar;
+                    s_Input += keyInfo.KeyChar;
                 }
             }
         }
@@ -87,43 +87,43 @@ namespace GameServer
         {
             // Set the cursor to the logger area
             Console.CursorLeft = 0;
-            Console.CursorTop = loggerMessageRow;
+            Console.CursorTop = s_LoggerMessageRow;
             Console.WriteLine(message); // Console.WriteLine will place a new line character (Console.WriteLine also ensures no funny business happens when resizing the terminal)
-            Console.CursorTop += (1 + textFieldRowExpansion); // Move down more to get back to text field input
+            Console.CursorTop += (1 + s_TextFieldHeight); // Move down more to get back to text field input
 
             var lines = (int)Math.Ceiling((float)message.Length / Console.WindowWidth);
 
-            loggerMessageRow += lines;
-            textFieldRow += lines;
+            s_LoggerMessageRow += lines;
+            s_TextFieldRow += lines;
             
             if (fromUserKeyboard)
             {
-                textFieldColumn = 0;
-                textFieldRowExpansion = 0;
+                s_TextFieldColumn = 0;
+                s_TextFieldHeight = 0;
             }
             else 
             {
-                Console.CursorLeft = textFieldColumn;
+                Console.CursorLeft = s_TextFieldColumn;
             }
         }
 
         private static void MoveTextInputFieldDown() 
         {
             // Move the text input field
-            Console.CursorTop -= textFieldRowExpansion;
+            Console.CursorTop -= s_TextFieldHeight;
 
             Console.CursorLeft = 0;
             Console.Write(new string(' ', Console.WindowWidth));
 
             //textFieldRow += 1;
 
-            Console.Write(input);
+            Console.Write(s_Input);
         }
 
         private static void ClearTextInputField() 
         {
             // Clear the text input field
-            for (int i = 0; i < textFieldRowExpansion + 1; i++)
+            for (int i = 0; i < s_TextFieldHeight + 1; i++)
             {
                 Console.CursorLeft = 0;
                 Console.Write(new string(' ', Console.WindowWidth));
