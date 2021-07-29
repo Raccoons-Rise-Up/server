@@ -10,7 +10,7 @@ namespace GameServer
 {
     public class Logger
     {
-        public static readonly ConcurrentQueue<string> s_Messages = new();
+        private static readonly ConcurrentQueue<string> s_Messages = new();
 
         private static readonly object s_ThreadLock = new();
         private static string s_Input = "";
@@ -81,6 +81,11 @@ namespace GameServer
                     s_Input += keyInfo.KeyChar;
                 }
             }
+        }
+
+        public static void Log(object obj) 
+        {
+            s_Messages.Enqueue(obj.ToString());
         }
 
         private static void AddMessageToConsole(string message, bool fromUserKeyboard) 

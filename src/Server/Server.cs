@@ -71,7 +71,7 @@ namespace GameServer
 
                             case EventType.Connect:
                                 //Console.WriteLine("Client connected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
-                                Logger.m_Messages.Enqueue("Hello world");
+                                Logger.Log("Hello world");
                                 break;
 
                             case EventType.Disconnect:
