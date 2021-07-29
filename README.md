@@ -1,7 +1,9 @@
 # Game Server
+The game server that connects to all the clients.
 
-## Entity Framework Core - SQLite
-[Getting started with Entity Framework Core and SQLite](https://docs.microsoft.com/en-us/ef/core/get-started/overview/first-app?tabs=netcore-cli)
+## Contributing
+Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
 
-## Termina.Gui
-[Terminal.Gui API](https://migueldeicaza.github.io/gui.cs/articles/overview.html)
+## Contact
+- Discord: `valk#9904` [My Discord Server](https://discord.gg/thMupbv) (I have friend requests and DMs disabled outside of my server, by joining my Discord server you will be able to DM me directly)
+- Email: `sebastianbelle074@protonmail.com`
