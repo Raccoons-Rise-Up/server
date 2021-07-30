@@ -16,7 +16,8 @@ LogError("Oops!");
 // Colors
 Log("&3The &8red &yfox &bjumped &rover &4the &5fe&6n&7c&8e&9.");
 
-/* -------------------------------COLOR CODES-------------------------------
+// Color Codes
+/*
  * Black         &0 | Dark Gray     &1 | Gray          &2 | Dark Magenta  &3
  * Dark Blue     &4 | Dark Cyan     &5 | Dark Green    &6 | Dark Yellow   &7
  * Dark Red      &8 | Red           &9 | Blue          &b | Cyan          &c
