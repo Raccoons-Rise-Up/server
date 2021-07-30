@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Text;
 using System.Threading.Tasks;
 using Common.Networking.Packet;
@@ -15,6 +16,8 @@ namespace GameServer
     {
         public static void WorkerThread() 
         {
+            Thread.CurrentThread.Name = "SERVER";
+
             using (var db = new DatabaseContext())
             {
                 // Create
