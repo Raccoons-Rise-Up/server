@@ -2,7 +2,7 @@
 
 ## Setup
 ### .NET
-Make sure you have all the required tools to run dotnet projects. (I'm not sure myself how I setup this up, maybe someone can reinforce this part of the CONTRIBUTING.md document)
+Make sure all the required tools are installed to run dotnet projects. (I'm not sure myself how I setup this up, maybe someone can reinforce this part of the CONTRIBUTING.md document)
 
 ### Entity Framework Core - SQLite
 Run the following commands
@@ -10,6 +10,11 @@ Run the following commands
 dotnet tool install --global dotnet-ef
 dotnet ef migrations add InitialCreate
 dotnet ef database update
+```
+
+Everything should be setup now, start the project.
+```
+dotnet run
 ```
 
 ## Formatting Rules
