@@ -27,9 +27,6 @@ Log("&3The &8red &yfox &bjumped &rover &4the &5fe&6n&7c&8e&9.");
 ## Known Issues
 Please see [Issues](https://github.com/Kittens-Rise-Up/server/issues)
 
-## Preview
-![Untitled](https://user-images.githubusercontent.com/6277739/127713984-25b46c97-aba7-47f3-846c-83be1ba0c741.png)
-
 ## Contributing
 Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
 
