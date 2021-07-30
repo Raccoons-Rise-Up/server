@@ -4,6 +4,4 @@ The game server that connects to all the clients.
 ## Contributing
 Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
 
-## Contact
-- Discord: `valk#9904` [My Discord Server](https://discord.gg/thMupbv) (I have friend requests and DMs disabled outside of my server, by joining my Discord server you will be able to DM me directly)
-- Email: `sebastianbelle074@protonmail.com`
+Talk to `valk#9904` in the [Kittens Rise Up](https://discord.gg/cDNf8ja) discord for more info.
