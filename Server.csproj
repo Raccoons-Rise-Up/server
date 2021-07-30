@@ -6,14 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Colorful.Console" Version="1.2.15" />
     <PackageReference Include="ENet-CSharp" Version="2.4.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.8">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.8" />
-    <PackageReference Include="Terminal.Gui" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
