@@ -1,4 +1,4 @@
-# Game Server
+# Server
 A multi-threaded console / game server that handles logging, user commands and connections from clients.
 
 ## Features
