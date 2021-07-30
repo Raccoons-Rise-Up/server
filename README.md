@@ -15,12 +15,14 @@ LogError("Oops!");
 
 // Colors
 Log("&3The &8red &yfox &bjumped &rover &4the &5fe&6n&7c&8e&9.");
-```
 
-### Color Codes
-| Black | Dark Gray | Gray | Dark Magenta | Dark Blue | Dark Cyan | Dark Green | Dark Yellow | Dark Red | Red | Blue | Cyan | Green | Magenta | Yellow |
-|-------|-----------|------|--------------|-----------|-----------|------------|-------------|----------|-----|------|------|-------|---------|--------|
-| &0    | &1        | &2   | &3           | &4        | &5        | &6         | &7          | &8       | &9  | &b   | &c   | &g    | &m      | &y     |
+/* ===COLOR CODES===
+ * Black         &0 | Dark Gray     &1 | Gray          &2 | Dark Magenta  &3
+ * Dark Blue     &4 | Dark Cyan     &5 | Dark Green    &6 | Dark Yellow   &7
+ * Dark Red      &8 | Red           &9 | Blue          &b | Cyan          &c
+ * Green         &g | Magenta       &m | Yellow        &y
+ */
+```
 
 ## Known Issues
 Please see [Issues](https://github.com/Kittens-Rise-Up/server/issues)
