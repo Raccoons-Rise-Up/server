@@ -1,6 +1,14 @@
 # Game Server
-The game server that connects to all the clients.
+A multi-threaded console / game server that handles logging, user commands and connections from clients.
 
+## Features
+- Console logs messages from several threads and listens for user commands at the same time
+- Each character can have its own unique color (limited to the colors defined by `System.ConsoleColor`)
+
+## Known Issues
+Please see [Issues](https://github.com/Kittens-Rise-Up/server/issues)
+
+## Preview
 ![Untitled](https://user-images.githubusercontent.com/6277739/127713984-25b46c97-aba7-47f3-846c-83be1ba0c741.png)
 
 ## Contributing
