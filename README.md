@@ -7,7 +7,11 @@ A multi-threaded console / game server that handles logging, user commands and c
 - Each message shows a timestamp, the name of the thread and the log level
 - Delete characters with backspace, use left and right arrow keys for more control, navigate through command history with up and down arrow keys
 
-## Usage
+## Commands
+`help [cmd]` - Display a list of helpful commands or get specific information about a specified command.  
+`exit` - Allow the server to shutdown properly and then exit the application.  
+
+## Logging
 ```cs
 // Log levels
 Log("Hello world");
