@@ -105,16 +105,12 @@ namespace GameServer
 
                 lock (s_ThreadLock) 
                 {
-                    switch (keyInfo.Key) 
+                    if (keyInfo.Key == ConsoleKey.Enter) 
                     {
-                        case ConsoleKey.OemPlus: // DEBUG TEST
-                            Log("Hello world");
-                            continue;
-                        case ConsoleKey.Enter:
-                            ClearTextInputField();
-                            // TODO: Handle commands here...
-                            s_TextField.m_Input = "";
-                            continue;
+                        ClearTextInputField();
+                        // TODO: Handle commands here...
+                        s_TextField.m_Input = "";
+                        continue;
                     }
 
                     Console.Write(keyInfo.KeyChar);
@@ -138,10 +134,28 @@ namespace GameServer
             // Set the cursor to the logger area
             var prevTextFieldColumn = Console.CursorLeft;
 
+            // Add the message to the logger area
+            WriteColoredMessage(message);
+
+            // Reset cursor position to the text field area
+            Console.CursorTop += (1 + s_TextField.m_Height); // Move down more to get back to text field input
+
+            var lines = (int)Math.Ceiling((float)message.Length / Console.WindowWidth);
+
+            s_LoggerMessageRow += lines;
+            s_TextField.m_Row += lines;
+
+            s_TextField.m_Column = 0;
+            //s_TextField.m_Height = 0;
+            //Console.CursorLeft = s_TextField.m_Column - s_TextField.m_Height; // Is this line really necessary?
+
+            Console.CursorLeft = prevTextFieldColumn;
+        }
+
+        private static void WriteColoredMessage(string message) 
+        {
             Console.CursorLeft = 0;
             Console.CursorTop = s_LoggerMessageRow;
-
-            // Add the message to the logger area
 
             // Check for color codes in the message
             if (message.Contains('&'))
@@ -170,11 +184,11 @@ namespace GameServer
                         ResetColor();
                         continue;
                     }
-                    
+
                     // Check for valid char color code after &
                     var charColorCode = char.Parse(word[0..1]);
 
-                    if (charColorCode == 'r') 
+                    if (charColorCode == 'r')
                     {
                         ResetColor();
                         Console.Write(word[1..]);
@@ -196,35 +210,20 @@ namespace GameServer
                     }
 
                     // Did not find any color codes
-                    if (!foundCharColorCode) 
+                    if (!foundCharColorCode)
                     {
                         Console.Write(word);
                         ResetColor(); // Just for added measure
                     }
                 }
             }
-            else 
+            else
             {
                 // There are no color codes in the message, simply write it to the console
                 Console.Write(message);
             }
 
-            //Console.Write(message);
             Console.Write(Environment.NewLine);
-
-            // Reset cursor position to the text field area
-            Console.CursorTop += (1 + s_TextField.m_Height); // Move down more to get back to text field input
-
-            var lines = (int)Math.Ceiling((float)message.Length / Console.WindowWidth);
-
-            s_LoggerMessageRow += lines;
-            s_TextField.m_Row += lines;
-
-            s_TextField.m_Column = 0;
-            //s_TextField.m_Height = 0;
-            //Console.CursorLeft = s_TextField.m_Column - s_TextField.m_Height; // Is this line really necessary?
-
-            Console.CursorLeft = prevTextFieldColumn;
         }
 
         private static void ResetColor() 
