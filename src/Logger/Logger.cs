@@ -8,19 +8,19 @@ namespace GameServer
 {
     public class Logger
     {
-        private static readonly ConcurrentQueue<string> s_Messages = new();
+        // Colors
         private static readonly ConsoleColor[] s_NumColors = new ConsoleColor[10] // there can only be up to 10 num color codes [0..9]
         {
             ConsoleColor.Black,        // 0
             ConsoleColor.DarkGray,     // 1 (ConsoleColor.DarkGray and ConsoleColor.Gray seem to be the same color)
-            ConsoleColor.Gray,         // 2 ("g" conflicts with Green color)
+            ConsoleColor.Gray,         // 2 ('g' conflicts with Green color)
             ConsoleColor.DarkMagenta,  // 3
             ConsoleColor.DarkBlue,     // 4
             ConsoleColor.DarkCyan,     // 5
             ConsoleColor.DarkGreen,    // 6
             ConsoleColor.DarkYellow,   // 7
             ConsoleColor.DarkRed,      // 8
-            ConsoleColor.Red           // 9 ("r" is reserved for resetting the colors, "r" also conflicts with Red color)
+            ConsoleColor.Red           // 9 ('r' is reserved for resetting the colors, 'r' also conflicts with Red color)
         };
         private static readonly Dictionary<char, ConsoleColor> s_CharColors = new()
         {
@@ -31,8 +31,17 @@ namespace GameServer
             { 'y', ConsoleColor.Yellow }
         };
 
+        // Command History
+        private static readonly List<string> s_CommandHistory = new();
+        private static int s_CommandHistoryIndex = 0;
+        private const byte s_MaxHistoryCommands = 255;
+
+        // Text Field
         private static TextField s_TextField = new();
         private static readonly object s_ThreadLock = new();
+
+        // Logging
+        private static readonly ConcurrentQueue<string> s_Messages = new();
         private static int s_LoggerMessageRow = 0;
 
         public static void LogError(object obj) 
@@ -64,7 +73,7 @@ namespace GameServer
                 Thread.Sleep(3000);
                 lock (s_ThreadLock)
                 {
-                    Log("&yTe&rst");
+                    //Log("&yTe&rst");
                 }
             }
         }
@@ -105,10 +114,82 @@ namespace GameServer
 
                 lock (s_ThreadLock) 
                 {
+                    if (keyInfo.Key == ConsoleKey.Backspace) 
+                    {
+                        // Stay within the console window bounds
+                        if (Console.CursorLeft <= 0)
+                            continue;
+                        
+                        // Delete the character and move back one space
+                        Console.CursorLeft--;
+                        Console.Write(' ');
+                        Console.CursorLeft--;
+
+                        // Update the input variable
+                        s_TextField.m_Input = s_TextField.m_Input.Remove(s_TextField.m_Input.Length - 1, 1);
+                        continue;
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.LeftArrow) 
+                    {
+                        continue;
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.RightArrow)
+                    {
+                        continue;
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.DownArrow)
+                    {
+                        if (s_CommandHistory.Count < 1)
+                            continue;
+
+                        if (s_CommandHistoryIndex <= 1)
+                            continue;
+
+                        s_CommandHistoryIndex--;
+                        var nextCommand = s_CommandHistory[s_CommandHistory.Count - s_CommandHistoryIndex];
+
+                        ClearTextInputField();
+                        Console.CursorTop++;
+
+                        s_TextField.m_Input = nextCommand;
+                        Console.WriteLine(nextCommand);
+
+                        continue;
+                    }
+
+                    if (keyInfo.Key == ConsoleKey.UpArrow)
+                    {
+                        if (s_CommandHistory.Count < 1)
+                            continue;
+
+                        if (s_CommandHistoryIndex >= s_CommandHistory.Count)
+                            continue;
+
+                        var prevCommand = s_CommandHistory[s_CommandHistory.Count - 1 - s_CommandHistoryIndex];
+                        s_CommandHistoryIndex++;
+
+                        ClearTextInputField();
+                        Console.CursorTop++;
+
+                        s_TextField.m_Input = prevCommand;
+                        Console.WriteLine(prevCommand);
+
+                        continue;
+                    }
+
                     if (keyInfo.Key == ConsoleKey.Enter) 
                     {
                         ClearTextInputField();
                         // TODO: Handle commands here...
+
+                        if (s_CommandHistory.Count > s_MaxHistoryCommands) 
+                            s_CommandHistory.RemoveAt(0);
+
+                        s_CommandHistoryIndex = 0;
+                        s_CommandHistory.Add(s_TextField.m_Input);
                         s_TextField.m_Input = "";
                         continue;
                     }
