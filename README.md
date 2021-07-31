@@ -1,5 +1,9 @@
 # Server
-A multi-threaded console / game server that handles logging, user commands and connections from clients.
+
+## What is this?
+A multi-threaded console / game server that handles logging, user commands and ENet connections for Kittens Rise Up clients.
+
+I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the UI. This game-server follows thread safety and does not depend on any external API for the console.
 
 ## Features
 - Console logs messages from several threads and listens for user commands at the same time
