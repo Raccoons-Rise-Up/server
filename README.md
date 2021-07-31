@@ -5,6 +5,7 @@ A multi-threaded console / game server that handles logging, user commands and c
 - Console logs messages from several threads and listens for user commands at the same time
 - Each character can have its own unique color (limited to the colors defined by `System.ConsoleColor`)
 - Each message shows a timestamp, the name of the thread and the log level
+- Delete characters with backspace, use left and right arrow keys for more control, navigate through command history with up and down arrow keys
 
 ## Usage
 ```cs
