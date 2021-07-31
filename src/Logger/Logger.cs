@@ -119,6 +119,22 @@ namespace GameServer
                     if (keyInfo.Key == ConsoleKey.Spacebar) 
                         s_SpaceBarCount++;
 
+                    if (keyInfo.Key == ConsoleKey.Delete) 
+                    {
+                        Console.Write(' ');
+                        Console.CursorLeft--;
+
+                        // Update the input variable
+                        var input = s_TextField.m_Input;
+                        var cursorColumn = input.Length - 1 - Console.CursorLeft;
+                        s_TextField.m_Input = input.Remove(input.Length - 1 - cursorColumn, 1);
+
+                        // Since the input was edited, it needs to be redrawn
+                        RedrawTextInputField();
+
+                        continue;
+                    }
+
                     if (keyInfo.Key == ConsoleKey.Backspace) 
                     {
                         // Stay within the console window bounds
@@ -135,12 +151,8 @@ namespace GameServer
                         var cursorColumn = input.Length - 1 - Console.CursorLeft;
                         s_TextField.m_Input = input.Remove(input.Length - 1 - cursorColumn, 1);
 
-                        var prevCursorLeft = Console.CursorLeft;
-                        ClearTextInputField();
-                        Console.CursorTop++;
-
-                        Console.WriteLine(s_TextField.m_Input);
-                        Console.CursorLeft = prevCursorLeft;
+                        // Since the input was edited, it needs to be redrawn
+                        RedrawTextInputField();
                         continue;
                     }
 
@@ -246,6 +258,11 @@ namespace GameServer
                     Console.Write(keyInfo.KeyChar);
                     s_TextField.m_Input += keyInfo.KeyChar;
                     s_TextField.m_Column++;
+
+                    if (Console.CursorLeft >= Console.WindowWidth - 1) 
+                    {
+                        
+                    }
                 }
             }
         }
@@ -267,8 +284,6 @@ namespace GameServer
             s_TextField.m_Row += lines;
 
             s_TextField.m_Column = 0;
-            //s_TextField.m_Height = 0;
-            //Console.CursorLeft = s_TextField.m_Column - s_TextField.m_Height; // Is this line really necessary?
 
             Console.CursorLeft = prevTextFieldColumn;
         }
@@ -351,6 +366,16 @@ namespace GameServer
         {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        private static void RedrawTextInputField()
+        {
+            var prevCursorLeft = Console.CursorLeft;
+            ClearTextInputField();
+            Console.CursorTop++;
+
+            Console.WriteLine(s_TextField.m_Input);
+            Console.CursorLeft = prevCursorLeft;
         }
 
         private static void MoveTextInputFieldDown() 
