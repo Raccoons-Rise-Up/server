@@ -34,15 +34,17 @@ namespace GameServer
         // Command History
         private static readonly List<string> s_CommandHistory = new();
         private static int s_CommandHistoryIndex = 0;
-        private const byte s_MaxHistoryCommands = 255;
+        private const byte c_MaxHistoryCommands = 255;
 
         // Text Field
         private static TextField s_TextField = new();
         private static readonly object s_ThreadLock = new();
+        private static int s_SpaceBarCount = 0;
 
         // Logging
         private static readonly ConcurrentQueue<string> s_Messages = new();
         private static int s_LoggerMessageRow = 0;
+        private const int c_MessageThreadTickRate = 200;
 
         public static void LogError(object obj) 
         {
@@ -70,7 +72,7 @@ namespace GameServer
             while (true) 
             {
                 // Test message is sent every 3 seconds for debugging
-                Thread.Sleep(3000);
+                Thread.Sleep(10000);
                 lock (s_ThreadLock)
                 {
                     //Log("&yTe&rst");
@@ -86,7 +88,7 @@ namespace GameServer
 
             while (true)
             {
-                Thread.Sleep(200); // Otherwise CPU resources will go to waste
+                Thread.Sleep(c_MessageThreadTickRate); // Otherwise CPU resources will go to waste
 
                 lock (s_ThreadLock) 
                 {
@@ -108,12 +110,15 @@ namespace GameServer
             while (true)
             {
                 lock (s_ThreadLock)
-                    Console.CursorTop = s_TextField.m_Row + s_TextField.m_Height;
+                    Console.CursorTop = s_TextField.m_Row;
 
                 var keyInfo = Console.ReadKey(true);
 
                 lock (s_ThreadLock) 
                 {
+                    if (keyInfo.Key == ConsoleKey.Spacebar) 
+                        s_SpaceBarCount++;
+
                     if (keyInfo.Key == ConsoleKey.Backspace) 
                     {
                         // Stay within the console window bounds
@@ -126,17 +131,36 @@ namespace GameServer
                         Console.CursorLeft--;
 
                         // Update the input variable
-                        s_TextField.m_Input = s_TextField.m_Input.Remove(s_TextField.m_Input.Length - 1, 1);
+                        var input = s_TextField.m_Input;
+                        var cursorColumn = input.Length - 1 - Console.CursorLeft;
+                        s_TextField.m_Input = input.Remove(input.Length - 1 - cursorColumn, 1);
+
+                        var prevCursorLeft = Console.CursorLeft;
+                        ClearTextInputField();
+                        Console.CursorTop++;
+
+                        Console.WriteLine(s_TextField.m_Input);
+                        Console.CursorLeft = prevCursorLeft;
                         continue;
                     }
 
                     if (keyInfo.Key == ConsoleKey.LeftArrow) 
                     {
+                        // Stay within the console window bounds
+                        if (Console.CursorLeft <= 0)
+                            continue;
+
+                        Console.CursorLeft--;
                         continue;
                     }
 
                     if (keyInfo.Key == ConsoleKey.RightArrow)
                     {
+                        // Stay within the console window bounds
+                        if (Console.CursorLeft >= Console.WindowWidth - 1)
+                            continue;
+
+                        Console.CursorLeft++;
                         continue;
                     }
 
@@ -182,30 +206,46 @@ namespace GameServer
 
                     if (keyInfo.Key == ConsoleKey.Enter) 
                     {
-                        ClearTextInputField();
-                        // TODO: Handle commands here...
+                        var cmd = s_TextField.m_Input.Trim();
 
-                        if (s_CommandHistory.Count > s_MaxHistoryCommands) 
+                        // If the user spams spacebar but the cmd is still empty, reset the user input if enter is pressed
+                        if (cmd == "" && s_SpaceBarCount > 0) 
+                        {
+                            s_SpaceBarCount = 0;
+                            Console.CursorLeft = 0;
+                            s_TextField.m_Column = 0;
+                            s_TextField.m_Input = "";
+                            continue;
+                        }
+
+                        // Do not do anything if command string is empty
+                        if (cmd == "")
+                            continue;
+
+                        // TODO: Handle commands here...
+                        Log($"Unknown Command: '{cmd}'");
+
+                        // Only keep track of a set of previously entered commands
+                        if (s_CommandHistory.Count > c_MaxHistoryCommands) 
                             s_CommandHistory.RemoveAt(0);
 
+                        // Add command to command history
+                        s_CommandHistory.Add(cmd);
+
+                        // Reset command history index to 0 on enter
                         s_CommandHistoryIndex = 0;
-                        s_CommandHistory.Add(s_TextField.m_Input);
+
+                        // Reset input and text field input
+                        ClearTextInputField();
                         s_TextField.m_Input = "";
+                        s_SpaceBarCount = 0;
                         continue;
                     }
 
+                    // Write the character to the console and input, also keep track of text field column
                     Console.Write(keyInfo.KeyChar);
-                    s_TextField.m_Column++;
-
-                    // Go to next line if text is long as window width
-                    if (Console.CursorLeft == Console.WindowWidth - 1)
-                    {
-                        s_TextField.m_Height++;
-                        Console.CursorLeft = 0;
-                        s_TextField.m_Column = 0;
-                    }
-
                     s_TextField.m_Input += keyInfo.KeyChar;
+                    s_TextField.m_Column++;
                 }
             }
         }
@@ -219,7 +259,7 @@ namespace GameServer
             WriteColoredMessage(message);
 
             // Reset cursor position to the text field area
-            Console.CursorTop += (1 + s_TextField.m_Height); // Move down more to get back to text field input
+            Console.CursorTop++; // Move down more to get back to text field input
 
             var lines = (int)Math.Ceiling((float)message.Length / Console.WindowWidth);
 
@@ -316,20 +356,17 @@ namespace GameServer
         private static void MoveTextInputFieldDown() 
         {
             ClearTextInputField();
-            Console.CursorTop += 2;
 
+            Console.CursorTop += 2;
             Console.Write(s_TextField.m_Input);
         }
 
         private static void ClearTextInputField() 
         {
             // Clear the text input field
-            for (int i = 0; i < s_TextField.m_Height + 1; i++)
-            {
-                Console.CursorLeft = 0;
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.CursorTop -= 2;
-            }
+            Console.CursorLeft = 0;
+            Console.Write(new string(' ', Console.WindowWidth));
+            Console.CursorTop -= 2;
         }
 
         private struct TextField
@@ -337,7 +374,6 @@ namespace GameServer
             public string m_Input;
             public int m_Column;
             public int m_Row;
-            public int m_Height;
         }
 
         // TEST MESSAGE (2 lines)
