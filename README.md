@@ -10,7 +10,7 @@ I have tried using several networking libs in the past, none of them worked out 
 
 The only networking lib that stood out to me is [ENet-CSharp](https://github.com/nxrighthere/ENet-CSharp), I find it to be very simple and straight forward. Since the original repository has their issues closed, you'll find that [this repository](https://github.com/SoftwareGuy/ENet-CSharp) has theirs open and there are many people willing to help you with any questions you may have.
 
-I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the UI. This game-server follows thread safety and does not depend on any external API for the console.
+I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the console. This game-server follows thread safety and does not depend on any external API for the console.
 
 ## Server
 ### Features
