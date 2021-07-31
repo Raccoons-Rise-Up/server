@@ -22,13 +22,13 @@ namespace GameServer
             ConsoleColor.DarkRed,      // 8
             ConsoleColor.Red           // 9 ("r" is reserved for resetting the colors, "r" also conflicts with Red color)
         };
-        private static readonly Dictionary<string, ConsoleColor> s_CharColors = new()
+        private static readonly Dictionary<char, ConsoleColor> s_CharColors = new()
         {
-            { "b", ConsoleColor.Blue },
-            { "c", ConsoleColor.Cyan },
-            { "g", ConsoleColor.Green },
-            { "m", ConsoleColor.Magenta },
-            { "y", ConsoleColor.Yellow }
+            { 'b', ConsoleColor.Blue },
+            { 'c', ConsoleColor.Cyan },
+            { 'g', ConsoleColor.Green },
+            { 'm', ConsoleColor.Magenta },
+            { 'y', ConsoleColor.Yellow }
         };
 
         private static TextField s_TextField = new();
@@ -64,7 +64,7 @@ namespace GameServer
                 Thread.Sleep(3000);
                 lock (s_ThreadLock)
                 {
-                    Log("&6Te&gst");
+                    Log("&yTe&rst");
                 }
             }
         }
@@ -136,6 +136,8 @@ namespace GameServer
         private static void AddMessageToConsole(string message) 
         {
             // Set the cursor to the logger area
+            var prevTextFieldColumn = Console.CursorLeft;
+
             Console.CursorLeft = 0;
             Console.CursorTop = s_LoggerMessageRow;
 
@@ -170,9 +172,9 @@ namespace GameServer
                     }
                     
                     // Check for valid char color code after &
-                    var charColorCode = word[0..1];
+                    var charColorCode = char.Parse(word[0..1]);
 
-                    if (charColorCode == "r") 
+                    if (charColorCode == 'r') 
                     {
                         ResetColor();
                         Console.Write(word[1..]);
@@ -220,7 +222,9 @@ namespace GameServer
 
             s_TextField.m_Column = 0;
             //s_TextField.m_Height = 0;
-            Console.CursorLeft = s_TextField.m_Column - s_TextField.m_Height;
+            //Console.CursorLeft = s_TextField.m_Column - s_TextField.m_Height; // Is this line really necessary?
+
+            Console.CursorLeft = prevTextFieldColumn;
         }
 
         private static void ResetColor() 
