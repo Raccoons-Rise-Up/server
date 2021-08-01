@@ -308,7 +308,7 @@ namespace GameServer
                     // Check for valid int color code after &
                     if (int.TryParse(word[0..1], out int intColorCode))
                     {
-                        Console.ForegroundColor = Color.s_NumColorCodes[intColorCode];
+                        Console.ForegroundColor = LoggerColor.s_NumColorCodes[intColorCode];
                         Console.Write(word[1..]);
                         ResetColor();
                         continue;
@@ -326,11 +326,11 @@ namespace GameServer
 
                     var foundCharColorCode = false;
 
-                    foreach (var entry in Color.s_CharColorCodes)
+                    foreach (var entry in LoggerColor.s_CharColorCodes)
                     {
                         if (charColorCode == entry.Key)
                         {
-                            Console.ForegroundColor = Color.s_CharColorCodes[charColorCode];
+                            Console.ForegroundColor = LoggerColor.s_CharColorCodes[charColorCode];
                             Console.Write(word[1..]);
                             ResetColor();
                             foundCharColorCode = true;

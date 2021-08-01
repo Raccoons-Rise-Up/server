@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameServer
 {
-    public static class Color
+    public static class LoggerColor
     {
         public static readonly ConsoleColor[] s_NumColorCodes = new ConsoleColor[10] // there can only be up to 10 num color codes [0..9]
         {
