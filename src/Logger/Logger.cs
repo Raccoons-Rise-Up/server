@@ -131,11 +131,16 @@ namespace GameServer
 
                     if (keyInfo.Key == ConsoleKey.Delete) 
                     {
+                        var input = s_TextField.m_Input;
+
+                        if (input == "" || Console.CursorLeft == input.Length)
+                            continue;
+
                         Console.Write(' ');
                         Console.CursorLeft--;
 
                         // Update the input variable
-                        var input = s_TextField.m_Input;
+                        
                         var cursorColumn = input.Length - 1 - Console.CursorLeft;
                         s_TextField.m_Input = input.Remove(input.Length - 1 - cursorColumn, 1);
 

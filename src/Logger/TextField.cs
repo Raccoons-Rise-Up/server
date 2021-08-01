@@ -16,7 +16,7 @@ namespace GameServer
         {
             var prevCursorLeft = Console.CursorLeft;
             Clear();
-            Console.CursorTop++;
+            //Console.CursorTop++;
 
             Console.WriteLine(m_Input);
             Console.CursorLeft = prevCursorLeft;
@@ -26,7 +26,7 @@ namespace GameServer
         {
             Clear();
 
-            Console.CursorTop += 2;
+            //Console.CursorTop++;
             Console.Write(m_Input);
         }
 
@@ -35,7 +35,7 @@ namespace GameServer
             // Clear the text input field
             Console.CursorLeft = 0;
             Console.Write(new string(' ', Console.WindowWidth));
-            Console.CursorTop -= 2;
+            Console.CursorTop--;
         }
     }
 }
