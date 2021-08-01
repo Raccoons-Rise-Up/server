@@ -24,7 +24,7 @@ namespace GameServer
         private const byte c_MaxHistoryCommands = 255;
 
         // Text Field
-        private static readonly TextField s_TextField = new();
+        private static readonly LoggerTextField s_TextField = new();
         private static readonly object s_ThreadLock = new();
         private static int s_SpaceBarCount;
 

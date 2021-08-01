@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameServer
 {
-    public class TextField
+    public class LoggerTextField
     {
         public string m_Input;
         public int m_Column;
