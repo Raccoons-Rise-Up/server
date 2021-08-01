@@ -15,7 +15,7 @@ namespace GameServer
         public void Redraw()
         {
             var prevCursorLeft = Console.CursorLeft;
-            Clear();
+            Clear(false);
 
             Console.WriteLine(m_Input);
             Console.CursorLeft = prevCursorLeft;
@@ -23,17 +23,23 @@ namespace GameServer
 
         public void MoveDown()
         {
-            Clear();
+            var prevCursorLeft = Console.CursorLeft;
+            Clear(false);
+            Console.CursorTop++;
+
 
             Console.Write(m_Input);
+
+            Console.CursorLeft = prevCursorLeft;
         }
 
         /// <summary>
         /// Clear the text field input
         /// </summary>
-        public void Clear()
+        public void Clear(bool clearInput)
         {
-            m_Input = "";
+            if (clearInput)
+                m_Input = "";
 
             Console.CursorLeft = 0;
             Console.Write(new string(' ', Console.WindowWidth));

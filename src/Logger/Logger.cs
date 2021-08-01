@@ -8,29 +8,6 @@ namespace GameServer
 {
     public class Logger
     {
-        // Colors
-        private static readonly ConsoleColor[] s_NumColors = new ConsoleColor[10] // there can only be up to 10 num color codes [0..9]
-        {
-            ConsoleColor.Black,        // 0
-            ConsoleColor.DarkGray,     // 1 (ConsoleColor.DarkGray and ConsoleColor.Gray seem to be the same color)
-            ConsoleColor.Gray,         // 2 ('g' conflicts with Green color)
-            ConsoleColor.DarkMagenta,  // 3
-            ConsoleColor.DarkBlue,     // 4
-            ConsoleColor.DarkCyan,     // 5
-            ConsoleColor.DarkGreen,    // 6
-            ConsoleColor.DarkYellow,   // 7
-            ConsoleColor.DarkRed,      // 8
-            ConsoleColor.Red           // 9 ('r' is reserved for resetting the colors, 'r' also conflicts with Red color)
-        };
-        private static readonly Dictionary<char, ConsoleColor> s_CharColors = new()
-        {
-            { 'b', ConsoleColor.Blue },
-            { 'c', ConsoleColor.Cyan },
-            { 'g', ConsoleColor.Green },
-            { 'm', ConsoleColor.Magenta },
-            { 'y', ConsoleColor.Yellow }
-        };
-
         // Commands
         private static readonly Dictionary<string, Command> s_Commands = typeof(Command).Assembly.GetTypes()
             .Where(x => typeof(Command)
@@ -47,7 +24,7 @@ namespace GameServer
         private const byte c_MaxHistoryCommands = 255;
 
         // Text Field
-        private static TextField s_TextField = new();
+        private static readonly TextField s_TextField = new();
         private static readonly object s_ThreadLock = new();
         private static int s_SpaceBarCount = 0;
 
@@ -82,10 +59,10 @@ namespace GameServer
             while (true) 
             {
                 // Test message is sent every 3 seconds for debugging
-                Thread.Sleep(10000);
+                Thread.Sleep(3000);
                 lock (s_ThreadLock)
                 {
-                    //Log("&yTe&rst");
+                    Log("&yTe&rst");
                 }
             }
         }
@@ -203,7 +180,7 @@ namespace GameServer
                         var nextCommand = s_CommandHistory[s_CommandHistory.Count - s_CommandHistoryIndex];
 
                         s_TextField.m_Input = nextCommand;
-                        s_TextField.Clear();
+                        s_TextField.Clear(false);
 
                         Console.WriteLine(nextCommand);
 
@@ -222,7 +199,7 @@ namespace GameServer
                         s_CommandHistoryIndex++;
 
                         s_TextField.m_Input = prevCommand;
-                        s_TextField.Clear();
+                        s_TextField.Clear(false);
 
                         Console.WriteLine(prevCommand);
 
@@ -265,7 +242,7 @@ namespace GameServer
                         s_CommandHistoryIndex = 0;
 
                         // Reset input and text field input
-                        s_TextField.Clear();
+                        s_TextField.Clear(true);
                         s_SpaceBarCount = 0;
                         continue;
                     }
@@ -331,7 +308,7 @@ namespace GameServer
                     // Check for valid int color code after &
                     if (int.TryParse(word[0..1], out int intColorCode))
                     {
-                        Console.ForegroundColor = s_NumColors[intColorCode];
+                        Console.ForegroundColor = Color.s_NumColorCodes[intColorCode];
                         Console.Write(word[1..]);
                         ResetColor();
                         continue;
@@ -349,11 +326,11 @@ namespace GameServer
 
                     var foundCharColorCode = false;
 
-                    foreach (var entry in s_CharColors)
+                    foreach (var entry in Color.s_CharColorCodes)
                     {
                         if (charColorCode == entry.Key)
                         {
-                            Console.ForegroundColor = s_CharColors[charColorCode];
+                            Console.ForegroundColor = Color.s_CharColorCodes[charColorCode];
                             Console.Write(word[1..]);
                             ResetColor();
                             foundCharColorCode = true;
