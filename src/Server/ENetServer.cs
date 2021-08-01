@@ -25,16 +25,16 @@ namespace GameServer.Server
                 db.SaveChanges();
 
                 // Read
-                //Console.WriteLine("Query for player");
+                Logger.Log("Query for player");
                 var player = db.Players.First();
 
                 // Update
-                //Console.WriteLine("Updating the player");
+                Logger.Log("Updating the player");
                 player.Gold = 200;
                 db.SaveChanges();
 
                 // Delete
-                //Console.WriteLine("Delete the player");
+                Logger.Log("Delete the player");
                 db.Remove(player);
                 db.SaveChanges();
             }
@@ -73,20 +73,19 @@ namespace GameServer.Server
                                 break;
 
                             case EventType.Connect:
-                                //Console.WriteLine("Client connected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
-                                Logger.Log("Hello world");
+                                Logger.Log("Client connected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
                                 break;
 
                             case EventType.Disconnect:
-                                Console.WriteLine("Client disconnected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
+                                Logger.Log("Client disconnected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
                                 break;
 
                             case EventType.Timeout:
-                                Console.WriteLine("Client timeout - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
+                                Logger.Log("Client timeout - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
                                 break;
 
                             case EventType.Receive:
-                                Console.WriteLine("Packet received from - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP + ", Channel ID: " + netEvent.ChannelID + ", Data length: " + netEvent.Packet.Length);
+                                Logger.Log("Packet received from - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP + ", Channel ID: " + netEvent.ChannelID + ", Data length: " + netEvent.Packet.Length);
 
                                 var packet = netEvent.Packet;
 
@@ -104,8 +103,8 @@ namespace GameServer.Server
                                 var packetReader = new PacketReader(readBuffer);
                                 data.Read(packetReader);
 
-                                Console.WriteLine(data.m_ID);
-                                Console.WriteLine(data.m_ItemID);
+                                Logger.Log(data.m_ID);
+                                Logger.Log(data.m_ItemID);
 
                                 packet.Dispose();
                                 break;

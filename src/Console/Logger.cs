@@ -252,6 +252,7 @@ namespace GameServer.Logging
 
                     // Write the character to the console and input, also keep track of text field column
                     Console.Write(keyInfo.KeyChar);
+
                     s_TextField.m_Input += keyInfo.KeyChar;
                     s_TextField.m_Column++;
 
