@@ -27,8 +27,7 @@ namespace GameServer
             Clear(false);
             Console.CursorTop++;
 
-
-            Console.Write(m_Input);
+            Console.WriteLine(m_Input);
 
             Console.CursorLeft = prevCursorLeft;
         }

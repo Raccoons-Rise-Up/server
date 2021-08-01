@@ -20,17 +20,17 @@ namespace GameServer
 
         // Command History
         private static readonly List<string> s_CommandHistory = new();
-        private static int s_CommandHistoryIndex = 0;
+        private static int s_CommandHistoryIndex;
         private const byte c_MaxHistoryCommands = 255;
 
         // Text Field
         private static readonly TextField s_TextField = new();
         private static readonly object s_ThreadLock = new();
-        private static int s_SpaceBarCount = 0;
+        private static int s_SpaceBarCount;
 
         // Logging
         private static readonly ConcurrentQueue<string> s_Messages = new();
-        private static int s_LoggerMessageRow = 0;
+        private static int s_LoggerMessageRow;
         private const int c_MessageThreadTickRate = 200;
 
         public static void LogError(object obj) 
@@ -254,7 +254,7 @@ namespace GameServer
 
                     if (Console.CursorLeft >= Console.WindowWidth - 1) 
                     {
-                        
+                        // TODO: Make input text field scroll horizontally
                     }
                 }
             }
