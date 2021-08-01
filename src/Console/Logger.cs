@@ -274,14 +274,17 @@ namespace GameServer.Logging
             // Reset cursor position to the text field area
             Console.CursorTop++; // Move down more to get back to text field input
 
-            //var lines = (int)Math.Ceiling((float)message.Length / Console.WindowWidth);
+            // Calculate the number of lines needed from this message
             var lines = message.GetLines();
 
+            // Move the logger area and text field area down by 'lines'
             s_LoggerMessageRow += lines;
             s_TextField.m_Row += lines;
 
+            // Reset text field column
             s_TextField.m_Column = 0;
 
+            // Put cursor left back to where it previously was
             Console.CursorLeft = prevTextFieldColumn;
         }
 
