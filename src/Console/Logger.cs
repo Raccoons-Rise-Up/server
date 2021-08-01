@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
+using GameServer.Logging.Commands;
 
-namespace GameServer
+namespace GameServer.Logging
 {
     public class Logger
     {

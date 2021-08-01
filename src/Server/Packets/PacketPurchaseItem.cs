@@ -2,7 +2,7 @@
 using Common.Networking.IO;
 using Common.Networking.Packet;
 
-namespace GameServer.Packets
+namespace GameServer.Server.Packets
 {
     // ================================== Sizes ==================================
     // sbyte   -128 to 127                                                   SByte

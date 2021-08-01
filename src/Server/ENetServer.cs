@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
-using GameServer.Packets;
-using System.IO;
+using GameServer.Server.Packets;
+using GameServer.Database;
+using GameServer.Logging;
 
-namespace GameServer
+namespace GameServer.Server
 {
-    public class Server
+    public class ENetServer
     {
         public static void WorkerThread() 
         {

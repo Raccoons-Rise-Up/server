@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Linq;
+using GameServer.Logging;
+using GameServer.Server;
 
 namespace GameServer
 {
@@ -20,7 +22,7 @@ namespace GameServer
 
         public static void StartServer() 
         {
-            new Thread(Server.WorkerThread).Start();
+            new Thread(ENetServer.WorkerThread).Start();
         }
     }
 }

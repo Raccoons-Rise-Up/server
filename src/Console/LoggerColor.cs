@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GameServer
+namespace GameServer.Logging
 {
     public static class LoggerColor
     {

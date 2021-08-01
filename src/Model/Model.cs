@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace GameServer
+namespace GameServer.Database
 {
     public class DatabaseContext : DbContext
     {
