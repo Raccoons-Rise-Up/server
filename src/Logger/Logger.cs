@@ -31,6 +31,16 @@ namespace GameServer
             { 'y', ConsoleColor.Yellow }
         };
 
+        // Commands
+        private static readonly Dictionary<string, Command> s_Commands = typeof(Command).Assembly.GetTypes()
+            .Where(x => typeof(Command)
+            .IsAssignableFrom(x) && !x.IsAbstract)
+            .Select(Activator.CreateInstance)
+            .Cast<Command>()
+            .ToDictionary(x => x.GetType().Name
+            .Replace("Command", "")
+            .ToLower(), x => x);
+
         // Command History
         private static readonly List<string> s_CommandHistory = new();
         private static int s_CommandHistoryIndex = 0;
@@ -94,7 +104,7 @@ namespace GameServer
                 {
                     while (s_Messages.TryDequeue(out string message))
                     {
-                        MoveTextInputFieldDown();
+                        s_TextField.MoveDown();
                         AddMessageToConsole(message);
                     }
                 }
@@ -130,7 +140,7 @@ namespace GameServer
                         s_TextField.m_Input = input.Remove(input.Length - 1 - cursorColumn, 1);
 
                         // Since the input was edited, it needs to be redrawn
-                        RedrawTextInputField();
+                        s_TextField.Redraw();
 
                         continue;
                     }
@@ -152,7 +162,7 @@ namespace GameServer
                         s_TextField.m_Input = input.Remove(input.Length - 1 - cursorColumn, 1);
 
                         // Since the input was edited, it needs to be redrawn
-                        RedrawTextInputField();
+                        s_TextField.Redraw();
                         continue;
                     }
 
@@ -187,7 +197,7 @@ namespace GameServer
                         s_CommandHistoryIndex--;
                         var nextCommand = s_CommandHistory[s_CommandHistory.Count - s_CommandHistoryIndex];
 
-                        ClearTextInputField();
+                        s_TextField.Clear();
                         Console.CursorTop++;
 
                         s_TextField.m_Input = nextCommand;
@@ -207,7 +217,7 @@ namespace GameServer
                         var prevCommand = s_CommandHistory[s_CommandHistory.Count - 1 - s_CommandHistoryIndex];
                         s_CommandHistoryIndex++;
 
-                        ClearTextInputField();
+                        s_TextField.Clear();
                         Console.CursorTop++;
 
                         s_TextField.m_Input = prevCommand;
@@ -218,7 +228,9 @@ namespace GameServer
 
                     if (keyInfo.Key == ConsoleKey.Enter) 
                     {
-                        var cmd = s_TextField.m_Input.Trim();
+                        var inputArr = s_TextField.m_Input.Trim().ToLower().Split(' ');
+                        var cmd = inputArr[0];
+                        var args = inputArr.Skip(1).ToArray();
 
                         // If the user spams spacebar but the cmd is still empty, reset the user input if enter is pressed
                         if (cmd == "" && s_SpaceBarCount > 0) 
@@ -234,8 +246,10 @@ namespace GameServer
                         if (cmd == "")
                             continue;
 
-                        // TODO: Handle commands here...
-                        Log($"Unknown Command: '{cmd}'");
+                        if (s_Commands.ContainsKey(cmd))
+                            s_Commands[cmd].Run(args);
+                        else
+                            Log($"Unknown Command: '{cmd}'");
 
                         // Only keep track of a set of previously entered commands
                         if (s_CommandHistory.Count > c_MaxHistoryCommands) 
@@ -248,7 +262,7 @@ namespace GameServer
                         s_CommandHistoryIndex = 0;
 
                         // Reset input and text field input
-                        ClearTextInputField();
+                        s_TextField.Clear();
                         s_TextField.m_Input = "";
                         s_SpaceBarCount = 0;
                         continue;
@@ -366,39 +380,6 @@ namespace GameServer
         {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.ForegroundColor = ConsoleColor.White;
-        }
-
-        private static void RedrawTextInputField()
-        {
-            var prevCursorLeft = Console.CursorLeft;
-            ClearTextInputField();
-            Console.CursorTop++;
-
-            Console.WriteLine(s_TextField.m_Input);
-            Console.CursorLeft = prevCursorLeft;
-        }
-
-        private static void MoveTextInputFieldDown() 
-        {
-            ClearTextInputField();
-
-            Console.CursorTop += 2;
-            Console.Write(s_TextField.m_Input);
-        }
-
-        private static void ClearTextInputField() 
-        {
-            // Clear the text input field
-            Console.CursorLeft = 0;
-            Console.Write(new string(' ', Console.WindowWidth));
-            Console.CursorTop -= 2;
-        }
-
-        private struct TextField
-        {
-            public string m_Input;
-            public int m_Column;
-            public int m_Row;
         }
 
         // TEST MESSAGE (2 lines)
