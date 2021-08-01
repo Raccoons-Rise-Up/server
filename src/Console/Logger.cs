@@ -30,7 +30,7 @@ namespace GameServer.Logging
         private static int s_SpaceBarCount;
 
         // Logging
-        private static readonly ConcurrentQueue<string> s_Messages = new();
+        private static readonly ConcurrentQueue<LoggerMessage> s_Messages = new();
         private static int s_LoggerMessageRow;
         private const int c_MessageThreadTickRate = 200;
 
@@ -48,7 +48,9 @@ namespace GameServer.Logging
         {
             var time = $"{DateTime.Now:HH:mm:ss}";
             var thread = Thread.CurrentThread.Name;
-            var message = $"{color}{time} [{thread}] [{logLevel}] {obj}";
+            var str = $"{color}{time} [{thread}] [{logLevel}] {obj}";
+
+            var message = new LoggerMessage(str);
 
             s_Messages.Enqueue(message);
         }
@@ -80,7 +82,7 @@ namespace GameServer.Logging
 
                 lock (s_ThreadLock) 
                 {
-                    while (s_Messages.TryDequeue(out string message))
+                    while (s_Messages.TryDequeue(out LoggerMessage message))
                     {
                         s_TextField.MoveDown();
                         AddMessageToConsole(message);
@@ -261,18 +263,19 @@ namespace GameServer.Logging
             }
         }
 
-        private static void AddMessageToConsole(string message) 
+        private static void AddMessageToConsole(LoggerMessage message) 
         {
             // Set the cursor to the logger area
             var prevTextFieldColumn = Console.CursorLeft;
 
             // Add the message to the logger area
-            WriteColoredMessage(message);
+            WriteColoredMessage(message.m_Text);
 
             // Reset cursor position to the text field area
             Console.CursorTop++; // Move down more to get back to text field input
 
-            var lines = (int)Math.Ceiling((float)message.Length / Console.WindowWidth);
+            //var lines = (int)Math.Ceiling((float)message.Length / Console.WindowWidth);
+            var lines = message.GetLines();
 
             s_LoggerMessageRow += lines;
             s_TextField.m_Row += lines;
