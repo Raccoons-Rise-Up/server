@@ -12,6 +12,9 @@ namespace GameServer
         public int m_Column;
         public int m_Row;
 
+        /// <summary>
+        /// Redraw the text field
+        /// </summary>
         public void Redraw()
         {
             var prevCursorLeft = Console.CursorLeft;
@@ -21,6 +24,9 @@ namespace GameServer
             Console.CursorLeft = prevCursorLeft;
         }
 
+        /// <summary>
+        /// Move the text field down
+        /// </summary>
         public void MoveDown()
         {
             var prevCursorLeft = Console.CursorLeft;
@@ -33,7 +39,7 @@ namespace GameServer
         }
 
         /// <summary>
-        /// Clear the text field input
+        /// Clear the text field display and optionally clear the input
         /// </summary>
         public void Clear(bool clearInput)
         {
