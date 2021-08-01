@@ -33,7 +33,8 @@ namespace GameServer
         /// </summary>
         public void Clear()
         {
-            // Clear the text input field
+            m_Input = "";
+
             Console.CursorLeft = 0;
             Console.Write(new string(' ', Console.WindowWidth));
             Console.CursorTop--;

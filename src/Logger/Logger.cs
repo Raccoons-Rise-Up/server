@@ -266,7 +266,6 @@ namespace GameServer
 
                         // Reset input and text field input
                         s_TextField.Clear();
-                        s_TextField.m_Input = "";
                         s_SpaceBarCount = 0;
                         continue;
                     }
