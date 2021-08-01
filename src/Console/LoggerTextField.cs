@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace GameServer.Logging
 {
     public class LoggerTextField
     {
-        public string m_Input = "";
+        public string m_Input;
         public int m_Column;
         public int m_Row;
 
