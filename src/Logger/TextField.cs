@@ -16,7 +16,6 @@ namespace GameServer
         {
             var prevCursorLeft = Console.CursorLeft;
             Clear();
-            //Console.CursorTop++;
 
             Console.WriteLine(m_Input);
             Console.CursorLeft = prevCursorLeft;
@@ -26,10 +25,12 @@ namespace GameServer
         {
             Clear();
 
-            //Console.CursorTop++;
             Console.Write(m_Input);
         }
 
+        /// <summary>
+        /// Clear the text field input
+        /// </summary>
         public void Clear()
         {
             // Clear the text input field

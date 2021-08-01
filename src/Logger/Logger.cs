@@ -202,10 +202,9 @@ namespace GameServer
                         s_CommandHistoryIndex--;
                         var nextCommand = s_CommandHistory[s_CommandHistory.Count - s_CommandHistoryIndex];
 
-                        s_TextField.Clear();
-                        Console.CursorTop++;
-
                         s_TextField.m_Input = nextCommand;
+                        s_TextField.Clear();
+
                         Console.WriteLine(nextCommand);
 
                         continue;
@@ -222,10 +221,9 @@ namespace GameServer
                         var prevCommand = s_CommandHistory[s_CommandHistory.Count - 1 - s_CommandHistoryIndex];
                         s_CommandHistoryIndex++;
 
-                        s_TextField.Clear();
-                        Console.CursorTop++;
-
                         s_TextField.m_Input = prevCommand;
+                        s_TextField.Clear();
+
                         Console.WriteLine(prevCommand);
 
                         continue;
