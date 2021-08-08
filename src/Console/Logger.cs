@@ -56,26 +56,9 @@ namespace GameServer.Logging
             s_Messages.Enqueue(message);
         }
 
-        private static void TestThread() 
-        {
-            Thread.CurrentThread.Name = "TEST";
-
-            while (true) 
-            {
-                // Test message is sent every 3 seconds for debugging
-                Thread.Sleep(3000);
-                lock (s_ThreadLock)
-                {
-                    Log("&yTe&rst");
-                }
-            }
-        }
-
         public static void MessagesThread()
         {
             Thread.CurrentThread.Name = "CONSOLE";
-
-            new Thread(TestThread).Start(); // temporary
 
             while (true)
             {
@@ -375,6 +358,6 @@ namespace GameServer.Logging
         }
 
         // TEST MESSAGE (2 lines)
-        // The red fox jumped over the fence and he was happy because of his nice life in the world of blues of life of world of happiness and prosperity yes indeed!
+        // TheredfoxjumpedoverthefenceTheredfoxjumpedoverthefenceTheredfoxjumpedoverthefenceTheredfoxjumpedoverthefenceTheredfoxjumpedoverthefenceTheredfoxjumpedoverthefenceTheredfoxjumpedoverthefenceTheredfoxjumpedoverthefenceTheredfoxjumpedoverthefence
     }
 }
