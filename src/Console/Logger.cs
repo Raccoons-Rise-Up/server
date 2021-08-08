@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using GameServer.Logging.Commands;
+using System.Runtime.InteropServices;
 
 namespace GameServer.Logging
 {
@@ -94,6 +95,10 @@ namespace GameServer.Logging
         public static void InputThread()
         {
             Thread.CurrentThread.Name = "CONSOLE";
+
+            Terminal.DisableMinimize();
+            Terminal.DisableMaximize();
+            Terminal.DisableResize();
 
             s_TextField.m_Row = 1; // Keep the text field 1 row ahead of the logged messages
 
