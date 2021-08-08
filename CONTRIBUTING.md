@@ -17,6 +17,9 @@ Everything should be setup now, start the project.
 dotnet run
 ```
 
+## Notes
+- Do not forget to lock threads that are reading or writing from the same variables
+
 ## Formatting Rules
 - Methods should follow PascalFormat
 - If using `{}` please fully expand
