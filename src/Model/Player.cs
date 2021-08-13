@@ -10,5 +10,6 @@ namespace GameServer.Database
     {
         public int PlayerId { get; set; }
         public int Gold { get; set; }
+        public int StructureHut { get; set; }
     }
 }
