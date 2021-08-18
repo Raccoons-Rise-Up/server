@@ -20,10 +20,10 @@ dotnet run
 ## Notes
 - Do not forget to lock threads that are reading or writing from the same variables
 
-## Formatting Rules
+## Formatting Guidelines
 - Methods should follow PascalFormat
 - If using `{}` please fully expand
-- Field members should start with `m_`, static fields with `s_`, constants with `c_` (e.g. `m_VariableName`)
+- Variables should be camelCase regardless if private or public
 - Try to use `var` where ever possible
 
 ## Creating a Pull Request
