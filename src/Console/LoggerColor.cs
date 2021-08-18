@@ -8,7 +8,7 @@ namespace GameServer.Logging
 {
     public static class LoggerColor
     {
-        public static readonly ConsoleColor[] s_NumColorCodes = new ConsoleColor[10] // there can only be up to 10 num color codes [0..9]
+        public static readonly ConsoleColor[] numColorCodes = new ConsoleColor[10] // there can only be up to 10 num color codes [0..9]
         {
             ConsoleColor.Black,        // 0
             ConsoleColor.DarkGray,     // 1 (ConsoleColor.DarkGray and ConsoleColor.Gray seem to be the same color)
@@ -22,7 +22,7 @@ namespace GameServer.Logging
             ConsoleColor.Red           // 9 ('r' is reserved for resetting the colors, 'r' also conflicts with Red color)
         };
 
-        public static readonly Dictionary<char, ConsoleColor> s_CharColorCodes = new()
+        public static readonly Dictionary<char, ConsoleColor> charColorCodes = new()
         {
             { 'b', ConsoleColor.Blue },
             { 'c', ConsoleColor.Cyan },

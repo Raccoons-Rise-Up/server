@@ -8,9 +8,9 @@ namespace GameServer.Logging
 {
     public class LoggerTextField
     {
-        public string m_Input;
-        public int m_Column;
-        public int m_Row;
+        public string input;
+        public int column;
+        public int row;
 
         /// <summary>
         /// Redraw the text field
@@ -20,7 +20,7 @@ namespace GameServer.Logging
             var prevCursorLeft = Console.CursorLeft;
             Clear(false);
 
-            Console.WriteLine(m_Input);
+            Console.WriteLine(input);
             Console.CursorLeft = prevCursorLeft;
         }
 
@@ -33,7 +33,7 @@ namespace GameServer.Logging
             Clear(false);
             Console.CursorTop++;
 
-            Console.WriteLine(m_Input);
+            Console.WriteLine(input);
 
             Console.CursorLeft = prevCursorLeft;
         }
@@ -44,7 +44,7 @@ namespace GameServer.Logging
         public void Clear(bool clearInput)
         {
             if (clearInput)
-                m_Input = "";
+                input = "";
 
             Console.CursorLeft = 0;
             Console.Write(new string(' ', Console.WindowWidth));

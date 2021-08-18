@@ -84,12 +84,12 @@ namespace GameServer.Server
                                     var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
-                                    if (data.m_ItemID == 0)
+                                    if (data.itemId == 0)
                                     {
                                         using var db = new DatabaseContext();
 
                                         // Create
-                                        db.Add(new Player { Gold = 100 });
+                                        db.Add(new Player { gold = 100 });
                                         db.SaveChanges();
 
                                         // Read
@@ -98,7 +98,7 @@ namespace GameServer.Server
 
                                         // Update
                                         Logger.Log("Updating the player");
-                                        player.StructureHut++;
+                                        player.structureHut++;
 
                                         db.SaveChanges();
 
@@ -109,7 +109,7 @@ namespace GameServer.Server
                                     }
 
                                     
-                                    var packetData = new PacketPurchasedItem((ushort)data.m_ItemID);
+                                    var packetData = new PacketPurchasedItem((ushort)data.itemId);
                                     var serverPacket = new ServerPacket(ServerPacketType.PurchasedItem, packetData);
 
                                     Send(serverPacket, peer, PacketFlags.Reliable);

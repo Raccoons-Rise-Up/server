@@ -16,13 +16,13 @@ namespace GameServer.Server.Packets
 
     public class PacketPurchaseItem : IReadable
     {
-        public ClientPacketType m_ID;
-        public uint m_ItemID;
+        public ClientPacketType id;
+        public uint itemId;
 
         public void Read(PacketReader reader)
         {
-            m_ID = (ClientPacketType)reader.ReadByte();
-            m_ItemID = reader.ReadUInt16();
+            id = (ClientPacketType)reader.ReadByte();
+            itemId = reader.ReadUInt16();
         }
     }
 }

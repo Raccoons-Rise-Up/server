@@ -4,18 +4,18 @@ namespace GameServer.Logging
 {
     public class LoggerMessage
     {
-        public readonly string m_Text;
+        public readonly string text;
 
         public LoggerMessage(string text) 
         {
-            m_Text = text;
+            this.text = text;
         }
 
         public int GetLines() 
         {
             var lines = 0;
-            lines += (int)Math.Ceiling((double)m_Text.Length / Console.WindowWidth);
-            lines += m_Text.Split('\n').Length - 1;
+            lines += (int)Math.Ceiling((double)text.Length / Console.WindowWidth);
+            lines += text.Split('\n').Length - 1;
             return lines;
         }
     }
