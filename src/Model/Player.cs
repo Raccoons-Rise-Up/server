@@ -8,8 +8,9 @@ namespace GameServer.Database
 {
     public class Player
     {
-        public int playerId { get; set; }
-        public int gold { get; set; }
-        public int structureHut { get; set; }
+        public int PlayerId { get; set; }
+        public string Username { get; set; }
+        public int Gold { get; set; }
+        public int StructureHut { get; set; }
     }
 }

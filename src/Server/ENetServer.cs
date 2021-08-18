@@ -78,6 +78,39 @@ namespace GameServer.Server
 
                                 var opcode = (ClientPacketType)reader.ReadByte();
 
+                                if (opcode == ClientPacketType.Login) 
+                                {
+                                    var data = new PacketLogin();
+                                    var packetReader = new PacketReader(readBuffer);
+                                    data.Read(packetReader);
+
+                                    // Check if username exists in database
+                                    using var db = new DatabaseContext();
+
+                                    var players = db.Players.ToList();
+                                    var playerExistsInDatabase = false;
+
+                                    foreach (var player in players) 
+                                    {
+                                        if (data.username.Equals(player.Username)) 
+                                        {
+                                            playerExistsInDatabase = true;
+                                            Logger.Log($"{data.username} logged in");
+                                            break;
+                                        }
+                                    }
+
+                                    if (!playerExistsInDatabase) 
+                                    {
+                                        Logger.Log($"{data.username} logged in for the first time");
+                                        db.Add(new Player { 
+                                            Username = data.username, 
+                                            Gold = 100 
+                                        });
+                                        db.SaveChanges();
+                                    }
+                                }
+
                                 if (opcode == ClientPacketType.PurchaseItem) 
                                 {
                                     var data = new PacketPurchaseItem();
@@ -88,23 +121,15 @@ namespace GameServer.Server
                                     {
                                         using var db = new DatabaseContext();
 
-                                        // Create
-                                        db.Add(new Player { gold = 100 });
-                                        db.SaveChanges();
-
                                         // Read
                                         Logger.Log("Query for player");
+                                        // TODO: Find the appropriate player
                                         var player = db.Players.First();
 
                                         // Update
                                         Logger.Log("Updating the player");
-                                        player.structureHut++;
+                                        player.StructureHut++;
 
-                                        db.SaveChanges();
-
-                                        // Delete
-                                        Logger.Log("Delete the player");
-                                        db.Remove(player);
                                         db.SaveChanges();
                                     }
 
