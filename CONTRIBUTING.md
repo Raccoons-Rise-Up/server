@@ -1,29 +1,31 @@
 # Contributing
 
-## Setup
-### .NET
+## .NET
 Make sure all the required tools are installed to run dotnet projects. (I'm not sure myself how I setup this up, maybe someone can reinforce this part of the CONTRIBUTING.md document)
 
-### Entity Framework Core - SQLite
-Run the following commands
+## Entity Framework Core - SQLite
+Create the database with the following commands
 ```
 dotnet tool install --global dotnet-ef
 dotnet ef migrations add InitialCreate
 dotnet ef database update
 ```
 
-Everything should be setup now, start the project.
+If changing the fields in a table be sure to add `migrationBuilder.DropTable("TableName");` in the migration script just before the table is created. This is not ideal if there is important data that needs to be kept, perhaps in the future someone can expand on this section of the contributing document.
+
+Run the following commands
 ```
-dotnet run
+dotnet ef migrations add SomeMeaningfulName
+dotnet ef database update
 ```
 
 ## Notes
 - Do not forget to lock threads that are reading or writing from the same variables
 
-## Formatting Rules
+## Formatting Guidelines
 - Methods should follow PascalFormat
 - If using `{}` please fully expand
-- Field members should start with `m_`, static fields with `s_`, constants with `c_` (e.g. `m_VariableName`)
+- Variables should be camelCase regardless if private or public
 - Try to use `var` where ever possible
 
 ## Creating a Pull Request
