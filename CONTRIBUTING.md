@@ -24,7 +24,7 @@ dotnet ef database update
 
 ## Formatting Guidelines
 - Methods should follow PascalFormat
-- If using `{}` please fully expand
+- Most of the time `{}` should be fully expanded
 - Variables should be camelCase regardless if private or public
 - Try to use `var` where ever possible
 
