@@ -3,11 +3,11 @@ using Common.Networking.Message;
 
 namespace GameServer.Server.Packets
 {
-    public class PacketPurchasedItem : IWritable
+    public class WPacketPurchaseItem : IWritable
     {
         private readonly ushort itemId;
 
-        public PacketPurchasedItem(ushort m_ItemID)
+        public WPacketPurchaseItem(ushort m_ItemID)
         {
             this.itemId = m_ItemID;
         }

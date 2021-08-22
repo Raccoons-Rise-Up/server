@@ -18,7 +18,7 @@ namespace GameServer.Server
         public const int SERVER_VERSION_MINOR = 1;
         public const int SERVER_VERSION_PATCH = 0;
 
-        private static readonly List<Player> players = new();
+        private static readonly Dictionary<uint, Player> players = new();
 
         #region WorkerThread
         public static void WorkerThread() 
@@ -89,7 +89,7 @@ namespace GameServer.Server
 
                                 if (opcode == ClientPacketType.Login) 
                                 {
-                                    var data = new PacketLogin();
+                                    var data = new RPacketLogin();
                                     var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
@@ -98,7 +98,7 @@ namespace GameServer.Server
 
                                 if (opcode == ClientPacketType.PurchaseItem) 
                                 {
-                                    var data = new PacketPurchaseItem();
+                                    var data = new RPacketPurchaseItem();
                                     var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
@@ -128,7 +128,7 @@ namespace GameServer.Server
         #endregion
 
         #region ClientPacketHandleLogin
-        private static void ClientPacketHandleLogin(PacketLogin data) 
+        private static void ClientPacketHandleLogin(RPacketLogin data) 
         {
             // Check if versions match
             if (data.versionMajor != SERVER_VERSION_MAJOR || data.versionMinor != SERVER_VERSION_MINOR ||
@@ -151,8 +151,10 @@ namespace GameServer.Server
 
             if (player != null)
             {
-                // Add the player to the players list
-                players.Add(new Player
+                // Player exists in the database
+
+                // Add the player to the list of players currently on the server
+                players.Add((uint)players.Count, new Player
                 {
                     LastSeen = DateTime.Now
                 });
@@ -165,6 +167,14 @@ namespace GameServer.Server
             }
             else
             {
+                // Add the player to the list of players currently on the server
+                players.Add((uint)players.Count, new Player
+                {
+                    Username = data.username,
+                    Gold = 100,
+                    LastSeen = DateTime.Now
+                });
+
                 // Player does not exist in database, they are logging in for the first time
                 db.Add(new ModelPlayer
                 {
@@ -180,11 +190,14 @@ namespace GameServer.Server
         #endregion
 
         #region ClientPacketHandlePurchaseItem
-        private static void ClientPacketHandlePurchaseItem(PacketPurchaseItem data, Peer peer) 
+        private static void ClientPacketHandlePurchaseItem(RPacketPurchaseItem data, Peer peer) 
         {
             if (data.itemId == 0)
             {
                 using var db = new DatabaseContext();
+
+                var dbPlayers = db.Players.ToList();
+                //var player = dbPlayers.Find(x => x.Username == data.username);
 
                 // Read
                 Logger.Log("Query for player");
@@ -199,7 +212,7 @@ namespace GameServer.Server
             }
 
 
-            var packetData = new PacketPurchasedItem((ushort)data.itemId);
+            var packetData = new WPacketPurchaseItem((ushort)data.itemId);
             var serverPacket = new ServerPacket(ServerPacketType.PurchasedItem, packetData);
 
             Send(serverPacket, peer, PacketFlags.Reliable);

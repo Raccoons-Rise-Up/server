@@ -4,7 +4,7 @@ using Common.Networking.Packet;
 
 namespace GameServer.Server.Packets
 {
-    public class PacketLogin : IReadable
+    public class RPacketLogin : IReadable
     {
         public ClientPacketType id;
         public byte versionMajor;
