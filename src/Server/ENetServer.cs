@@ -93,7 +93,7 @@ namespace GameServer.Server
                                     var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
-                                    ClientPacketHandleLogin(data);
+                                    ClientPacketHandleLogin(data, peer);
                                 }
 
                                 if (opcode == ClientPacketType.PurchaseItem) 
@@ -128,7 +128,7 @@ namespace GameServer.Server
         #endregion
 
         #region ClientPacketHandleLogin
-        private static void ClientPacketHandleLogin(RPacketLogin data) 
+        private static void ClientPacketHandleLogin(RPacketLogin data, Peer peer) 
         {
             // Check if versions match
             if (data.versionMajor != SERVER_VERSION_MAJOR || data.versionMinor != SERVER_VERSION_MINOR ||
@@ -139,6 +139,17 @@ namespace GameServer.Server
 
                 Logger.Log($"User '{data.username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
+
+                var packetDataLoginVersionMismatch = new WPacketLogin 
+                {
+                    Opcode = LoginOpcode.VERSION_MISMATCH,
+                    VersionMajor = SERVER_VERSION_MAJOR,
+                    VersionMinor = SERVER_VERSION_MINOR,
+                    VersionPatch = SERVER_VERSION_PATCH
+                };
+
+                Send(new ServerPacket(ServerPacketType.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
+
                 return;
             }
 
@@ -186,6 +197,13 @@ namespace GameServer.Server
 
                 Logger.Log($"User '{data.username}' logged in for the first time");
             }
+
+            var packetDataLoginSuccess = new WPacketLogin
+            {
+                Opcode = LoginOpcode.LOGIN_SUCCESS
+            };
+
+            Send(new ServerPacket(ServerPacketType.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
         }
         #endregion
 
