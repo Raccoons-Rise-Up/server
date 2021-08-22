@@ -199,6 +199,9 @@ namespace GameServer.Logging
 
                     if (keyInfo.Key == ConsoleKey.Enter) 
                     {
+                        if (textField.input == null)
+                            continue;
+
                         var inputArr = textField.input.Trim().ToLower().Split(' ');
                         var cmd = inputArr[0];
                         var args = inputArr.Skip(1).ToArray();
