@@ -148,7 +148,7 @@ namespace GameServer.Server
                     VersionPatch = SERVER_VERSION_PATCH
                 };
 
-                Send(new ServerPacket(ServerPacketType.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
+                Send(new ServerPacket((byte)ServerPacketType.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
 
                 return;
             }
@@ -167,6 +167,7 @@ namespace GameServer.Server
                 // Add the player to the list of players currently on the server
                 players.Add((uint)players.Count, new Player
                 {
+                    Peer = peer,
                     LastSeen = DateTime.Now
                 });
 
@@ -181,6 +182,7 @@ namespace GameServer.Server
                 // Add the player to the list of players currently on the server
                 players.Add((uint)players.Count, new Player
                 {
+                    Peer = peer,
                     Username = data.username,
                     Gold = 100,
                     LastSeen = DateTime.Now
@@ -203,7 +205,7 @@ namespace GameServer.Server
                 Opcode = LoginOpcode.LOGIN_SUCCESS
             };
 
-            Send(new ServerPacket(ServerPacketType.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
+            Send(new ServerPacket((byte)ServerPacketType.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
         }
         #endregion
 
@@ -231,7 +233,7 @@ namespace GameServer.Server
 
 
             var packetData = new WPacketPurchaseItem((ushort)data.itemId);
-            var serverPacket = new ServerPacket(ServerPacketType.PurchasedItem, packetData);
+            var serverPacket = new ServerPacket((byte)ServerPacketType.PurchasedItem, packetData);
 
             Send(serverPacket, peer, PacketFlags.Reliable);
         }

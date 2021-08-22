@@ -26,10 +26,4 @@ namespace GameServer.Server.Packets
             }
         }
     }
-
-    public enum LoginOpcode
-    {
-        LOGIN_SUCCESS,
-        VERSION_MISMATCH
-    }
 }
