@@ -5,16 +5,16 @@ namespace GameServer.Server.Packets
 {
     public class WPacketLogin : IWritable
     {
-        public LoginOpcode Opcode { private get; set; }
+        public LoginOpcode LoginOpcode { private get; set; }
         public byte VersionMajor { private get; set; }
         public byte VersionMinor { private get; set; }
         public byte VersionPatch { private get; set; }
 
         public void Write(PacketWriter writer)
         {
-            writer.Write((byte)Opcode);
+            writer.Write((byte)LoginOpcode);
 
-            switch (Opcode) 
+            switch (LoginOpcode) 
             {
                 case LoginOpcode.VERSION_MISMATCH:
                     writer.Write(VersionMajor);

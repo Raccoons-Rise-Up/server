@@ -18,6 +18,8 @@ namespace GameServer.Server
         public const int SERVER_VERSION_MINOR = 1;
         public const int SERVER_VERSION_PATCH = 0;
 
+        private const int PACKET_SIZE_MAX = 1024;
+
         private static readonly Dictionary<uint, Player> players = new();
 
         #region WorkerThread
@@ -78,19 +80,17 @@ namespace GameServer.Server
                                 var peer = netEvent.Peer;
                                 var packet = netEvent.Packet;
 
-                                var readBuffer = new byte[1024];
-                                var readStream = new MemoryStream(readBuffer);
-                                var reader = new BinaryReader(readStream);
+                                var readBuffer = new byte[PACKET_SIZE_MAX];
+                                var packetReader = new PacketReader(readBuffer);
+                                //packetReader.BaseStream.Position = 0;
 
-                                readStream.Position = 0;
                                 netEvent.Packet.CopyTo(readBuffer);
 
-                                var opcode = (ClientPacketType)reader.ReadByte();
+                                var opcode = (ClientPacketType)packetReader.ReadByte();
 
                                 if (opcode == ClientPacketType.Login) 
                                 {
                                     var data = new RPacketLogin();
-                                    var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
                                     ClientPacketHandleLogin(data, peer);
@@ -99,7 +99,6 @@ namespace GameServer.Server
                                 if (opcode == ClientPacketType.PurchaseItem) 
                                 {
                                     var data = new RPacketPurchaseItem();
-                                    var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
                                     ClientPacketHandlePurchaseItem(data, peer);
@@ -142,7 +141,7 @@ namespace GameServer.Server
 
                 var packetDataLoginVersionMismatch = new WPacketLogin 
                 {
-                    Opcode = LoginOpcode.VERSION_MISMATCH,
+                    LoginOpcode = LoginOpcode.VERSION_MISMATCH,
                     VersionMajor = SERVER_VERSION_MAJOR,
                     VersionMinor = SERVER_VERSION_MINOR,
                     VersionPatch = SERVER_VERSION_PATCH
@@ -202,7 +201,7 @@ namespace GameServer.Server
 
             var packetDataLoginSuccess = new WPacketLogin
             {
-                Opcode = LoginOpcode.LOGIN_SUCCESS
+                LoginOpcode = LoginOpcode.LOGIN_SUCCESS
             };
 
             Send(new ServerPacket((byte)ServerPacketType.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
