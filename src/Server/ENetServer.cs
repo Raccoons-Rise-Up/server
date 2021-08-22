@@ -130,13 +130,13 @@ namespace GameServer.Server
         private static void ClientPacketHandleLogin(RPacketLogin data, Peer peer) 
         {
             // Check if versions match
-            if (data.versionMajor != SERVER_VERSION_MAJOR || data.versionMinor != SERVER_VERSION_MINOR ||
-                data.versionPatch != SERVER_VERSION_PATCH)
+            if (data.VersionMajor != SERVER_VERSION_MAJOR || data.VersionMinor != SERVER_VERSION_MINOR ||
+                data.VersionPatch != SERVER_VERSION_PATCH)
             {
-                var clientVersion = $"{data.versionMajor}.{data.versionMinor}.{data.versionPatch}";
+                var clientVersion = $"{data.VersionMajor}.{data.VersionMinor}.{data.VersionPatch}";
                 var serverVersion = $"{SERVER_VERSION_MAJOR}.{SERVER_VERSION_MINOR}.{SERVER_VERSION_PATCH}";
 
-                Logger.Log($"User '{data.username}' tried to log in but failed because they are running on version " +
+                Logger.Log($"User '{data.Username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
 
                 var packetDataLoginVersionMismatch = new WPacketLogin 
@@ -157,7 +157,7 @@ namespace GameServer.Server
 
             var dbPlayers = db.Players.ToList();
 
-            var player = dbPlayers.Find(x => x.Username == data.username);
+            var player = dbPlayers.Find(x => x.Username == data.Username);
 
             if (player != null)
             {
@@ -174,7 +174,7 @@ namespace GameServer.Server
                 player.LastSeen = DateTime.Now;
                 db.SaveChanges();
 
-                Logger.Log($"User '{data.username}' logged in");
+                Logger.Log($"User '{data.Username}' logged in");
             }
             else
             {
@@ -182,7 +182,7 @@ namespace GameServer.Server
                 players.Add((uint)players.Count, new Player
                 {
                     Peer = peer,
-                    Username = data.username,
+                    Username = data.Username,
                     Gold = 100,
                     LastSeen = DateTime.Now
                 });
@@ -190,13 +190,13 @@ namespace GameServer.Server
                 // Player does not exist in database, they are logging in for the first time
                 db.Add(new ModelPlayer
                 {
-                    Username = data.username,
+                    Username = data.Username,
                     Gold = 100,
                     LastSeen = DateTime.Now
                 });
                 db.SaveChanges();
 
-                Logger.Log($"User '{data.username}' logged in for the first time");
+                Logger.Log($"User '{data.Username}' logged in for the first time");
             }
 
             var packetDataLoginSuccess = new WPacketLogin
@@ -211,7 +211,7 @@ namespace GameServer.Server
         #region ClientPacketHandlePurchaseItem
         private static void ClientPacketHandlePurchaseItem(RPacketPurchaseItem data, Peer peer) 
         {
-            if (data.itemId == 0)
+            if (data.ItemId == 0)
             {
                 using var db = new DatabaseContext();
 
@@ -231,7 +231,7 @@ namespace GameServer.Server
             }
 
 
-            var packetData = new WPacketPurchaseItem((ushort)data.itemId);
+            var packetData = new WPacketPurchaseItem { ItemId = (ushort)data.ItemId };
             var serverPacket = new ServerPacket((byte)ServerPacketType.PurchasedItem, packetData);
 
             Send(serverPacket, peer, PacketFlags.Reliable);

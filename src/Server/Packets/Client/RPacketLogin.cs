@@ -6,17 +6,17 @@ namespace GameServer.Server.Packets
 {
     public class RPacketLogin : IReadable
     {
-        public byte versionMajor;
-        public byte versionMinor;
-        public byte versionPatch;
-        public string username;
+        public byte VersionMajor { get; set; }
+        public byte VersionMinor { get; set; }
+        public byte VersionPatch { get; set; }
+        public string Username { get; set; }
 
         public void Read(PacketReader reader)
         {
-            versionMajor = reader.ReadByte();
-            versionMinor = reader.ReadByte();
-            versionPatch = reader.ReadByte();
-            username = reader.ReadString();
+            VersionMajor = reader.ReadByte();
+            VersionMinor = reader.ReadByte();
+            VersionPatch = reader.ReadByte();
+            Username = reader.ReadString();
         }
     }
 }

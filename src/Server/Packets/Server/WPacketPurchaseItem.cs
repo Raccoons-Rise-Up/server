@@ -5,16 +5,11 @@ namespace GameServer.Server.Packets
 {
     public class WPacketPurchaseItem : IWritable
     {
-        private readonly ushort itemId;
-
-        public WPacketPurchaseItem(ushort m_ItemID)
-        {
-            this.itemId = m_ItemID;
-        }
+        public ushort ItemId { get; set; }
 
         public void Write(PacketWriter writer)
         {
-            writer.Write(itemId);
+            writer.Write(ItemId);
         }
     }
 }
