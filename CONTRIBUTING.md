@@ -14,7 +14,7 @@ Make sure all the required tools are installed to run dotnet projects. (I'm not 
 
 ## Entity Framework Core - SQLite
 ### Creating the Database
-Create the database with the following commands
+Create the database with the following commands (you can open the terminal in VS with `Ctrl + Tilda Key`)
 ```
 dotnet tool install --global dotnet-ef
 dotnet ef migrations add InitialCreate
