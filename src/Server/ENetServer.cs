@@ -14,6 +14,10 @@ namespace GameServer.Server
 {
     public class ENetServer
     {
+        public const int SERVER_VERSION_MAJOR = 0;
+        public const int SERVER_VERSION_MINOR = 1;
+        public const int SERVER_VERSION_PATCH = 0;
+
         private static readonly List<Player> players = new();
 
         public static void WorkerThread() 
@@ -88,40 +92,7 @@ namespace GameServer.Server
                                     var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
-                                    // Check if username exists in database
-                                    using var db = new DatabaseContext();
-
-                                    var dbPlayers = db.Players.ToList();
-
-                                    var player = dbPlayers.Find(x => x.Username == data.username);
-
-                                    if (player != null)
-                                    {
-                                        // Add the player to the players list
-                                        players.Add(new Player
-                                        {
-                                            LastSeen = DateTime.Now
-                                        });
-
-                                        // Update the player in the database
-                                        player.LastSeen = DateTime.Now;
-                                        db.SaveChanges();
-
-                                        Logger.Log($"{data.username} logged in");
-                                    }
-                                    else 
-                                    {
-                                        // Player does not exist in database, they are logging in for the first time
-                                        db.Add(new ModelPlayer
-                                        {
-                                            Username = data.username,
-                                            Gold = 100,
-                                            LastSeen = DateTime.Now
-                                        });
-                                        db.SaveChanges();
-
-                                        Logger.Log($"{data.username} logged in for the first time");
-                                    }
+                                    ClientPacketHandleLogin(data);
                                 }
 
                                 if (opcode == ClientPacketType.PurchaseItem) 
@@ -163,6 +134,56 @@ namespace GameServer.Server
             }
 
             Library.Deinitialize();
+        }
+
+        private static void ClientPacketHandleLogin(PacketLogin data) 
+        {
+            // Check if versions match
+            if (data.versionMajor != SERVER_VERSION_MAJOR || data.versionMinor != SERVER_VERSION_MINOR ||
+                data.versionPatch != SERVER_VERSION_PATCH)
+            {
+                var clientVersion = $"{data.versionMajor}.{data.versionMinor}.{data.versionPatch}";
+                var serverVersion = $"{SERVER_VERSION_MAJOR}.{SERVER_VERSION_MINOR}.{SERVER_VERSION_PATCH}";
+
+                Logger.Log($"User '{data.username}' tried to log in but failed because they are running on version " +
+                    $"'{clientVersion}' but the server is on version '{serverVersion}'");
+                return;
+            }
+
+            // Check if username exists in database
+            using var db = new DatabaseContext();
+
+            var dbPlayers = db.Players.ToList();
+
+            var player = dbPlayers.Find(x => x.Username == data.username);
+
+            if (player != null)
+            {
+                // Add the player to the players list
+                players.Add(new Player
+                {
+                    LastSeen = DateTime.Now
+                });
+
+                // Update the player in the database
+                player.LastSeen = DateTime.Now;
+                db.SaveChanges();
+
+                Logger.Log($"User '{data.username}' logged in");
+            }
+            else
+            {
+                // Player does not exist in database, they are logging in for the first time
+                db.Add(new ModelPlayer
+                {
+                    Username = data.username,
+                    Gold = 100,
+                    LastSeen = DateTime.Now
+                });
+                db.SaveChanges();
+
+                Logger.Log($"User '{data.username}' logged in for the first time");
+            }
         }
 
         /// <summary>
