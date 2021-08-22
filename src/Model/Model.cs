@@ -6,7 +6,7 @@ namespace GameServer.Database
 {
     public class DatabaseContext : DbContext
     {
-        public DbSet<Player> Players { get; set; }
+        public DbSet<ModelPlayer> Players { get; set; }
 
         public string DbPath { get; private set; }
 
@@ -14,6 +14,8 @@ namespace GameServer.Database
         {
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Environment.GetFolderPath(folder);
+
+            // Windows: C:\Users\USER\AppData\Local\Database.db (Delete this file if it is corrupt)
             DbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}Database.db";
         }
 

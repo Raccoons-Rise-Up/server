@@ -14,6 +14,8 @@ namespace GameServer.Server
 {
     public class ENetServer
     {
+        private static readonly List<Player> players = new();
+
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
@@ -31,6 +33,8 @@ namespace GameServer.Server
                 };
 
                 server.Create(address, maxClients);
+
+                Logger.Log($"Listening on port {port}");
 
                 while (!Console.KeyAvailable)
                 {
@@ -87,27 +91,36 @@ namespace GameServer.Server
                                     // Check if username exists in database
                                     using var db = new DatabaseContext();
 
-                                    var players = db.Players.ToList();
-                                    var playerExistsInDatabase = false;
+                                    var dbPlayers = db.Players.ToList();
 
-                                    foreach (var player in players) 
+                                    var player = dbPlayers.Find(x => x.Username == data.username);
+
+                                    if (player != null)
                                     {
-                                        if (data.username.Equals(player.Username)) 
+                                        // Add the player to the players list
+                                        players.Add(new Player
                                         {
-                                            playerExistsInDatabase = true;
-                                            Logger.Log($"{data.username} logged in");
-                                            break;
-                                        }
-                                    }
+                                            LastSeen = DateTime.Now
+                                        });
 
-                                    if (!playerExistsInDatabase) 
+                                        // Update the player in the database
+                                        player.LastSeen = DateTime.Now;
+                                        db.SaveChanges();
+
+                                        Logger.Log($"{data.username} logged in");
+                                    }
+                                    else 
                                     {
-                                        Logger.Log($"{data.username} logged in for the first time");
-                                        db.Add(new Player { 
-                                            Username = data.username, 
-                                            Gold = 100 
+                                        // Player does not exist in database, they are logging in for the first time
+                                        db.Add(new ModelPlayer
+                                        {
+                                            Username = data.username,
+                                            Gold = 100,
+                                            LastSeen = DateTime.Now
                                         });
                                         db.SaveChanges();
+
+                                        Logger.Log($"{data.username} logged in for the first time");
                                     }
                                 }
 
