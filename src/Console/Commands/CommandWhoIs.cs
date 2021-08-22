@@ -25,8 +25,15 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            Logger.Log($"Username: {player.Username} " +
-                $"Last Seen: {player.LastSeen.Second} Seconds Ago");
+            var diff = DateTime.Now - player.LastSeen;
+            var diffReadable = $"Days: {(int)diff.Days}, Hours: {(int)diff.Hours}, Minutes: {(int)diff.Minutes}, Seconds: {(int)diff.Seconds}";
+
+            Logger.Log(
+                $"\nUsername: {player.Username} " +
+                $"\nGold: {player.Gold}" +
+                $"\nStructure Huts: {player.StructureHut}" +
+                $"\nLast Seen: {diffReadable}"
+            );
         }
     }
 }
