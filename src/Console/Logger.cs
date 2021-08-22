@@ -226,8 +226,8 @@ namespace GameServer.Logging
                         if (commandHistory.Count > maxHistoryCommands) 
                             commandHistory.RemoveAt(0);
 
-                        // Add command to command history
-                        commandHistory.Add(cmd);
+                        // Add command along with args[] to command history
+                        commandHistory.Add(textField.input);
 
                         // Reset command history index to 0 on enter
                         commandHistoryIndex = 0;
