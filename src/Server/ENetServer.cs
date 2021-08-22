@@ -101,27 +101,7 @@ namespace GameServer.Server
                                     var packetReader = new PacketReader(readBuffer);
                                     data.Read(packetReader);
 
-                                    if (data.itemId == 0)
-                                    {
-                                        using var db = new DatabaseContext();
-
-                                        // Read
-                                        Logger.Log("Query for player");
-                                        // TODO: Find the appropriate player
-                                        var player = db.Players.First();
-
-                                        // Update
-                                        Logger.Log("Updating the player");
-                                        player.StructureHut++;
-
-                                        db.SaveChanges();
-                                    }
-
-                                    
-                                    var packetData = new PacketPurchasedItem((ushort)data.itemId);
-                                    var serverPacket = new ServerPacket(ServerPacketType.PurchasedItem, packetData);
-
-                                    Send(serverPacket, peer, PacketFlags.Reliable);
+                                    ClientPacketHandlePurchaseItem(data, peer);
                                 }
 
                                 packet.Dispose();
@@ -184,6 +164,31 @@ namespace GameServer.Server
 
                 Logger.Log($"User '{data.username}' logged in for the first time");
             }
+        }
+
+        private static void ClientPacketHandlePurchaseItem(PacketPurchaseItem data, Peer peer) 
+        {
+            if (data.itemId == 0)
+            {
+                using var db = new DatabaseContext();
+
+                // Read
+                Logger.Log("Query for player");
+                // TODO: Find the appropriate player
+                var player = db.Players.First();
+
+                // Update
+                Logger.Log("Updating the player");
+                player.StructureHut++;
+
+                db.SaveChanges();
+            }
+
+
+            var packetData = new PacketPurchasedItem((ushort)data.itemId);
+            var serverPacket = new ServerPacket(ServerPacketType.PurchasedItem, packetData);
+
+            Send(serverPacket, peer, PacketFlags.Reliable);
         }
 
         /// <summary>
