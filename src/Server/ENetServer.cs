@@ -20,6 +20,7 @@ namespace GameServer.Server
 
         private static readonly List<Player> players = new();
 
+        #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
@@ -116,6 +117,17 @@ namespace GameServer.Server
             Library.Deinitialize();
         }
 
+        private static void Send(GamePacket gamePacket, Peer peer, PacketFlags packetFlags)
+        {
+            // Send data to a specific client (peer)
+            var packet = default(Packet);
+            packet.Create(gamePacket.Data, packetFlags);
+            byte channelID = 0;
+            peer.Send(channelID, ref packet);
+        }
+        #endregion
+
+        #region ClientPacketHandleLogin
         private static void ClientPacketHandleLogin(PacketLogin data) 
         {
             // Check if versions match
@@ -165,7 +177,9 @@ namespace GameServer.Server
                 Logger.Log($"User '{data.username}' logged in for the first time");
             }
         }
+        #endregion
 
+        #region ClientPacketHandlePurchaseItem
         private static void ClientPacketHandlePurchaseItem(PacketPurchaseItem data, Peer peer) 
         {
             if (data.itemId == 0)
@@ -190,19 +204,6 @@ namespace GameServer.Server
 
             Send(serverPacket, peer, PacketFlags.Reliable);
         }
-
-        /// <summary>
-        /// Send data to a specific peer
-        /// </summary>
-        /// <param name="gamePacket"></param>
-        /// <param name="peer"></param>
-        /// <param name="packetFlags"></param>
-        private static void Send(GamePacket gamePacket, Peer peer, PacketFlags packetFlags)
-        {
-            var packet = default(Packet);
-            packet.Create(gamePacket.Data, packetFlags);
-            byte channelID = 0;
-            peer.Send(channelID, ref packet);
-        }
+        #endregion
     }
 }
