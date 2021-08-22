@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace GameServer.Database
 {
-    public class Player
+    public class ModelPlayer
     {
-        public int PlayerId { get; set; }
+        public int ModelPlayerId { get; set; }
         public string Username { get; set; }
+        public DateTime LastSeen { get; set; }
         public int Gold { get; set; }
         public int StructureHut { get; set; }
     }
