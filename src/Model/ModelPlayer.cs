@@ -11,7 +11,7 @@ namespace GameServer.Database
         public int ModelPlayerId { get; set; }
         public string Username { get; set; }
         public DateTime LastSeen { get; set; }
-        public int Gold { get; set; }
+        public uint Gold { get; set; }
         public int StructureHut { get; set; }
     }
 }
