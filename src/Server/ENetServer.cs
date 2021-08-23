@@ -104,6 +104,7 @@ namespace GameServer.Server
                                     ClientPacketHandlePurchaseItem(data, peer);
                                 }
 
+                                packetReader.Dispose();
                                 packet.Dispose();
                                 break;
                         }
@@ -141,7 +142,7 @@ namespace GameServer.Server
 
                 var packetDataLoginVersionMismatch = new WPacketLogin 
                 {
-                    LoginOpcode = LoginOpcode.VersionMismatch,
+                    LoginOpcode = LoginResponseOpcode.VersionMismatch,
                     VersionMajor = SERVER_VERSION_MAJOR,
                     VersionMinor = SERVER_VERSION_MINOR,
                     VersionPatch = SERVER_VERSION_PATCH
@@ -201,7 +202,7 @@ namespace GameServer.Server
 
             var packetDataLoginSuccess = new WPacketLogin
             {
-                LoginOpcode = LoginOpcode.LoginSuccess
+                LoginOpcode = LoginResponseOpcode.LoginSuccess
             };
 
             Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
@@ -211,32 +212,40 @@ namespace GameServer.Server
         #region ClientPacketHandlePurchaseItem
         private static void ClientPacketHandlePurchaseItem(RPacketPurchaseItem data, Peer peer) 
         {
-            if (data.ItemId == 0)
+            var itemType = (ItemType)data.ItemId;
+
+            if (itemType == ItemType.Hut)
             {
+                var hutCost = 25;
 
+                var player = players[peer.ID];
+                var gold = player.Gold;
 
-                /*using var db = new DatabaseContext();
+                // Player can't afford this
+                if (gold < hutCost) 
+                {
+                    var packetDataNotEnoughGold = new WPacketPurchaseItem {
+                        PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
+                        ItemId = (ushort)ItemType.Hut,
+                        Gold = gold
+                    };
+                    var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
+                    Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
 
-                var dbPlayers = db.Players.ToList();
-                //var player = dbPlayers.Find(x => x.Username == data.username);
+                    return;
+                }
 
-                // Read
-                Logger.Log("Query for player");
-                // TODO: Find the appropriate player
-                var player = db.Players.First();
-
-                // Update
-                Logger.Log("Updating the player");
+                // Player bought the structure
                 player.StructureHut++;
 
-                db.SaveChanges();*/
+                var packetDataPurchasedItem = new WPacketPurchaseItem { 
+                    PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
+                    ItemId = (ushort)ItemType.Hut,
+                    Gold = gold
+                };
+                var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
+                Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
             }
-
-
-            var packetData = new WPacketPurchaseItem { ItemId = (ushort)data.ItemId };
-            var serverPacket = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetData);
-
-            Send(serverPacket, peer, PacketFlags.Reliable);
         }
         #endregion
     }
