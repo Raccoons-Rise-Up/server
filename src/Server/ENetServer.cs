@@ -88,7 +88,7 @@ namespace GameServer.Server
 
                                 var opcode = (ClientPacketOpcode)packetReader.ReadByte();
 
-                                if (opcode == ClientPacketOpcode.LOGIN) 
+                                if (opcode == ClientPacketOpcode.Login) 
                                 {
                                     var data = new RPacketLogin();
                                     data.Read(packetReader);
@@ -96,7 +96,7 @@ namespace GameServer.Server
                                     ClientPacketHandleLogin(data, peer);
                                 }
 
-                                if (opcode == ClientPacketOpcode.PURCHASE_ITEM) 
+                                if (opcode == ClientPacketOpcode.PurchaseItem) 
                                 {
                                     var data = new RPacketPurchaseItem();
                                     data.Read(packetReader);
@@ -141,13 +141,13 @@ namespace GameServer.Server
 
                 var packetDataLoginVersionMismatch = new WPacketLogin 
                 {
-                    LoginOpcode = LoginOpcode.VERSION_MISMATCH,
+                    LoginOpcode = LoginOpcode.VersionMismatch,
                     VersionMajor = SERVER_VERSION_MAJOR,
                     VersionMinor = SERVER_VERSION_MINOR,
                     VersionPatch = SERVER_VERSION_PATCH
                 };
 
-                Send(new ServerPacket((byte)ServerPacketOpcode.LOGIN_RESPONSE, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
+                Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
 
                 return;
             }
@@ -201,10 +201,10 @@ namespace GameServer.Server
 
             var packetDataLoginSuccess = new WPacketLogin
             {
-                LoginOpcode = LoginOpcode.LOGIN_SUCCESS
+                LoginOpcode = LoginOpcode.LoginSuccess
             };
 
-            Send(new ServerPacket((byte)ServerPacketOpcode.LOGIN_RESPONSE, packetDataLoginSuccess), peer, PacketFlags.Reliable);
+            Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
         }
         #endregion
 
@@ -234,7 +234,7 @@ namespace GameServer.Server
 
 
             var packetData = new WPacketPurchaseItem { ItemId = (ushort)data.ItemId };
-            var serverPacket = new ServerPacket((byte)ServerPacketOpcode.PURCHASED_ITEM, packetData);
+            var serverPacket = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetData);
 
             Send(serverPacket, peer, PacketFlags.Reliable);
         }

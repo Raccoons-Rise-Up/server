@@ -16,12 +16,12 @@ namespace GameServer.Server.Packets
 
             switch (LoginOpcode) 
             {
-                case LoginOpcode.VERSION_MISMATCH:
+                case LoginOpcode.VersionMismatch:
                     writer.Write(VersionMajor);
                     writer.Write(VersionMinor);
                     writer.Write(VersionPatch);
                     break;
-                case LoginOpcode.LOGIN_SUCCESS:
+                case LoginOpcode.LoginSuccess:
                     break;
             }
         }
