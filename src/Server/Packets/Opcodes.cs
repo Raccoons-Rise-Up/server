@@ -2,18 +2,18 @@
 {
     public enum ClientPacketOpcode
     {
-        Disconnect,
-        PurchaseItem,
-        CreateAccount,
-        Login
+        DISCONNECT,
+        PURCHASE_ITEM,
+        CREATE_ACCOUNT,
+        LOGIN
     }
 
     public enum ServerPacketOpcode
     {
-        ClientDisconnected,
-        PurchasedItem,
-        CreatedAccount,
-        LoginResponse
+        CLIENT_DISCONNECTED,
+        PURCHASED_ITEM,
+        CREATED_ACCOUNT,
+        LOGIN_RESPONSE
     }
 
     public enum LoginOpcode

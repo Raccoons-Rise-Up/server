@@ -88,7 +88,7 @@ namespace GameServer.Server
 
                                 var opcode = (ClientPacketOpcode)packetReader.ReadByte();
 
-                                if (opcode == ClientPacketOpcode.Login) 
+                                if (opcode == ClientPacketOpcode.LOGIN) 
                                 {
                                     var data = new RPacketLogin();
                                     data.Read(packetReader);
@@ -96,7 +96,7 @@ namespace GameServer.Server
                                     ClientPacketHandleLogin(data, peer);
                                 }
 
-                                if (opcode == ClientPacketOpcode.PurchaseItem) 
+                                if (opcode == ClientPacketOpcode.PURCHASE_ITEM) 
                                 {
                                     var data = new RPacketPurchaseItem();
                                     data.Read(packetReader);
@@ -147,7 +147,7 @@ namespace GameServer.Server
                     VersionPatch = SERVER_VERSION_PATCH
                 };
 
-                Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
+                Send(new ServerPacket((byte)ServerPacketOpcode.LOGIN_RESPONSE, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
 
                 return;
             }
@@ -204,7 +204,7 @@ namespace GameServer.Server
                 LoginOpcode = LoginOpcode.LOGIN_SUCCESS
             };
 
-            Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
+            Send(new ServerPacket((byte)ServerPacketOpcode.LOGIN_RESPONSE, packetDataLoginSuccess), peer, PacketFlags.Reliable);
         }
         #endregion
 
@@ -234,7 +234,7 @@ namespace GameServer.Server
 
 
             var packetData = new WPacketPurchaseItem { ItemId = (ushort)data.ItemId };
-            var serverPacket = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetData);
+            var serverPacket = new ServerPacket((byte)ServerPacketOpcode.PURCHASED_ITEM, packetData);
 
             Send(serverPacket, peer, PacketFlags.Reliable);
         }
