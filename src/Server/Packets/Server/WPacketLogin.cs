@@ -5,7 +5,7 @@ namespace GameServer.Server.Packets
 {
     public class WPacketLogin : IWritable
     {
-        public LoginOpcode LoginOpcode { private get; set; }
+        public LoginResponseOpcode LoginOpcode { private get; set; }
         public byte VersionMajor { private get; set; }
         public byte VersionMinor { private get; set; }
         public byte VersionPatch { private get; set; }
@@ -16,12 +16,12 @@ namespace GameServer.Server.Packets
 
             switch (LoginOpcode) 
             {
-                case LoginOpcode.VersionMismatch:
+                case LoginResponseOpcode.VersionMismatch:
                     writer.Write(VersionMajor);
                     writer.Write(VersionMinor);
                     writer.Write(VersionPatch);
                     break;
-                case LoginOpcode.LoginSuccess:
+                case LoginResponseOpcode.LoginSuccess:
                     break;
             }
         }
