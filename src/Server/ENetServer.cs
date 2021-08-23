@@ -86,9 +86,9 @@ namespace GameServer.Server
 
                                 netEvent.Packet.CopyTo(readBuffer);
 
-                                var opcode = (ClientPacketType)packetReader.ReadByte();
+                                var opcode = (ClientPacketOpcode)packetReader.ReadByte();
 
-                                if (opcode == ClientPacketType.Login) 
+                                if (opcode == ClientPacketOpcode.Login) 
                                 {
                                     var data = new RPacketLogin();
                                     data.Read(packetReader);
@@ -96,7 +96,7 @@ namespace GameServer.Server
                                     ClientPacketHandleLogin(data, peer);
                                 }
 
-                                if (opcode == ClientPacketType.PurchaseItem) 
+                                if (opcode == ClientPacketOpcode.PurchaseItem) 
                                 {
                                     var data = new RPacketPurchaseItem();
                                     data.Read(packetReader);
@@ -147,7 +147,7 @@ namespace GameServer.Server
                     VersionPatch = SERVER_VERSION_PATCH
                 };
 
-                Send(new ServerPacket((byte)ServerPacketType.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
+                Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
 
                 return;
             }
@@ -204,7 +204,7 @@ namespace GameServer.Server
                 LoginOpcode = LoginOpcode.LOGIN_SUCCESS
             };
 
-            Send(new ServerPacket((byte)ServerPacketType.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
+            Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
         }
         #endregion
 
@@ -213,7 +213,9 @@ namespace GameServer.Server
         {
             if (data.ItemId == 0)
             {
-                using var db = new DatabaseContext();
+
+
+                /*using var db = new DatabaseContext();
 
                 var dbPlayers = db.Players.ToList();
                 //var player = dbPlayers.Find(x => x.Username == data.username);
@@ -227,12 +229,12 @@ namespace GameServer.Server
                 Logger.Log("Updating the player");
                 player.StructureHut++;
 
-                db.SaveChanges();
+                db.SaveChanges();*/
             }
 
 
             var packetData = new WPacketPurchaseItem { ItemId = (ushort)data.ItemId };
-            var serverPacket = new ServerPacket((byte)ServerPacketType.PurchasedItem, packetData);
+            var serverPacket = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetData);
 
             Send(serverPacket, peer, PacketFlags.Reliable);
         }

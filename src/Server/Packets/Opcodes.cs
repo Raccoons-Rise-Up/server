@@ -1,6 +1,6 @@
 ﻿namespace GameServer.Server.Packets
 {
-    public enum ClientPacketType
+    public enum ClientPacketOpcode
     {
         Disconnect,
         PurchaseItem,
@@ -8,7 +8,7 @@
         Login
     }
 
-    public enum ServerPacketType
+    public enum ServerPacketOpcode
     {
         ClientDisconnected,
         PurchasedItem,
@@ -20,5 +20,11 @@
     {
         LOGIN_SUCCESS,
         VERSION_MISMATCH
+    }
+
+    public enum ItemType 
+    {
+        Hut,
+        Farm
     }
 }
