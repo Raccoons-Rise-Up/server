@@ -16,7 +16,13 @@
         LoginResponse
     }
 
-    public enum LoginOpcode
+    public enum PurchaseItemResponseOpcode
+    {
+        Purchased,
+        NotEnoughGold
+    }
+
+    public enum LoginResponseOpcode
     {
         LoginSuccess,
         VersionMismatch
