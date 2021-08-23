@@ -9,6 +9,7 @@ namespace GameServer.Server.Packets
         public byte VersionMajor { private get; set; }
         public byte VersionMinor { private get; set; }
         public byte VersionPatch { private get; set; }
+        public uint Gold { get; set; }
 
         public void Write(PacketWriter writer)
         {
@@ -22,6 +23,7 @@ namespace GameServer.Server.Packets
                     writer.Write(VersionPatch);
                     break;
                 case LoginResponseOpcode.LoginSuccess:
+                    writer.Write(Gold);
                     break;
             }
         }

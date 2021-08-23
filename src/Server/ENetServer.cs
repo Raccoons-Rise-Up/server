@@ -145,7 +145,7 @@ namespace GameServer.Server
                     LoginOpcode = LoginResponseOpcode.VersionMismatch,
                     VersionMajor = SERVER_VERSION_MAJOR,
                     VersionMinor = SERVER_VERSION_MINOR,
-                    VersionPatch = SERVER_VERSION_PATCH
+                    VersionPatch = SERVER_VERSION_PATCH,
                 };
 
                 Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
@@ -158,33 +158,42 @@ namespace GameServer.Server
 
             var dbPlayers = db.Players.ToList();
 
-            var player = dbPlayers.Find(x => x.Username == data.Username);
+            var dbPlayer = dbPlayers.Find(x => x.Username == data.Username);
+            uint playerGold; // This will be sent to the client
 
-            if (player != null)
+            if (dbPlayer != null)
             {
-                // Player exists in the database
+                // RETURNING PLAYER
+
+                playerGold = dbPlayer.Gold;
 
                 // Add the player to the list of players currently on the server
                 players.Add((uint)players.Count, new Player
                 {
                     Peer = peer,
-                    LastSeen = DateTime.Now
+                    LastSeen = DateTime.Now,
+                    Gold = dbPlayer.Gold
                 });
 
                 // Update the player in the database
-                player.LastSeen = DateTime.Now;
+                dbPlayer.LastSeen = DateTime.Now;
                 db.SaveChanges();
 
                 Logger.Log($"User '{data.Username}' logged in");
             }
             else
             {
+                // NEW PLAYER
+
+                uint startingGold = 100;
+                playerGold = startingGold;
+
                 // Add the player to the list of players currently on the server
                 players.Add((uint)players.Count, new Player
                 {
                     Peer = peer,
                     Username = data.Username,
-                    Gold = 100,
+                    Gold = startingGold,
                     LastSeen = DateTime.Now
                 });
 
@@ -192,7 +201,7 @@ namespace GameServer.Server
                 db.Add(new ModelPlayer
                 {
                     Username = data.Username,
-                    Gold = 100,
+                    Gold = startingGold,
                     LastSeen = DateTime.Now
                 });
                 db.SaveChanges();
@@ -202,7 +211,8 @@ namespace GameServer.Server
 
             var packetDataLoginSuccess = new WPacketLogin
             {
-                LoginOpcode = LoginResponseOpcode.LoginSuccess
+                LoginOpcode = LoginResponseOpcode.LoginSuccess,
+                Gold = playerGold
             };
 
             Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
@@ -216,18 +226,24 @@ namespace GameServer.Server
 
             if (itemType == ItemType.Hut)
             {
-                var hutCost = 25;
+                uint hutCost = 25;
 
                 var player = players[peer.ID];
-                var gold = player.Gold;
+
+                // Calculate players new gold value based on how many structures they own
+                var diff = DateTime.Now - player.LastCheckStructureHut;
+                uint goldGenerated = player.StructureHut * (uint)diff.TotalSeconds;
+
+                player.Gold += goldGenerated;
+                Logger.Log($"Huts: {player.StructureHut}, Gold generated: {goldGenerated}");
 
                 // Player can't afford this
-                if (gold < hutCost) 
+                if (player.Gold < hutCost) 
                 {
                     var packetDataNotEnoughGold = new WPacketPurchaseItem {
                         PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
                         ItemId = (ushort)ItemType.Hut,
-                        Gold = gold
+                        Gold = player.Gold
                     };
                     var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
                     Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
@@ -236,12 +252,14 @@ namespace GameServer.Server
                 }
 
                 // Player bought the structure
+                player.Gold -= hutCost;
                 player.StructureHut++;
+                player.LastCheckStructureHut = DateTime.Now;
 
                 var packetDataPurchasedItem = new WPacketPurchaseItem { 
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
                     ItemId = (ushort)ItemType.Hut,
-                    Gold = gold
+                    Gold = player.Gold
                 };
                 var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
                 Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
