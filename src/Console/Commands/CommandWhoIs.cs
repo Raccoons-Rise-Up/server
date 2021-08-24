@@ -34,7 +34,7 @@ namespace GameServer.Logging.Commands
                 );
             }
 
-            var player = ENetServer.players.Find(x => x.Username == args[0]);
+            var player = ENetServer.Players.Find(x => x.Username == args[0]);
             if (player == null)
                 return;
 

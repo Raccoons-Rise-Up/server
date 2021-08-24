@@ -15,19 +15,25 @@ namespace GameServer.Server
 {
     public class ENetServer
     {
-        public const int serverVersionMajor = 0;
-        public const int serverVersionMinor = 1;
-        public const int serverVersionPatch = 0;
+        public static ConcurrentQueue<ServerInstructions> ServerInstructions { get; private set; }
+        public static List<Player> Players { get; private set; }
 
-        public static readonly ConcurrentQueue<ServerInstructions> serverInstructions = new();
-        public static readonly List<Player> players = new();
-
-        private const int packetSizeMax = 1024;
+        public static byte ServerVersionMajor { get; private set; }
+        public static byte ServerVersionMinor { get; private set; }
+        public static byte ServerVersionPatch { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
+
+            // Server Version
+            ServerVersionMajor = 0;
+            ServerVersionMinor = 1;
+            ServerVersionPatch = 0;
+
+            ServerInstructions = new();
+            Players = new();
 
             Library.Initialize();
 
@@ -50,13 +56,13 @@ namespace GameServer.Server
                     var polled = false;
 
                     // Server Instructions
-                    while (serverInstructions.TryDequeue(out ServerInstructions result))
+                    while (ServerInstructions.TryDequeue(out ServerInstructions result))
                     {
                         foreach (var cmd in result.Instructions) 
                         {
                             if (cmd.Key == ServerInstructionOpcode.ClearPlayerStats) 
                             {
-                                var player = players.Find(x => x.Username == cmd.Value[0].ToString());
+                                var player = Players.Find(x => x.Username == cmd.Value[0].ToString());
                                 if (player != null)
                                 {
                                     player.ResetValues();
@@ -86,54 +92,29 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Connect) 
                         {
-                            //netEvent.Peer.Timeout(1000, 1000, 1000);
+                            netEvent.Peer.Timeout(32, 1000, 4000);
                         }
 
                         if (eventType == EventType.Disconnect) 
                         {
                             var player = RemovePlayer(netEvent.Peer.ID);
-                            Logger.Log($"Player '{player.Username}' disconnected");
+
+                            Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
                         }
 
                         if (eventType == EventType.Timeout) 
                         {
                             var player = RemovePlayer(netEvent.Peer.ID);
-                            Logger.Log($"Player '{player.Username}' timed out");
+
+                            Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
                         }
 
                         if (eventType == EventType.Receive) 
                         {
                             //Logger.Log("Packet received from - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP + ", Channel ID: " + netEvent.ChannelID + ", Data length: " + netEvent.Packet.Length);
 
-                            var peer = netEvent.Peer;
-                            var packet = netEvent.Packet;
-
-                            var readBuffer = new byte[packetSizeMax];
-                            var packetReader = new PacketReader(readBuffer);
-                            //packetReader.BaseStream.Position = 0;
-
-                            netEvent.Packet.CopyTo(readBuffer);
-
-                            var opcode = (ClientPacketOpcode)packetReader.ReadByte();
-
-                            if (opcode == ClientPacketOpcode.Login)
-                            {
-                                var data = new RPacketLogin();
-                                data.Read(packetReader);
-
-                                ClientPacketHandleLogin(data, peer);
-                            }
-
-                            if (opcode == ClientPacketOpcode.PurchaseItem)
-                            {
-                                var data = new RPacketPurchaseItem();
-                                data.Read(packetReader);
-
-                                ClientPacketHandlePurchaseItem(data, peer);
-                            }
-
-                            packetReader.Dispose();
-                            packet.Dispose();
+                            HandlePacket(ref netEvent);
+                            netEvent.Packet.Dispose();
                         }
                     }
                 }
@@ -155,7 +136,10 @@ namespace GameServer.Server
 
         private static Player RemovePlayer(uint id)
         {
-            var player = players.Find(x => x.Peer.ID == id);
+            var player = Players.Find(x => x.Peer.ID == id);
+
+            if (player == null)
+                return null;
 
             // Save player to database
             using var db = new DatabaseContext();
@@ -164,34 +148,66 @@ namespace GameServer.Server
             db.SaveChanges();
 
             // Remove player from player list
-            players.Remove(player);
+            Players.Remove(player);
 
             return player;
         }
         #endregion
 
+        private static void HandlePacket(ref Event netEvent) 
+        {
+            var peer = netEvent.Peer;
+            var packetSizeMax = 1024;
+            var readBuffer = new byte[packetSizeMax];
+            var packetReader = new PacketReader(readBuffer);
+            packetReader.BaseStream.Position = 0;
+
+            netEvent.Packet.CopyTo(readBuffer);
+
+            var opcode = (ClientPacketOpcode)packetReader.ReadByte();
+
+            if (opcode == ClientPacketOpcode.Login)
+            {
+                var data = new RPacketLogin();
+                data.Read(packetReader);
+
+                ClientPacketHandleLogin(data, peer);
+            }
+
+            if (opcode == ClientPacketOpcode.PurchaseItem)
+            {
+                var data = new RPacketPurchaseItem();
+                data.Read(packetReader);
+
+                ClientPacketHandlePurchaseItem(data, peer);
+            }
+
+            packetReader.Dispose();
+        }
+
         #region ClientPacketHandleLogin
         private static void ClientPacketHandleLogin(RPacketLogin data, Peer peer) 
         {
             // Check if versions match
-            if (data.VersionMajor != serverVersionMajor || data.VersionMinor != serverVersionMinor ||
-                data.VersionPatch != serverVersionPatch)
+            if (data.VersionMajor != ServerVersionMajor || data.VersionMinor != ServerVersionMinor ||
+                data.VersionPatch != ServerVersionPatch)
             {
                 var clientVersion = $"{data.VersionMajor}.{data.VersionMinor}.{data.VersionPatch}";
-                var serverVersion = $"{serverVersionMajor}.{serverVersionMinor}.{serverVersionPatch}";
+                var serverVersion = $"{ServerVersionMajor}.{ServerVersionMinor}.{ServerVersionPatch}";
 
-                Logger.Log($"User '{data.Username}' tried to log in but failed because they are running on version " +
+                Logger.Log($"Player '{data.Username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
 
-                var packetDataLoginVersionMismatch = new WPacketLogin 
+                var packetData = new WPacketLogin 
                 {
                     LoginOpcode = LoginResponseOpcode.VersionMismatch,
-                    VersionMajor = serverVersionMajor,
-                    VersionMinor = serverVersionMinor,
-                    VersionPatch = serverVersionPatch,
+                    VersionMajor = ServerVersionMajor,
+                    VersionMinor = ServerVersionMinor,
+                    VersionPatch = ServerVersionPatch,
                 };
 
-                Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
+                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
+                Send(packet, peer, PacketFlags.Reliable);
 
                 return;
             }
@@ -212,11 +228,19 @@ namespace GameServer.Server
                 playerValues.StructureHuts = dbPlayer.StructureHut;
 
                 // Add the player to the list of players currently on the server
-                var player = (Player)dbPlayer;
-                player.LastSeen = DateTime.Now;
-                players.Add(player);
+                var player = new Player
+                {
+                    Gold = dbPlayer.Gold,
+                    StructureHut = dbPlayer.StructureHut,
+                    LastCheckStructureHut = dbPlayer.LastCheckStructureHut,
+                    LastSeen = DateTime.Now,
+                    Username = dbPlayer.Username,
+                    Peer = peer
+                };
 
-                Logger.Log($"User '{data.Username}' logged in");
+                Players.Add(player);
+
+                Logger.Log($"Player '{data.Username}' logged in");
             }
             else
             {
@@ -226,7 +250,7 @@ namespace GameServer.Server
                 playerValues.StructureHuts = StartingValues.StructureHuts;
 
                 // Add the player to the list of players currently on the server
-                players.Add(new Player
+                Players.Add(new Player
                 {
                     Peer = peer,
                     Username = data.Username,
@@ -237,14 +261,17 @@ namespace GameServer.Server
                 Logger.Log($"User '{data.Username}' logged in for the first time");
             }
 
-            var packetDataLoginSuccess = new WPacketLogin
             {
-                LoginOpcode = LoginResponseOpcode.LoginSuccess,
-                Gold = playerValues.Gold,
-                StructureHuts = playerValues.StructureHuts
-            };
+                var packetData = new WPacketLogin
+                {
+                    LoginOpcode = LoginResponseOpcode.LoginSuccess,
+                    Gold = playerValues.Gold,
+                    StructureHuts = playerValues.StructureHuts
+                };
 
-            Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
+                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
+                Send(packet, peer, PacketFlags.Reliable);
+            }
         }
         #endregion
 
@@ -257,7 +284,7 @@ namespace GameServer.Server
             {
                 uint hutCost = 25;
 
-                var player = players.Find(x => x.Peer.ID == peer.ID);
+                var player = Players.Find(x => x.Peer.ID == peer.ID);
 
                 // Calculate players new gold value based on how many structures they own
                 var diff = DateTime.Now - player.LastCheckStructureHut;

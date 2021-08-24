@@ -11,29 +11,18 @@ namespace GameServer.Logging
     public class Logger
     {
         // Commands
-        private static readonly Dictionary<string, Command> commands = typeof(Command).Assembly.GetTypes()
-            .Where(x => typeof(Command)
-            .IsAssignableFrom(x) && !x.IsAbstract)
-            .Select(Activator.CreateInstance)
-            .Cast<Command>()
-            .ToDictionary(x => x.GetType().Name
-            .Replace("Command", "")
-            .ToLower(), x => x);
+        private static Dictionary<string, Command> Commands { get; set; }
 
         // Command History
-        private static readonly List<string> commandHistory = new();
-        private static int commandHistoryIndex;
-        private const byte maxHistoryCommands = 255;
+        private static List<string> CommandHistory { get; set; }
 
         // Text Field
-        private static readonly LoggerTextField textField = new();
-        private static readonly object threadLock = new();
-        private static int spaceBarCount;
+        private static LoggerTextField TextField { get; set; }
+        private static object ThreadLock { get; set; }
 
         // Logging
-        private static readonly ConcurrentQueue<LoggerMessage> messages = new();
-        private static int loggerMessageRow;
-        private const int messageThreadTickRate = 200;
+        private static ConcurrentQueue<LoggerMessage> Messages { get; set; }
+        private static int LoggerMessageRow { get; set; }
 
         public static void LogError(object obj) 
         {
@@ -53,22 +42,27 @@ namespace GameServer.Logging
 
             var message = new LoggerMessage(str);
 
-            messages.Enqueue(message);
+            Messages.Enqueue(message);
         }
 
         public static void MessagesThread()
         {
             Thread.CurrentThread.Name = "CONSOLE";
 
+            Messages = new();
+            ThreadLock = new();
+
+            var messageThreadTickRate = 200;
+
             while (true)
             {
                 Thread.Sleep(messageThreadTickRate); // Otherwise CPU resources will go to waste
 
-                lock (threadLock) 
+                lock (ThreadLock) 
                 {
-                    while (messages.TryDequeue(out LoggerMessage message))
+                    while (Messages.TryDequeue(out LoggerMessage message))
                     {
-                        textField.MoveDown();
+                        TextField.MoveDown();
                         AddMessageToConsole(message);
                     }
                 }
@@ -79,28 +73,43 @@ namespace GameServer.Logging
         {
             Thread.CurrentThread.Name = "CONSOLE";
 
+            Commands = typeof(Command).Assembly.GetTypes()
+                .Where(x => typeof(Command)
+                .IsAssignableFrom(x) && !x.IsAbstract)
+                .Select(Activator.CreateInstance)
+                .Cast<Command>()
+                .ToDictionary(x => x.GetType().Name
+                .Replace("Command", "")
+                .ToLower(), x => x);
+
+            CommandHistory = new();
+            TextField = new();
+
             Terminal.DisableMinimize();
             Terminal.DisableMaximize();
             Terminal.DisableResize();
             Terminal.DisableConsoleFeatures();
 
-            textField.row = 1; // Keep the text field 1 row ahead of the logged messages
+            TextField.row = 1; // Keep the text field 1 row ahead of the logged messages
+
+            var spaceBarCount = 0;
+            var commandHistoryIndex = 0;
 
             while (true)
             {
-                lock (threadLock)
-                    Console.CursorTop = textField.row;
+                lock (ThreadLock)
+                    Console.CursorTop = TextField.row;
 
                 var keyInfo = Console.ReadKey(true);
 
-                lock (threadLock) 
+                lock (ThreadLock) 
                 {
                     if (keyInfo.Key == ConsoleKey.Spacebar) 
                         spaceBarCount++;
 
                     if (keyInfo.Key == ConsoleKey.Delete) 
                     {
-                        var input = textField.input;
+                        var input = TextField.input;
 
                         if (input == "" || Console.CursorLeft == input.Length)
                             continue;
@@ -111,10 +120,10 @@ namespace GameServer.Logging
                         // Update the input variable
                         
                         var cursorColumn = input.Length - 1 - Console.CursorLeft;
-                        textField.input = input.Remove(input.Length - 1 - cursorColumn, 1);
+                        TextField.input = input.Remove(input.Length - 1 - cursorColumn, 1);
 
                         // Since the input was edited, it needs to be redrawn
-                        textField.Redraw();
+                        TextField.Redraw();
 
                         continue;
                     }
@@ -131,12 +140,12 @@ namespace GameServer.Logging
                         Console.CursorLeft--;
 
                         // Update the input variable
-                        var input = textField.input;
+                        var input = TextField.input;
                         var cursorColumn = input.Length - 1 - Console.CursorLeft;
-                        textField.input = input.Remove(input.Length - 1 - cursorColumn, 1);
+                        TextField.input = input.Remove(input.Length - 1 - cursorColumn, 1);
 
                         // Since the input was edited, it needs to be redrawn
-                        textField.Redraw();
+                        TextField.Redraw();
                         continue;
                     }
 
@@ -162,17 +171,17 @@ namespace GameServer.Logging
 
                     if (keyInfo.Key == ConsoleKey.DownArrow)
                     {
-                        if (commandHistory.Count < 1)
+                        if (CommandHistory.Count < 1)
                             continue;
 
                         if (commandHistoryIndex <= 1)
                             continue;
 
                         commandHistoryIndex--;
-                        var nextCommand = commandHistory[commandHistory.Count - commandHistoryIndex];
+                        var nextCommand = CommandHistory[CommandHistory.Count - commandHistoryIndex];
 
-                        textField.input = nextCommand;
-                        textField.Clear(false);
+                        TextField.input = nextCommand;
+                        TextField.Clear(false);
 
                         Console.WriteLine(nextCommand);
 
@@ -181,17 +190,17 @@ namespace GameServer.Logging
 
                     if (keyInfo.Key == ConsoleKey.UpArrow)
                     {
-                        if (commandHistory.Count < 1)
+                        if (CommandHistory.Count < 1)
                             continue;
 
-                        if (commandHistoryIndex >= commandHistory.Count)
+                        if (commandHistoryIndex >= CommandHistory.Count)
                             continue;
 
-                        var prevCommand = commandHistory[commandHistory.Count - 1 - commandHistoryIndex];
+                        var prevCommand = CommandHistory[CommandHistory.Count - 1 - commandHistoryIndex];
                         commandHistoryIndex++;
 
-                        textField.input = prevCommand;
-                        textField.Clear(false);
+                        TextField.input = prevCommand;
+                        TextField.Clear(false);
 
                         Console.WriteLine(prevCommand);
 
@@ -200,10 +209,10 @@ namespace GameServer.Logging
 
                     if (keyInfo.Key == ConsoleKey.Enter) 
                     {
-                        if (textField.input == null)
+                        if (TextField.input == null)
                             continue;
 
-                        var inputArr = textField.input.Trim().ToLower().Split(' ');
+                        var inputArr = TextField.input.Trim().ToLower().Split(' ');
                         var cmd = inputArr[0];
                         var args = inputArr.Skip(1).ToArray();
 
@@ -212,8 +221,8 @@ namespace GameServer.Logging
                         {
                             spaceBarCount = 0;
                             Console.CursorLeft = 0;
-                            textField.column = 0;
-                            textField.input = "";
+                            TextField.column = 0;
+                            TextField.input = "";
                             continue;
                         }
 
@@ -221,23 +230,24 @@ namespace GameServer.Logging
                         if (cmd == "")
                             continue;
 
-                        if (commands.ContainsKey(cmd))
-                            commands[cmd].Run(args);
+                        if (Commands.ContainsKey(cmd))
+                            Commands[cmd].Run(args);
                         else
                             Log($"Unknown Command: '{cmd}'");
 
                         // Only keep track of a set of previously entered commands
-                        if (commandHistory.Count > maxHistoryCommands) 
-                            commandHistory.RemoveAt(0);
+                        var maxHistoryCommands = 255;
+                        if (CommandHistory.Count > maxHistoryCommands) 
+                            CommandHistory.RemoveAt(0);
 
                         // Add command along with args[] to command history
-                        commandHistory.Add(textField.input);
+                        CommandHistory.Add(TextField.input);
 
                         // Reset command history index to 0 on enter
                         commandHistoryIndex = 0;
 
                         // Reset input and text field input
-                        textField.Clear(true);
+                        TextField.Clear(true);
                         spaceBarCount = 0;
                         continue;
                     }
@@ -245,8 +255,8 @@ namespace GameServer.Logging
                     // Write the character to the console and input, also keep track of text field column
                     Console.Write(keyInfo.KeyChar);
 
-                    textField.input += keyInfo.KeyChar;
-                    textField.column++;
+                    TextField.input += keyInfo.KeyChar;
+                    TextField.column++;
 
                     if (Console.CursorLeft >= Console.WindowWidth - 1) 
                     {
@@ -271,11 +281,11 @@ namespace GameServer.Logging
             var lines = message.GetLines();
 
             // Move the logger area and text field area down by 'lines'
-            loggerMessageRow += lines;
-            textField.row += lines;
+            LoggerMessageRow += lines;
+            TextField.row += lines;
 
             // Reset text field column
-            textField.column = 0;
+            TextField.column = 0;
 
             // Put cursor left back to where it previously was
             Console.CursorLeft = prevTextFieldColumn;
@@ -284,7 +294,7 @@ namespace GameServer.Logging
         private static void WriteColoredMessage(string message) 
         {
             Console.CursorLeft = 0;
-            Console.CursorTop = loggerMessageRow;
+            Console.CursorTop = LoggerMessageRow;
 
             // Check for color codes in the message
             if (message.Contains('&'))

@@ -36,7 +36,7 @@ namespace GameServer.Logging.Commands
             var cmd = new ServerInstructions();
             cmd.Set(ServerInstructionOpcode.ClearPlayerStats, dbPlayer.Username);
 
-            ENetServer.serverInstructions.Enqueue(cmd);
+            ENetServer.ServerInstructions.Enqueue(cmd);
 
             Logger.Log($"Cleared {dbPlayer.Username} from database");
         }
