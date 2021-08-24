@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.IO;
@@ -17,6 +18,11 @@ namespace GameServer.Server
         public const int SERVER_VERSION_MAJOR = 0;
         public const int SERVER_VERSION_MINOR = 1;
         public const int SERVER_VERSION_PATCH = 0;
+
+        private const uint STARTING_GOLD = 100;
+        private const uint STARTING_STRUCTURE_HUTS = 0;
+
+        public static readonly ConcurrentQueue<ServerInstruction> serverInstructions = new();
 
         private const int PACKET_SIZE_MAX = 1024;
 
@@ -46,6 +52,23 @@ namespace GameServer.Server
                 while (!Console.KeyAvailable)
                 {
                     var polled = false;
+
+                    // Server Instructions
+                    while (serverInstructions.TryDequeue(out ServerInstruction result))
+                    {
+                        if (result.Opcode == ServerInstructionOpcode.ClearPlayerStats)
+                        {
+                            var player = players.Values.ToList().Find(x => x.Username == result.Data[0].ToString());
+                            if (player != null) 
+                            {
+                                player.Gold = STARTING_GOLD;
+                                player.StructureHut = STARTING_STRUCTURE_HUTS;
+                                player.LastSeen = DateTime.Now;
+                            }
+                            
+                            break;
+                        }
+                    }
 
                     while (!polled)
                     {
@@ -159,13 +182,17 @@ namespace GameServer.Server
             var dbPlayers = db.Players.ToList();
 
             var dbPlayer = dbPlayers.Find(x => x.Username == data.Username);
-            uint playerGold; // This will be sent to the client
+
+            // These values will be sent to the client
+            uint playerGold;
+            uint playerStructureHuts;
 
             if (dbPlayer != null)
             {
                 // RETURNING PLAYER
 
                 playerGold = dbPlayer.Gold;
+                playerStructureHuts = dbPlayer.StructureHut;
 
                 // Add the player to the list of players currently on the server
                 players.Add((uint)players.Count, new Player
@@ -185,15 +212,15 @@ namespace GameServer.Server
             {
                 // NEW PLAYER
 
-                uint startingGold = 100;
-                playerGold = startingGold;
+                playerGold = STARTING_GOLD;
+                playerStructureHuts = STARTING_STRUCTURE_HUTS;
 
                 // Add the player to the list of players currently on the server
                 players.Add((uint)players.Count, new Player
                 {
                     Peer = peer,
                     Username = data.Username,
-                    Gold = startingGold,
+                    Gold = STARTING_GOLD,
                     LastSeen = DateTime.Now
                 });
 
@@ -201,7 +228,7 @@ namespace GameServer.Server
                 db.Add(new ModelPlayer
                 {
                     Username = data.Username,
-                    Gold = startingGold,
+                    Gold = STARTING_GOLD,
                     LastSeen = DateTime.Now
                 });
                 db.SaveChanges();
@@ -212,7 +239,8 @@ namespace GameServer.Server
             var packetDataLoginSuccess = new WPacketLogin
             {
                 LoginOpcode = LoginResponseOpcode.LoginSuccess,
-                Gold = playerGold
+                Gold = playerGold,
+                StructureHuts = playerStructureHuts
             };
 
             Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
@@ -266,5 +294,27 @@ namespace GameServer.Server
             }
         }
         #endregion
+    }
+
+    public class ServerInstruction 
+    {
+        public ServerInstructionOpcode Opcode { get; set; }
+        public List<object> Data { get; set; }
+
+        public ServerInstruction(ServerInstructionOpcode opcode) 
+        {
+            Opcode = opcode;
+            Data = new List<object>();
+        }
+
+        public void Write(object obj) 
+        {
+            Data.Add(obj);
+        }
+    }
+
+    public enum ServerInstructionOpcode 
+    {
+        ClearPlayerStats
     }
 }
