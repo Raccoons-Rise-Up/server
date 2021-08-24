@@ -10,6 +10,7 @@ namespace GameServer.Server.Packets
         public byte VersionMinor { private get; set; }
         public byte VersionPatch { private get; set; }
         public uint Gold { get; set; }
+        public uint StructureHuts { get; set; }
 
         public void Write(PacketWriter writer)
         {
@@ -24,6 +25,7 @@ namespace GameServer.Server.Packets
                     break;
                 case LoginResponseOpcode.LoginSuccess:
                     writer.Write(Gold);
+                    writer.Write(StructureHuts);
                     break;
             }
         }
