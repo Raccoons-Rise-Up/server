@@ -10,5 +10,13 @@ namespace GameServer.Server
         public Peer Peer { get; set; }
         public uint Id => Peer.ID;
         public string Ip => Peer.IP;
+
+        public void ResetValues() 
+        {
+            LastSeen = DateTime.Now;
+            Gold = StartingValues.Gold;
+            StructureHut = StartingValues.StructureHuts;
+            LastCheckStructureHut = DateTime.Now;
+        }
     }
 }

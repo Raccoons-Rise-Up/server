@@ -15,18 +15,14 @@ namespace GameServer.Server
 {
     public class ENetServer
     {
-        public const int SERVER_VERSION_MAJOR = 0;
-        public const int SERVER_VERSION_MINOR = 1;
-        public const int SERVER_VERSION_PATCH = 0;
+        public const int serverVersionMajor = 0;
+        public const int serverVersionMinor = 1;
+        public const int serverVersionPatch = 0;
 
-        private const uint STARTING_GOLD = 100;
-        private const uint STARTING_STRUCTURE_HUTS = 0;
+        public static readonly ConcurrentQueue<ServerInstructions> serverInstructions = new();
+        public static readonly List<Player> players = new();
 
-        public static readonly ConcurrentQueue<ServerInstruction> serverInstructions = new();
-
-        private const int PACKET_SIZE_MAX = 1024;
-
-        private static readonly Dictionary<uint, Player> players = new();
+        private const int packetSizeMax = 1024;
 
         #region WorkerThread
         public static void WorkerThread() 
@@ -54,19 +50,20 @@ namespace GameServer.Server
                     var polled = false;
 
                     // Server Instructions
-                    while (serverInstructions.TryDequeue(out ServerInstruction result))
+                    while (serverInstructions.TryDequeue(out ServerInstructions result))
                     {
-                        if (result.Opcode == ServerInstructionOpcode.ClearPlayerStats)
+                        foreach (var cmd in result.Instructions) 
                         {
-                            var player = players.Values.ToList().Find(x => x.Username == result.Data[0].ToString());
-                            if (player != null) 
+                            if (cmd.Key == ServerInstructionOpcode.ClearPlayerStats) 
                             {
-                                player.Gold = STARTING_GOLD;
-                                player.StructureHut = STARTING_STRUCTURE_HUTS;
-                                player.LastSeen = DateTime.Now;
+                                var player = players.Find(x => x.Username == cmd.Value[0].ToString());
+                                if (player != null)
+                                {
+                                    player.ResetValues();
+
+                                    Logger.Log($"Cleared {player.Username} from list");
+                                }
                             }
-                            
-                            break;
                         }
                     }
 
@@ -80,56 +77,63 @@ namespace GameServer.Server
                             polled = true;
                         }
 
-                        switch (netEvent.Type)
+                        var eventType = netEvent.Type;
+
+                        /*if (eventType == EventType.None) 
                         {
-                            case EventType.None:
-                                break;
+                            // Do nothing
+                        }*/
 
-                            case EventType.Connect:
-                                Logger.Log("Client connected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
-                                break;
+                        if (eventType == EventType.Connect) 
+                        {
+                            //netEvent.Peer.Timeout(1000, 1000, 1000);
+                        }
 
-                            case EventType.Disconnect:
-                                Logger.Log("Client disconnected - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
-                                break;
+                        if (eventType == EventType.Disconnect) 
+                        {
+                            var player = RemovePlayer(netEvent.Peer.ID);
+                            Logger.Log($"Player '{player.Username}' disconnected");
+                        }
 
-                            case EventType.Timeout:
-                                Logger.Log("Client timeout - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP);
-                                break;
+                        if (eventType == EventType.Timeout) 
+                        {
+                            var player = RemovePlayer(netEvent.Peer.ID);
+                            Logger.Log($"Player '{player.Username}' timed out");
+                        }
 
-                            case EventType.Receive:
-                                //Logger.Log("Packet received from - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP + ", Channel ID: " + netEvent.ChannelID + ", Data length: " + netEvent.Packet.Length);
+                        if (eventType == EventType.Receive) 
+                        {
+                            //Logger.Log("Packet received from - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP + ", Channel ID: " + netEvent.ChannelID + ", Data length: " + netEvent.Packet.Length);
 
-                                var peer = netEvent.Peer;
-                                var packet = netEvent.Packet;
+                            var peer = netEvent.Peer;
+                            var packet = netEvent.Packet;
 
-                                var readBuffer = new byte[PACKET_SIZE_MAX];
-                                var packetReader = new PacketReader(readBuffer);
-                                //packetReader.BaseStream.Position = 0;
+                            var readBuffer = new byte[packetSizeMax];
+                            var packetReader = new PacketReader(readBuffer);
+                            //packetReader.BaseStream.Position = 0;
 
-                                netEvent.Packet.CopyTo(readBuffer);
+                            netEvent.Packet.CopyTo(readBuffer);
 
-                                var opcode = (ClientPacketOpcode)packetReader.ReadByte();
+                            var opcode = (ClientPacketOpcode)packetReader.ReadByte();
 
-                                if (opcode == ClientPacketOpcode.Login) 
-                                {
-                                    var data = new RPacketLogin();
-                                    data.Read(packetReader);
+                            if (opcode == ClientPacketOpcode.Login)
+                            {
+                                var data = new RPacketLogin();
+                                data.Read(packetReader);
 
-                                    ClientPacketHandleLogin(data, peer);
-                                }
+                                ClientPacketHandleLogin(data, peer);
+                            }
 
-                                if (opcode == ClientPacketOpcode.PurchaseItem) 
-                                {
-                                    var data = new RPacketPurchaseItem();
-                                    data.Read(packetReader);
+                            if (opcode == ClientPacketOpcode.PurchaseItem)
+                            {
+                                var data = new RPacketPurchaseItem();
+                                data.Read(packetReader);
 
-                                    ClientPacketHandlePurchaseItem(data, peer);
-                                }
+                                ClientPacketHandlePurchaseItem(data, peer);
+                            }
 
-                                packetReader.Dispose();
-                                packet.Dispose();
-                                break;
+                            packetReader.Dispose();
+                            packet.Dispose();
                         }
                     }
                 }
@@ -148,17 +152,33 @@ namespace GameServer.Server
             byte channelID = 0;
             peer.Send(channelID, ref packet);
         }
+
+        private static Player RemovePlayer(uint id)
+        {
+            var player = players.Find(x => x.Peer.ID == id);
+
+            // Save player to database
+            using var db = new DatabaseContext();
+
+            db.Add((ModelPlayer)player);
+            db.SaveChanges();
+
+            // Remove player from player list
+            players.Remove(player);
+
+            return player;
+        }
         #endregion
 
         #region ClientPacketHandleLogin
         private static void ClientPacketHandleLogin(RPacketLogin data, Peer peer) 
         {
             // Check if versions match
-            if (data.VersionMajor != SERVER_VERSION_MAJOR || data.VersionMinor != SERVER_VERSION_MINOR ||
-                data.VersionPatch != SERVER_VERSION_PATCH)
+            if (data.VersionMajor != serverVersionMajor || data.VersionMinor != serverVersionMinor ||
+                data.VersionPatch != serverVersionPatch)
             {
                 var clientVersion = $"{data.VersionMajor}.{data.VersionMinor}.{data.VersionPatch}";
-                var serverVersion = $"{SERVER_VERSION_MAJOR}.{SERVER_VERSION_MINOR}.{SERVER_VERSION_PATCH}";
+                var serverVersion = $"{serverVersionMajor}.{serverVersionMinor}.{serverVersionPatch}";
 
                 Logger.Log($"User '{data.Username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
@@ -166,9 +186,9 @@ namespace GameServer.Server
                 var packetDataLoginVersionMismatch = new WPacketLogin 
                 {
                     LoginOpcode = LoginResponseOpcode.VersionMismatch,
-                    VersionMajor = SERVER_VERSION_MAJOR,
-                    VersionMinor = SERVER_VERSION_MINOR,
-                    VersionPatch = SERVER_VERSION_PATCH,
+                    VersionMajor = serverVersionMajor,
+                    VersionMinor = serverVersionMinor,
+                    VersionPatch = serverVersionPatch,
                 };
 
                 Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginVersionMismatch), peer, PacketFlags.Reliable);
@@ -179,32 +199,22 @@ namespace GameServer.Server
             // Check if username exists in database
             using var db = new DatabaseContext();
 
-            var dbPlayers = db.Players.ToList();
-
-            var dbPlayer = dbPlayers.Find(x => x.Username == data.Username);
+            var dbPlayer = db.Players.ToList().Find(x => x.Username == data.Username);
 
             // These values will be sent to the client
-            uint playerGold;
-            uint playerStructureHuts;
+            var playerValues = new PlayerValues();
 
             if (dbPlayer != null)
             {
                 // RETURNING PLAYER
 
-                playerGold = dbPlayer.Gold;
-                playerStructureHuts = dbPlayer.StructureHut;
+                playerValues.Gold = dbPlayer.Gold;
+                playerValues.StructureHuts = dbPlayer.StructureHut;
 
                 // Add the player to the list of players currently on the server
-                players.Add((uint)players.Count, new Player
-                {
-                    Peer = peer,
-                    LastSeen = DateTime.Now,
-                    Gold = dbPlayer.Gold
-                });
-
-                // Update the player in the database
-                dbPlayer.LastSeen = DateTime.Now;
-                db.SaveChanges();
+                var player = (Player)dbPlayer;
+                player.LastSeen = DateTime.Now;
+                players.Add(player);
 
                 Logger.Log($"User '{data.Username}' logged in");
             }
@@ -212,26 +222,17 @@ namespace GameServer.Server
             {
                 // NEW PLAYER
 
-                playerGold = STARTING_GOLD;
-                playerStructureHuts = STARTING_STRUCTURE_HUTS;
+                playerValues.Gold = StartingValues.Gold;
+                playerValues.StructureHuts = StartingValues.StructureHuts;
 
                 // Add the player to the list of players currently on the server
-                players.Add((uint)players.Count, new Player
+                players.Add(new Player
                 {
                     Peer = peer,
                     Username = data.Username,
-                    Gold = STARTING_GOLD,
+                    Gold = StartingValues.Gold,
                     LastSeen = DateTime.Now
                 });
-
-                // Player does not exist in database, they are logging in for the first time
-                db.Add(new ModelPlayer
-                {
-                    Username = data.Username,
-                    Gold = STARTING_GOLD,
-                    LastSeen = DateTime.Now
-                });
-                db.SaveChanges();
 
                 Logger.Log($"User '{data.Username}' logged in for the first time");
             }
@@ -239,8 +240,8 @@ namespace GameServer.Server
             var packetDataLoginSuccess = new WPacketLogin
             {
                 LoginOpcode = LoginResponseOpcode.LoginSuccess,
-                Gold = playerGold,
-                StructureHuts = playerStructureHuts
+                Gold = playerValues.Gold,
+                StructureHuts = playerValues.StructureHuts
             };
 
             Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetDataLoginSuccess), peer, PacketFlags.Reliable);
@@ -256,7 +257,7 @@ namespace GameServer.Server
             {
                 uint hutCost = 25;
 
-                var player = players[peer.ID];
+                var player = players.Find(x => x.Peer.ID == peer.ID);
 
                 // Calculate players new gold value based on how many structures they own
                 var diff = DateTime.Now - player.LastCheckStructureHut;
@@ -296,20 +297,38 @@ namespace GameServer.Server
         #endregion
     }
 
-    public class ServerInstruction 
+    public struct PlayerValues 
     {
-        public ServerInstructionOpcode Opcode { get; set; }
-        public List<object> Data { get; set; }
+        public uint Gold { get; set; }
+        public uint StructureHuts { get; set; }
+    }
 
-        public ServerInstruction(ServerInstructionOpcode opcode) 
+    public static class StartingValues
+    {
+        public const uint Gold = 100;
+        public const uint StructureHuts = 0;
+    }
+
+    public class ServerInstructions 
+    {
+        public Dictionary<ServerInstructionOpcode, List<object>> Instructions { get; set; }
+
+        public ServerInstructions()
         {
-            Opcode = opcode;
-            Data = new List<object>();
+            Instructions = new Dictionary<ServerInstructionOpcode, List<object>>();
         }
 
-        public void Write(object obj) 
+        public ServerInstructions(ServerInstructionOpcode opcode)
         {
-            Data.Add(obj);
+            Instructions = new Dictionary<ServerInstructionOpcode, List<object>>
+            {
+                [opcode] = null
+            };
+        }
+
+        public void Set(ServerInstructionOpcode opcode, params object[] data)
+        {
+            Instructions[opcode] = new List<object>(data);
         }
     }
 

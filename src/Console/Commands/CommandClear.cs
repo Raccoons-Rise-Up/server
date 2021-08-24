@@ -33,10 +33,10 @@ namespace GameServer.Logging.Commands
             db.SaveChanges();
 
             // Clear the players variables from players list
-            var instructionClearPlayerStats = new ServerInstruction(ServerInstructionOpcode.ClearPlayerStats);
-            instructionClearPlayerStats.Write(dbPlayer.Username);
+            var cmd = new ServerInstructions();
+            cmd.Set(ServerInstructionOpcode.ClearPlayerStats, dbPlayer.Username);
 
-            ENetServer.serverInstructions.Enqueue(instructionClearPlayerStats);
+            ENetServer.serverInstructions.Enqueue(cmd);
 
             Logger.Log($"Cleared {dbPlayer.Username} from database");
         }
