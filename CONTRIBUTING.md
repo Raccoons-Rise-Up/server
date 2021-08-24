@@ -10,7 +10,7 @@
 2. State all the changes you made in the PR, not everyone will understand what you've done!
 
 ## .NET
-Make sure all the required tools are installed to run dotnet projects. (I'm not sure myself how I setup this up, maybe someone can reinforce this part of the CONTRIBUTING.md document)
+.NET is installed from https://dotnet.microsoft.com/download/dotnet/5.0 (cross platform) or with Visual Studio if you check the `.NET desktop environment` workload when installing.
 
 ## Entity Framework Core - SQLite
 ### Creating the Database
