@@ -9,13 +9,13 @@ namespace GameServer.Logging.Commands
     {
         public override void Run(string[] args) 
         {
-            using var db = new DatabaseContext();
-
             if (args.Length == 0) 
             {
                 Logger.Log("Please provide a username to search for");
                 return;
             }
+
+            using var db = new DatabaseContext();
 
             var player = db.Players.ToList().Find(x => x.Username == args[0]);
 
