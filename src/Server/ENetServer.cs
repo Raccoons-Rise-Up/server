@@ -97,14 +97,20 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Disconnect) 
                         {
-                            var player = RemovePlayer(netEvent.Peer.ID);
+                            var player = Players.Find(x => x.Peer.ID == netEvent.Peer.ID);
+
+                            SavePlayerToDatabase(player);
+                            RemovePlayer(player);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
                         }
 
                         if (eventType == EventType.Timeout) 
                         {
-                            var player = RemovePlayer(netEvent.Peer.ID);
+                            var player = Players.Find(x => x.Peer.ID == netEvent.Peer.ID);
+
+                            SavePlayerToDatabase(player);
+                            RemovePlayer(player);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
                         }
@@ -134,13 +140,8 @@ namespace GameServer.Server
             peer.Send(channelID, ref packet);
         }
 
-        private static Player RemovePlayer(uint id)
+        private static void RemovePlayer(Player player)
         {
-            var player = Players.Find(x => x.Peer.ID == id);
-
-            if (player == null)
-                return null;
-
             // Save player to database
             using var db = new DatabaseContext();
 
@@ -149,8 +150,72 @@ namespace GameServer.Server
 
             // Remove player from player list
             Players.Remove(player);
+        }
 
-            return player;
+        public static void SavePlayerToDatabase(Player player) 
+        {
+            using var db = new DatabaseContext();
+
+            var playerExistsInDatabase = false;
+
+            foreach (var dbPlayer in db.Players.ToList()) 
+            {
+                if (player.Username == dbPlayer.Username) 
+                {
+                    playerExistsInDatabase = true;
+
+                    SavePlayerValuesToDatabase(dbPlayer, player);
+                    break;
+                }
+            }
+
+            if (!playerExistsInDatabase) 
+            {
+                db.Add((ModelPlayer)player);
+            }
+
+            db.SaveChanges();
+        }
+
+        public static void SaveAllPlayersToDatabase()
+        {
+            if (Players.Count == 0)
+                return;
+
+            Logger.Log($"Saving {Players.Count} players to the database");
+
+            using var db = new DatabaseContext();
+
+            var playersThatAreNotInDatabase = new List<Player>();
+
+            foreach (var player in Players)
+            {
+                foreach (var dbPlayer in db.Players.ToList())
+                {
+                    if (player.Username == dbPlayer.Username)
+                    {
+                        SavePlayerValuesToDatabase(dbPlayer, player);
+                        break;
+                    }
+
+                    playersThatAreNotInDatabase.Add(player);
+                }
+            }
+
+            foreach (var player in playersThatAreNotInDatabase)
+            {
+                db.Add((ModelPlayer)player);
+            }
+
+            db.SaveChanges();
+        }
+
+        private static void SavePlayerValuesToDatabase(ModelPlayer dbPlayer, Player player) 
+        {
+            dbPlayer.Gold = player.Gold;
+            dbPlayer.StructureHut = player.StructureHut;
+            dbPlayer.LastCheckStructureHut = player.LastCheckStructureHut;
+            dbPlayer.LastSeen = DateTime.Now;
         }
         #endregion
 
@@ -291,7 +356,6 @@ namespace GameServer.Server
                 uint goldGenerated = player.StructureHut * (uint)diff.TotalSeconds;
 
                 player.Gold += goldGenerated;
-                Logger.Log($"Huts: {player.StructureHut}, Gold generated: {goldGenerated}");
 
                 // Player can't afford this
                 if (player.Gold < hutCost) 
@@ -311,6 +375,8 @@ namespace GameServer.Server
                 player.Gold -= hutCost;
                 player.StructureHut++;
                 player.LastCheckStructureHut = DateTime.Now;
+
+                Logger.Log($"Player '{player.Username}' purchased a Hut");
 
                 var packetDataPurchasedItem = new WPacketPurchaseItem { 
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
