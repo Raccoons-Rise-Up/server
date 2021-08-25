@@ -100,7 +100,9 @@ namespace GameServer.Server
                             var player = Players.Find(x => x.Peer.ID == netEvent.Peer.ID);
 
                             SavePlayerToDatabase(player);
-                            RemovePlayer(player);
+
+                            // Remove player from player list
+                            Players.Remove(player);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
                         }
@@ -110,7 +112,9 @@ namespace GameServer.Server
                             var player = Players.Find(x => x.Peer.ID == netEvent.Peer.ID);
 
                             SavePlayerToDatabase(player);
-                            RemovePlayer(player);
+
+                            // Remove player from player list
+                            Players.Remove(player);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
                         }
@@ -140,23 +144,13 @@ namespace GameServer.Server
             peer.Send(channelID, ref packet);
         }
 
-        private static void RemovePlayer(Player player)
-        {
-            // Save player to database
-            using var db = new DatabaseContext();
-
-            db.Add((ModelPlayer)player);
-            db.SaveChanges();
-
-            // Remove player from player list
-            Players.Remove(player);
-        }
-
         public static void SavePlayerToDatabase(Player player) 
         {
             using var db = new DatabaseContext();
 
             var playerExistsInDatabase = false;
+
+            player.Gold += GoldGeneratedFromStructures(player);
 
             foreach (var dbPlayer in db.Players.ToList()) 
             {
@@ -194,6 +188,7 @@ namespace GameServer.Server
                 {
                     if (player.Username == dbPlayer.Username)
                     {
+                        player.Gold += GoldGeneratedFromStructures(player);
                         SavePlayerValuesToDatabase(dbPlayer, player);
                         break;
                     }
@@ -204,6 +199,7 @@ namespace GameServer.Server
 
             foreach (var player in playersThatAreNotInDatabase)
             {
+                player.Gold += GoldGeneratedFromStructures(player);
                 db.Add((ModelPlayer)player);
             }
 
@@ -214,7 +210,7 @@ namespace GameServer.Server
         {
             dbPlayer.Gold = player.Gold;
             dbPlayer.StructureHut = player.StructureHut;
-            dbPlayer.LastCheckStructureHut = player.LastCheckStructureHut;
+            dbPlayer.LastCheckStructureHut = DateTime.Now;
             dbPlayer.LastSeen = DateTime.Now;
         }
         #endregion
@@ -340,6 +336,17 @@ namespace GameServer.Server
         }
         #endregion
 
+        private static uint GoldGeneratedFromStructures(Player player) 
+        {
+            // Calculate players new gold value based on how many structures they own
+            var diff = DateTime.Now - player.LastCheckStructureHut;
+            uint goldGenerated = player.StructureHut * (uint)diff.TotalSeconds;
+
+            player.LastCheckStructureHut = DateTime.Now;
+
+            return goldGenerated;
+        }
+
         #region ClientPacketHandlePurchaseItem
         private static void ClientPacketHandlePurchaseItem(RPacketPurchaseItem data, Peer peer) 
         {
@@ -351,11 +358,7 @@ namespace GameServer.Server
 
                 var player = Players.Find(x => x.Peer.ID == peer.ID);
 
-                // Calculate players new gold value based on how many structures they own
-                var diff = DateTime.Now - player.LastCheckStructureHut;
-                uint goldGenerated = player.StructureHut * (uint)diff.TotalSeconds;
-
-                player.Gold += goldGenerated;
+                player.Gold += GoldGeneratedFromStructures(player);
 
                 // Player can't afford this
                 if (player.Gold < hutCost) 
