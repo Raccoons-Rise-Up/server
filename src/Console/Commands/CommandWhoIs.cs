@@ -18,7 +18,9 @@ namespace GameServer.Logging.Commands
 
             using var db = new DatabaseContext();
 
-            var dbPlayer = db.Players.ToList().Find(x => x.Username == args[0]);
+            var dbPlayers = db.Players.ToList();
+            Logger.Log($"There are {dbPlayers.Count} players in the database!");
+            var dbPlayer = dbPlayers.Find(x => x.Username == args[0]);
 
             if (dbPlayer != null)
             {
