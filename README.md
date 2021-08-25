@@ -33,7 +33,9 @@ I previously created a [game-server](https://github.com/The-MMORPG-Project/game-
 
 ### Commands
 `help [cmd]` - Display a list of helpful commands or get specific information about a specified command.  
-`exit` - Allow the server to shutdown properly and then exit the application.  
+`whois [playername]` See information about a specific player.  
+`clear [playername]` Reset specific players stats, if no arguments are given the command will clear the entire database.  
+`exit` - Allow the server to shutdown properly and then exit the application. (Pressing the 'X' top right will forcefully close the console and nothing will get saved)  
 
 ### Logging
 ```cs
