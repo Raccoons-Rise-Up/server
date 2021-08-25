@@ -12,13 +12,16 @@ namespace GameServer.Logging.Commands
     {
         public override void Run(string[] args) 
         {
+            using var db = new DatabaseContext();
+
             if (args.Length == 0)
             {
-                Logger.Log("Please provide a username to search for");
+                
+                db.RemoveRange(db.Players);
+                db.SaveChanges();
+                Logger.Log($"Cleared database. There are {db.Players.Count()} players left in database");
                 return;
             }
-
-            using var db = new DatabaseContext();
 
             var dbPlayer = db.Players.ToList().Find(x => x.Username == args[0]);
 
