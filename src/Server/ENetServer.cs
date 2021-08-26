@@ -16,7 +16,7 @@ namespace GameServer.Server
 {
     public class ENetServer
     {
-        public static ConcurrentBag<ServerInstructions> ServerInstructions { get; private set; }
+        public static ConcurrentQueue<ServerInstructions> ServerInstructions { get; private set; }
         public static List<Player> Players { get; private set; }
 
         public static byte ServerVersionMajor { get; private set; }
@@ -59,7 +59,7 @@ namespace GameServer.Server
                     var polled = false;
 
                     // Server Instructions
-                    while (ServerInstructions.TryTake(out ServerInstructions result))
+                    while (ServerInstructions.TryDequeue(out ServerInstructions result))
                     {
                         foreach (var cmd in result.Instructions)
                         {

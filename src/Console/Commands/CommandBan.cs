@@ -30,7 +30,7 @@ namespace GameServer.Logging.Commands
             var cmd = new ServerInstructions();
             cmd.Set(ServerInstructionOpcode.BanPlayer, args[0]);
 
-            ENetServer.ServerInstructions.Add(cmd);
+            ENetServer.ServerInstructions.Enqueue(cmd);
         }
     }
 }
