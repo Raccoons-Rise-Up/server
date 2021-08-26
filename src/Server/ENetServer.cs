@@ -17,7 +17,6 @@ namespace GameServer.Server
     public class BannedPlayer 
     {
         public string Name { get; set; }
-        public string Ip { get; set; }
     }
 
     public class ENetServer
@@ -31,22 +30,55 @@ namespace GameServer.Server
 
         private static void AddPlayerToBanList(Player player) 
         {
-            var bannedPlayers = Utils.ReadJSONFile<BannedPlayer>("banned_players");
-            if (bannedPlayers.Exists(x => x.Ip == player.Ip))
+            var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
+
+            if (bannedPlayers.ContainsKey(player.Ip))
             {
                 Logger.Log($"Player '{player.Username}' was banned already");
                 return;
             }
 
-            bannedPlayers.Add(new BannedPlayer()
+            bannedPlayers[player.Ip] = new BannedPlayer()
             {
-                Name = player.Username,
-                Ip = player.Ip
-            });
+                Name = player.Username
+            };
 
             Utils.WriteToJSONFile("banned_players", bannedPlayers);
 
             Logger.Log($"Player '{player.Username}' was banned");
+        }
+
+        private static void RemovePlayerFromBanList(ModelPlayer player) 
+        {
+            var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
+
+            if (!bannedPlayers.ContainsKey(player.Ip)) 
+            {
+                Logger.Log($"Player '{player.Username}' was pardoned already");
+                return;
+            }
+
+            bannedPlayers.Remove(player.Ip);
+
+            Utils.WriteToJSONFile("banned_players", bannedPlayers);
+
+            Logger.Log($"Player '{player.Username}' was pardoned");
+        }
+
+        private static void PardonOfflinePlayer(string username)
+        {
+            using var db = new DatabaseContext();
+
+            var dbPlayers = db.Players.ToList();
+            var dbPlayer = dbPlayers.Find(x => x.Username == username);
+
+            if (dbPlayer == null) 
+            {
+                Logger.Log($"No player with the username '{username}' could be found to be pardoned");
+                return;
+            }
+
+            RemovePlayerFromBanList(dbPlayer);
         }
 
         private static bool BanOfflinePlayer(string username) 
@@ -89,7 +121,7 @@ namespace GameServer.Server
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            Utils.CreateJSONFile("banned_players");
+            Utils.CreateJSONDictionaryFile("banned_players");
 
             // Server Version
             ServerVersionMajor = 0;
@@ -128,7 +160,9 @@ namespace GameServer.Server
 
                             if (opcode == ServerInstructionOpcode.PardonPlayer) 
                             {
-                                
+                                var username = cmd.Value[0].ToString();
+
+                                PardonOfflinePlayer(username);
                             }
 
                             if (opcode == ServerInstructionOpcode.BanPlayer) 
@@ -219,12 +253,14 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Connect) 
                         {
-                            var bannedPlayers = Utils.ReadJSONFile<BannedPlayer>("banned_players");
-                            var player = bannedPlayers.Find(x => x.Ip == netEvent.Peer.IP);
-                            if (player != null)
+                            var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
+
+                            if (bannedPlayers.ContainsKey(netEvent.Peer.IP)) 
                             {
+                                var bannedPlayer = bannedPlayers[netEvent.Peer.IP];
+
                                 netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
-                                Logger.Log($"Player '{player.Name}' tried to join but is banned");
+                                Logger.Log($"Player '{bannedPlayer.Name}' tried to join but is banned");
                             }
                             else 
                             {
