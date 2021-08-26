@@ -1,10 +1,11 @@
 ﻿namespace GameServer.Logging.Commands
 {
-    public abstract class Command
+    public interface ICommand
     {
-        public virtual void Run(string[] args)
-        {
-            Logger.LogWarning("Unimplemented command.");
-        }
+        string Description { get; set; }
+        string Usage { get; set; }
+        string[] Aliases { get; set; }
+
+        void Run(string[] args);
     }
 }
