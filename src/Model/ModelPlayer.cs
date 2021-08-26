@@ -9,6 +9,7 @@ namespace GameServer.Database
     public class ModelPlayer
     {
         public int ModelPlayerId { get; set; }
+        public string Ip { get; set; }
         public string Username { get; set; }
         public DateTime LastSeen { get; set; }
         public uint Gold { get; set; }
