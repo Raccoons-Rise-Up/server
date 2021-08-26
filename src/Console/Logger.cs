@@ -11,7 +11,7 @@ namespace GameServer.Logging
     public class Logger
     {
         // Commands
-        public static Dictionary<string, ICommand> Commands { get; set; }
+        public static Dictionary<string, Command> Commands { get; set; }
 
         // Command History
         private static List<string> CommandHistory { get; set; }
@@ -78,11 +78,11 @@ namespace GameServer.Logging
         {
             Thread.CurrentThread.Name = "CONSOLE";
 
-            Commands = typeof(ICommand).Assembly.GetTypes()
-                .Where(x => typeof(ICommand)
+            Commands = typeof(Command).Assembly.GetTypes()
+                .Where(x => typeof(Command)
                 .IsAssignableFrom(x) && !x.IsAbstract)
                 .Select(Activator.CreateInstance)
-                .Cast<ICommand>()
+                .Cast<Command>()
                 .ToDictionary(x => x.GetType().Name
                 .Replace("Command", "")
                 .ToLower(), x => x);
