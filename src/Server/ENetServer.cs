@@ -19,7 +19,8 @@ namespace GameServer.Server
         public static ConcurrentBag<Event> Incoming { get; private set; }
         public static ConcurrentQueue<ServerInstructions> ServerInstructions { get; private set; }
         public static List<Player> Players { get; private set; }
-        public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePackets { get; private set; }
+        public static Dictionary<ServerInstructionOpcode, ServerInstruction> ServerInstruction { get; private set; }
+        public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; private set; }
 
         public static byte ServerVersionMajor { get; private set; }
         public static byte ServerVersionMinor { get; private set; }
@@ -41,11 +42,18 @@ namespace GameServer.Server
             ServerInstructions = new();
             Players = new();
 
-            HandlePackets = typeof(HandlePacket).Assembly.GetTypes()
+            HandlePacket = typeof(HandlePacket).Assembly.GetTypes()
                 .Where(x => typeof(HandlePacket)
                 .IsAssignableFrom(x) && !x.IsAbstract)
                 .Select(Activator.CreateInstance)
                 .Cast<HandlePacket>()
+                .ToDictionary(x => x.Opcode, x => x);
+
+            ServerInstruction = typeof(ServerInstruction).Assembly.GetTypes()
+                .Where(x => typeof(ServerInstruction)
+                .IsAssignableFrom(x) && !x.IsAbstract)
+                .Select(Activator.CreateInstance)
+                .Cast<ServerInstruction>()
                 .ToDictionary(x => x.Opcode, x => x);
 
             Library.Initialize();
@@ -75,79 +83,7 @@ namespace GameServer.Server
                         {
                             var opcode = cmd.Key;
 
-                            if (opcode == ServerInstructionOpcode.PardonPlayer) 
-                            {
-                                var username = cmd.Value[0].ToString();
-
-                                Utils.PardonOfflinePlayer(username);
-                            }
-
-                            if (opcode == ServerInstructionOpcode.BanPlayer) 
-                            {
-                                var username = cmd.Value[0].ToString();
-
-                                var bannedOnline = Utils.BanOnlinePlayer(username);
-
-                                if (!bannedOnline)
-                                    Utils.BanOfflinePlayer(username);
-                            }
-
-                            if (opcode == ServerInstructionOpcode.KickPlayer) 
-                            {
-                                var username = cmd.Value[0].ToString();
-                                var player = Players.Find(x => x.Username == username);
-                                if (player == null) 
-                                {
-                                    Logger.Log($"No player with the username '{username}' is online");
-                                    break;
-                                }
-
-                                player.Peer.DisconnectNow((uint)DisconnectOpcode.Kicked);
-                                Players.Remove(player);
-                                Logger.Log($"Player '{player.Username}' was kicked");
-                            }
-
-                            if (opcode == ServerInstructionOpcode.GetOnlinePlayers) 
-                            {
-                                if (Players.Count == 0) 
-                                {
-                                    Logger.Log("There are 0 players on the server");
-                                    break;
-                                }
-
-                                Logger.LogRaw($"\nOnline Players: {string.Join(' ', Players)}");
-                            }
-
-                            if (opcode == ServerInstructionOpcode.GetPlayerStats) 
-                            {
-                                var player = Players.Find(x => x.Username == cmd.Value[0].ToString());
-                                if (player == null)
-                                    break;
-
-                                AddGoldGeneratedFromStructures(player);
-
-                                var diff = DateTime.Now - player.LastSeen;
-                                var diffReadable = $"Days: {diff.Days}, Hours: {diff.Hours}, Minutes: {diff.Minutes}, Seconds: {diff.Seconds}";
-
-                                Logger.LogRaw(
-                                    $"\n\nCACHE" +
-                                    $"\nUsername: {player.Username} " +
-                                    $"\nGold: {player.Gold}" +
-                                    $"\nStructure Huts: {player.StructureHut}" +
-                                    $"\nLast Seen: {diffReadable}"
-                                );
-                            }
-
-                            if (opcode == ServerInstructionOpcode.ClearPlayerStats) 
-                            {
-                                var player = Players.Find(x => x.Username == cmd.Value[0].ToString());
-                                if (player != null)
-                                {
-                                    player.ResetValues();
-
-                                    Logger.Log($"Cleared {player.Username} from list");
-                                }
-                            }
+                            ServerInstruction[opcode].Handle(cmd.Value);
                         }
                     }
 
@@ -164,7 +100,7 @@ namespace GameServer.Server
 
                         var opcode = (ClientPacketOpcode)packetReader.ReadByte();
 
-                        HandlePackets[opcode].Handle(netEvent, ref packetReader);
+                        HandlePacket[opcode].Handle(netEvent, ref packetReader);
 
                         packetReader.Dispose();
                         netEvent.Packet.Dispose();
