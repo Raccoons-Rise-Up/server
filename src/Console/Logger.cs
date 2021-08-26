@@ -83,9 +83,7 @@ namespace GameServer.Logging
                 .IsAssignableFrom(x) && !x.IsAbstract)
                 .Select(Activator.CreateInstance)
                 .Cast<Command>()
-                .ToDictionary(x => x.GetType().Name
-                .Replace("Command", "")
-                .ToLower(), x => x);
+                .ToDictionary(x => x.GetType().Name.Replace("Command", "").ToLower(), x => x);
 
             CommandHistory = new();
             TextField = new();
