@@ -16,6 +16,7 @@ namespace GameServer.Server
 {
     public class ENetServer
     {
+        public static ConcurrentBag<Event> Incoming { get; private set; }
         public static ConcurrentQueue<ServerInstructions> ServerInstructions { get; private set; }
         public static List<Player> Players { get; private set; }
 
@@ -35,6 +36,7 @@ namespace GameServer.Server
             ServerVersionMinor = 1;
             ServerVersionPatch = 0;
 
+            Incoming = new();
             ServerInstructions = new();
             Players = new();
 
@@ -141,6 +143,13 @@ namespace GameServer.Server
                         }
                     }
 
+                    // Incoming
+                    while (Incoming.TryTake(out Event netEvent))
+                    {
+                        HandlePacket.Handle(ref netEvent);
+                        netEvent.Packet.Dispose();
+                    }
+
                     while (!polled)
                     {
                         if (server.CheckEvents(out Event netEvent) <= 0)
@@ -203,8 +212,7 @@ namespace GameServer.Server
                         {
                             //Logger.Log("Packet received from - ID: " + netEvent.Peer.ID + ", IP: " + netEvent.Peer.IP + ", Channel ID: " + netEvent.ChannelID + ", Data length: " + netEvent.Packet.Length);
 
-                            HandlePacket(ref netEvent);
-                            netEvent.Packet.Dispose();
+                            Incoming.Add(netEvent);
                         }
                     }
                 }
@@ -215,7 +223,7 @@ namespace GameServer.Server
             Library.Deinitialize();
         }
 
-        private static void Send(GamePacket gamePacket, Peer peer, PacketFlags packetFlags)
+        public static void Send(GamePacket gamePacket, Peer peer, PacketFlags packetFlags)
         {
             // Send data to a specific client (peer)
             var packet = default(Packet);
@@ -296,130 +304,7 @@ namespace GameServer.Server
         }
         #endregion
 
-        private static void HandlePacket(ref Event netEvent) 
-        {
-            var peer = netEvent.Peer;
-            var packetSizeMax = 1024;
-            var readBuffer = new byte[packetSizeMax];
-            var packetReader = new PacketReader(readBuffer);
-            packetReader.BaseStream.Position = 0;
-
-            netEvent.Packet.CopyTo(readBuffer);
-
-            var opcode = (ClientPacketOpcode)packetReader.ReadByte();
-
-            if (opcode == ClientPacketOpcode.Login)
-            {
-                var data = new RPacketLogin();
-                data.Read(packetReader);
-
-                ClientPacketHandleLogin(data, peer);
-            }
-
-            if (opcode == ClientPacketOpcode.PurchaseItem)
-            {
-                var data = new RPacketPurchaseItem();
-                data.Read(packetReader);
-
-                ClientPacketHandlePurchaseItem(data, peer);
-            }
-
-            packetReader.Dispose();
-        }
-
-        #region ClientPacketHandleLogin
-        private static void ClientPacketHandleLogin(RPacketLogin data, Peer peer) 
-        {
-            // Check if versions match
-            if (data.VersionMajor != ServerVersionMajor || data.VersionMinor != ServerVersionMinor ||
-                data.VersionPatch != ServerVersionPatch)
-            {
-                var clientVersion = $"{data.VersionMajor}.{data.VersionMinor}.{data.VersionPatch}";
-                var serverVersion = $"{ServerVersionMajor}.{ServerVersionMinor}.{ServerVersionPatch}";
-
-                Logger.Log($"Player '{data.Username}' tried to log in but failed because they are running on version " +
-                    $"'{clientVersion}' but the server is on version '{serverVersion}'");
-
-                var packetData = new WPacketLogin 
-                {
-                    LoginOpcode = LoginResponseOpcode.VersionMismatch,
-                    VersionMajor = ServerVersionMajor,
-                    VersionMinor = ServerVersionMinor,
-                    VersionPatch = ServerVersionPatch,
-                };
-
-                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
-                Send(packet, peer, PacketFlags.Reliable);
-
-                return;
-            }
-
-            // Check if username exists in database
-            using var db = new DatabaseContext();
-
-            var dbPlayer = db.Players.ToList().Find(x => x.Username == data.Username);
-
-            // These values will be sent to the client
-            var playerValues = new PlayerValues();
-
-            if (dbPlayer != null)
-            {
-                // RETURNING PLAYER
-
-                playerValues.Gold = dbPlayer.Gold;
-                playerValues.StructureHuts = dbPlayer.StructureHut;
-
-                // Add the player to the list of players currently on the server
-                var player = new Player
-                {
-                    Gold = dbPlayer.Gold,
-                    StructureHut = dbPlayer.StructureHut,
-                    LastCheckStructureHut = dbPlayer.LastCheckStructureHut,
-                    LastSeen = DateTime.Now,
-                    Username = dbPlayer.Username,
-                    Peer = peer,
-                    Ip = peer.IP
-                };
-
-                Players.Add(player);
-
-                Logger.Log($"Player '{data.Username}' logged in");
-            }
-            else
-            {
-                // NEW PLAYER
-
-                playerValues.Gold = StartingValues.Gold;
-                playerValues.StructureHuts = StartingValues.StructureHuts;
-
-                // Add the player to the list of players currently on the server
-                Players.Add(new Player
-                {
-                    Peer = peer,
-                    Username = data.Username,
-                    Gold = StartingValues.Gold,
-                    LastSeen = DateTime.Now,
-                    Ip = peer.IP
-                });
-
-                Logger.Log($"User '{data.Username}' logged in for the first time");
-            }
-
-            {
-                var packetData = new WPacketLogin
-                {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccess,
-                    Gold = playerValues.Gold,
-                    StructureHuts = playerValues.StructureHuts
-                };
-
-                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
-                Send(packet, peer, PacketFlags.Reliable);
-            }
-        }
-        #endregion
-
-        private static void AddGoldGeneratedFromStructures(Player player) 
+        public static void AddGoldGeneratedFromStructures(Player player) 
         {
             // Calculate players new gold value based on how many structures they own
             var diff = DateTime.Now - player.LastCheckStructureHut;
@@ -429,50 +314,6 @@ namespace GameServer.Server
 
             player.Gold += goldGenerated;
         }
-
-        #region ClientPacketHandlePurchaseItem
-        private static void ClientPacketHandlePurchaseItem(RPacketPurchaseItem data, Peer peer) 
-        {
-            var itemType = (ItemType)data.ItemId;
-
-            if (itemType == ItemType.Hut)
-            {
-                uint hutCost = 25;
-
-                var player = Players.Find(x => x.Peer.ID == peer.ID);
-
-                AddGoldGeneratedFromStructures(player);
-
-                // Player can't afford this
-                if (player.Gold < hutCost) 
-                {
-                    var packetDataNotEnoughGold = new WPacketPurchaseItem {
-                        PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
-                        ItemId = (ushort)ItemType.Hut,
-                        Gold = player.Gold
-                    };
-                    var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
-                    Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
-
-                    return;
-                }
-
-                // Player bought the structure
-                player.Gold -= hutCost;
-                player.StructureHut++;
-
-                Logger.Log($"Player '{player.Username}' purchased a Hut");
-
-                var packetDataPurchasedItem = new WPacketPurchaseItem { 
-                    PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
-                    ItemId = (ushort)ItemType.Hut,
-                    Gold = player.Gold
-                };
-                var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
-                Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
-            }
-        }
-        #endregion
     }
 
     public struct PlayerValues 
