@@ -7,14 +7,24 @@ using GameServer.Database;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandExit : Command
+    public class CommandExit : ICommand
     {
-        public override async void Run(string[] args) 
+        public string Description { get; set; }
+        public string Usage { get; set; }
+        public string[] Aliases { get; set; }
+
+        public CommandExit() 
+        {
+            Description = "Properly shutdown the server by saving everything";
+            Aliases = new string[] { "stop", "quit" };
+        }
+
+        public async void Run(string[] args)
         {
             ENetServer.SaveAllPlayersToDatabase();
 
-            Logger.Log("Exiting application in 5 seconds...");
-            await Task.Delay(5000);
+            Logger.LogRaw("\nExiting application in 3 seconds...");
+            await Task.Delay(3000);
             Environment.Exit(0);
         }
     }
