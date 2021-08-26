@@ -5,11 +5,11 @@ using GameServer.Logging;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandHelp : ICommand
+    public class CommandHelp : Command
     {
-        public string Description { get; set; }
-        public string Usage { get; set; }
-        public string[] Aliases { get; set; }
+        public override string Description { get; set; }
+        public override string Usage { get; set; }
+        public override string[] Aliases { get; set; }
 
         public CommandHelp()
         {
@@ -18,7 +18,7 @@ namespace GameServer.Logging.Commands
             Aliases = new string[] { "h" };
         }
 
-        public void Run(string[] args)
+        public override void Run(string[] args)
         {
             var cmds = Logger.Commands;
 
@@ -42,51 +42,10 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            GetInfoFromCommand(cmds, args[0]);
-        }
-
-        private static void GetInfoFromCommand(Dictionary<string, ICommand> cmds, string cmd)
-        {
-            if (cmds.ContainsKey(cmd))
-                LogInfoFromCommand(cmds[cmd], cmd);
+            if (cmds.ContainsKey(args[0]))
+                Logger.LogRaw(cmds[args[0]]);
             else
-            {
-                var foundCmd = false;
-                foreach (var command in cmds.Values)
-                {
-                    if (command.Aliases == null)
-                        continue;
-
-                    foreach (var alias in command.Aliases)
-                    {
-                        if (cmd.Equals(alias))
-                        {
-                            foundCmd = true;
-                            LogInfoFromCommand(command, cmd);
-                        }
-                    }
-                }
-
-                if (!foundCmd)
-                    Logger.Log($"Could not find a command with the name '{cmd}'");
-            }
-        }
-
-        private static void LogInfoFromCommand(ICommand command, string cmd) 
-        {
-            var desc = command.Description;
-            var usage = command.Usage;
-
-            if (desc == null)
-                desc = "No description defined";
-
-            if (usage == null)
-                usage = "No usage defined";
-
-            Logger.LogRaw(
-                $"\n{cmd.ToUpper()}" +
-                $"\nDesc: {desc}" +
-                $"\nUsage: {usage}");
+                Logger.Log($"Could not find command '{args[0]}'");
         }
     }
 }

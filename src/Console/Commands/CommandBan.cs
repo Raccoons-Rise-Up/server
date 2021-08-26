@@ -7,11 +7,11 @@ using GameServer.Server;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandBan : ICommand
+    public class CommandBan : Command
     {
-        public string Description { get; set; }
-        public string Usage { get; set; }
-        public string[] Aliases { get; set; }
+        public override string Description { get; set; }
+        public override string Usage { get; set; }
+        public override string[] Aliases { get; set; }
 
         public CommandBan() 
         {
@@ -19,7 +19,7 @@ namespace GameServer.Logging.Commands
             Usage = "<player>";
         }
 
-        public void Run(string[] args) 
+        public override void Run(string[] args) 
         {
             if (args.Length == 0)
             {

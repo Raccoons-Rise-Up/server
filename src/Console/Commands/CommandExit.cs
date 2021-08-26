@@ -7,11 +7,11 @@ using GameServer.Database;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandExit : ICommand
+    public class CommandExit : Command
     {
-        public string Description { get; set; }
-        public string Usage { get; set; }
-        public string[] Aliases { get; set; }
+        public override string Description { get; set; }
+        public override string Usage { get; set; }
+        public override string[] Aliases { get; set; }
 
         public CommandExit() 
         {
@@ -19,7 +19,7 @@ namespace GameServer.Logging.Commands
             Aliases = new string[] { "stop", "quit" };
         }
 
-        public async void Run(string[] args)
+        public async override void Run(string[] args)
         {
             ENetServer.SaveAllPlayersToDatabase();
 

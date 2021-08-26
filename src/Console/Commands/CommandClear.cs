@@ -4,11 +4,11 @@ using GameServer.Logging;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandClear : ICommand
+    public class CommandClear : Command
     {
-        public string Description { get; set; }
-        public string Usage { get; set; }
-        public string[] Aliases { get; set; }
+        public override string Description { get; set; }
+        public override string Usage { get; set; }
+        public override string[] Aliases { get; set; }
 
         public CommandClear()
         {
@@ -16,7 +16,7 @@ namespace GameServer.Logging.Commands
             Aliases = new string[] { "cls" };
         }
 
-        public void Run(string[] args)
+        public override void Run(string[] args)
         {
             Logger.TextField.row = 1;
             Logger.TextField.column = 0;

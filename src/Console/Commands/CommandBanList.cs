@@ -8,18 +8,18 @@ using GameServer.Utilities;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandBanList : ICommand
+    public class CommandBanList : Command
     {
-        public string Description { get; set; }
-        public string Usage { get; set; }
-        public string[] Aliases { get; set; }
+        public override string Description { get; set; }
+        public override string Usage { get; set; }
+        public override string[] Aliases { get; set; }
 
         public CommandBanList()
         {
             Description = "Show the list of banned players";
         }
 
-        public void Run(string[] args)
+        public override void Run(string[] args)
         {
             var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
             var bannedPlayerNames = new List<string>();

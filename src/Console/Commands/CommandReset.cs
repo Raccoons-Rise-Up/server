@@ -9,11 +9,11 @@ using GameServer.Server;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandReset : ICommand
+    public class CommandReset : Command
     {
-        public string Description { get; set; }
-        public string Usage { get; set; }
-        public string[] Aliases { get; set; }
+        public override string Description { get; set; }
+        public override string Usage { get; set; }
+        public override string[] Aliases { get; set; }
 
         public CommandReset() 
         {
@@ -21,7 +21,7 @@ namespace GameServer.Logging.Commands
             Usage = "[player]";
         }
 
-        public void Run(string[] args) 
+        public override void Run(string[] args) 
         {
             using var db = new DatabaseContext();
 

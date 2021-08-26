@@ -9,11 +9,11 @@ using GameServer.Server;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandUnban : ICommand
+    public class CommandUnban : Command
     {
-        public string Description { get; set; }
-        public string Usage { get; set; }
-        public string[] Aliases { get; set; }
+        public override string Description { get; set; }
+        public override string Usage { get; set; }
+        public override string[] Aliases { get; set; }
 
         public CommandUnban()
         {
@@ -22,7 +22,7 @@ namespace GameServer.Logging.Commands
             Aliases = new string[] { "pardon" };
         }
 
-        public void Run(string[] args)
+        public override void Run(string[] args)
         {
             if (args.Length == 0)
             {
