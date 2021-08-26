@@ -4,6 +4,10 @@ using System.Linq;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using GameServer.Database;
+using GameServer.Server;
+using GameServer.Logging;
+using GameServer.Server.Packets;
 
 namespace GameServer.Utilities
 {
@@ -52,5 +56,99 @@ namespace GameServer.Utilities
                 File.WriteAllText(pathToFile, json);
             }
         }
+
+        public static void AddPlayerToBanList(Player player)
+        {
+            var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
+
+            if (bannedPlayers.ContainsKey(player.Ip))
+            {
+                Logger.Log($"Player '{player.Username}' was banned already");
+                return;
+            }
+
+            bannedPlayers[player.Ip] = new BannedPlayer()
+            {
+                Name = player.Username
+            };
+
+            Utils.WriteToJSONFile("banned_players", bannedPlayers);
+
+            Logger.Log($"Player '{player.Username}' was banned");
+        }
+
+        public static void RemovePlayerFromBanList(ModelPlayer player)
+        {
+            var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
+
+            if (!bannedPlayers.ContainsKey(player.Ip))
+            {
+                Logger.Log($"Player '{player.Username}' was pardoned already");
+                return;
+            }
+
+            bannedPlayers.Remove(player.Ip);
+
+            Utils.WriteToJSONFile("banned_players", bannedPlayers);
+
+            Logger.Log($"Player '{player.Username}' was pardoned");
+        }
+
+        public static void PardonOfflinePlayer(string username)
+        {
+            using var db = new DatabaseContext();
+
+            var dbPlayers = db.Players.ToList();
+            var dbPlayer = dbPlayers.Find(x => x.Username == username);
+
+            if (dbPlayer == null)
+            {
+                Logger.Log($"No player with the username '{username}' could be found to be pardoned");
+                return;
+            }
+
+            RemovePlayerFromBanList(dbPlayer);
+        }
+
+        public static bool BanOfflinePlayer(string username)
+        {
+            using var db = new DatabaseContext();
+
+            var dbPlayers = db.Players.ToList();
+            var dbPlayer = dbPlayers.Find(x => x.Username == username);
+
+            if (dbPlayer == null)
+                return false;
+
+            var player = new Player
+            {
+                Username = dbPlayer.Username,
+                Ip = dbPlayer.Ip
+            };
+
+            AddPlayerToBanList(player);
+
+            return true;
+        }
+
+        public static bool BanOnlinePlayer(string username)
+        {
+            var player = ENetServer.Players.Find(x => x.Username == username);
+            if (player == null)
+                return false;
+
+            player.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
+
+            AddPlayerToBanList(player);
+
+            ENetServer.Players.Remove(player);
+
+            return true;
+        }
+    }
+
+    public class BannedPlayer
+    {
+        public string Name { get; set; }
     }
 }
