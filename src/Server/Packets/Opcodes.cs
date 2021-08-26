@@ -28,6 +28,15 @@
         VersionMismatch
     }
 
+    public enum DisconnectOpcode
+    {
+        Disconnected,
+        Maintenance,
+        Restarting,
+        Kicked,
+        Banned
+    }
+
     public enum ItemType 
     {
         Hut,
