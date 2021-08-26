@@ -8,8 +8,6 @@ namespace GameServer.Server
     public class Player : ModelPlayer
     {
         public Peer Peer { get; set; }
-        public uint Id => Peer.ID;
-        public string Ip => Peer.IP;
 
         public void ResetValues() 
         {
