@@ -16,6 +16,13 @@ I previously created a [game-server](https://github.com/The-MMORPG-Project/game-
 ### Features
 - ENet-CSharp Networking Lib
 - Entity Framework Core with SQLite
+- JSON files to read / write from
+
+### Resources
+Inside the `res/` folder the following will be generated.
+- `config.json`
+- `banned_players.json`
+- `whitelist.json`
 
 ## Console
 ### Features
