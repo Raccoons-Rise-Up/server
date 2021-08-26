@@ -14,5 +14,10 @@ namespace GameServer.Database
         public uint Gold { get; set; }
         public uint StructureHut { get; set; }
         public DateTime LastCheckStructureHut { get; set; }
+
+        public override string ToString()
+        {
+            return Username;
+        }
     }
 }
