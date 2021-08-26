@@ -44,18 +44,18 @@ Inside the `res/` folder the following will be generated.
 | `help [cmd]`                        | `h`             | Show a list of helpful commands or info on a specific command.     | Yes      |
 | `clear`                             | `cls`           | Clear the console.                                                 | Yes      |
 | `exit`                              | `stop`, `quit`  | Shutdown the server properly by saving everything before exiting.  | Yes      |
-| `reset \<player>`                   |                 | Clear player from database or clear the entire database.           | Yes      |
-| `whois \<player>`                   | `who`           | Get info about a player.                                           | Yes      |
-| `kick \<player>`                    |                 | Kick a player.                                                     | Yes      |
-| `ban \<player>`                     |                 | Ban a player.                                                      | Yes      |
-| `unban \<player>`                   | `pardon`        | Pardon a player.                                                   | Yes      |
+| `reset <player>`                    |                 | Clear player from database or clear the entire database.           | Yes      |
+| `whois <player>`                    | `who`           | Get info about a player.                                           | Yes      |
+| `kick <player>`                     |                 | Kick a player.                                                     | Yes      |
+| `ban <player>`                      |                 | Ban a player.                                                      | Yes      |
+| `unban <player>`                    | `pardon`        | Pardon a player.                                                   | Yes      |
 | `banlist`                           |                 | List all banned players.                                           | Yes      |
 | `list`                              |                 | List all currently connected players.                              | Yes      |
-| `whisper \<player> \<message>`      | `w`             | Send a private message to a player.                                | No       |
-| `broadcast \<message>`              | `announce`      | Broadcast a message to every player in the server.                 | No       |
-| `reply \<message>`                  | `r`             | Reply to the most recent player that messaged the console.         | No       |
-| `setperm \<permLevel> \<player>`    |                 | Set one or more players permission level.                          | No       |
-| `whitelist \<add \| remove \| enable \| disable \| list> \[player]` |            | Whitelist management.                   | No       |
+| `whisper <player> <message>`        | `w`             | Send a private message to a player.                                | No       |
+| `broadcast <message>`               | `announce`      | Broadcast a message to every player in the server.                 | No       |
+| `reply <message>`                   | `r`             | Reply to the most recent player that messaged the console.         | No       |
+| `setperm <permLevel> <player>`      |                 | Set one or more players permission level.                          | No       |
+| `whitelist <add \| remove \| enable \| disable \| list> [player]` |             | Whitelist management.                    | No       |
 
 ### Logging
 ```cs
