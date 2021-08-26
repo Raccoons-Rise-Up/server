@@ -11,18 +11,18 @@ namespace GameServer.Logging
     public class Logger
     {
         // Commands
-        private static Dictionary<string, Command> Commands { get; set; }
+        public static Dictionary<string, ICommand> Commands { get; set; }
 
         // Command History
         private static List<string> CommandHistory { get; set; }
 
         // Text Field
-        private static LoggerTextField TextField { get; set; }
+        public static LoggerTextField TextField { get; set; }
         private static object ThreadLock { get; set; }
 
         // Logging
         private static ConcurrentQueue<LoggerMessage> Messages { get; set; }
-        private static int LoggerMessageRow { get; set; }
+        public static int LoggerMessageRow { get; set; }
 
         public static void LogError(object obj) 
         {
@@ -34,15 +34,20 @@ namespace GameServer.Logging
             Log(obj, "WARN", "&9");
         }
 
+        public static void LogRaw(object obj, string color = "&r") 
+        {
+            var str = $"{color}{obj}";
+
+            Messages.Enqueue(new LoggerMessage(str));
+        }
+
         public static void Log(object obj, string logLevel = "INFO", string color = "&r")
         {
             var time = $"{DateTime.Now:HH:mm:ss}";
             var thread = Thread.CurrentThread.Name;
             var str = $"{color}{time} [{thread}] [{logLevel}] {obj}";
 
-            var message = new LoggerMessage(str);
-
-            Messages.Enqueue(message);
+            Messages.Enqueue(new LoggerMessage(str));
         }
 
         public static void MessagesThread()
@@ -73,11 +78,11 @@ namespace GameServer.Logging
         {
             Thread.CurrentThread.Name = "CONSOLE";
 
-            Commands = typeof(Command).Assembly.GetTypes()
-                .Where(x => typeof(Command)
+            Commands = typeof(ICommand).Assembly.GetTypes()
+                .Where(x => typeof(ICommand)
                 .IsAssignableFrom(x) && !x.IsAbstract)
                 .Select(Activator.CreateInstance)
-                .Cast<Command>()
+                .Cast<ICommand>()
                 .ToDictionary(x => x.GetType().Name
                 .Replace("Command", "")
                 .ToLower(), x => x);
@@ -227,13 +232,32 @@ namespace GameServer.Logging
                         }
 
                         // Do not do anything if command string is empty
-                        if (cmd == "")
+                        if (cmd.Equals(""))
                             continue;
 
                         if (Commands.ContainsKey(cmd))
                             Commands[cmd].Run(args);
-                        else
-                            Log($"Unknown Command: '{cmd}'");
+                        else 
+                        {
+                            var foundCmd = false;
+                            foreach (var command in Commands.Values) 
+                            {
+                                if (command.Aliases == null)
+                                    continue;
+
+                                foreach (var alias in command.Aliases) 
+                                {
+                                    if (cmd.Equals(alias)) 
+                                    {
+                                        foundCmd = true;
+                                        command.Run(args);
+                                    }
+                                }
+                            }
+
+                            if (!foundCmd)
+                                Log($"Unknown Command: '{cmd}'");
+                        }   
 
                         // Only keep track of a set of previously entered commands
                         var maxHistoryCommands = 255;
