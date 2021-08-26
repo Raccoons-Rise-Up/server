@@ -4,14 +4,13 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
 using GameServer.Server.Packets;
 using GameServer.Database;
 using GameServer.Logging;
+using GameServer.Utilities;
 
 namespace GameServer.Server
 {
@@ -29,44 +28,60 @@ namespace GameServer.Server
         public static byte ServerVersionMajor { get; private set; }
         public static byte ServerVersionMinor { get; private set; }
         public static byte ServerVersionPatch { get; private set; }
-        private static string PathToRes { get; set; }
 
-        private static List<T> ReadJSONFile<T>(string filename) 
+        private static void AddPlayerToBanList(Player player) 
         {
-            var pathToFile = Path.Combine(PathToRes, filename + ".json");
+            var bannedPlayers = Utils.ReadJSONFile<BannedPlayer>("banned_players");
+            if (bannedPlayers.Exists(x => x.Ip == player.Ip))
+            {
+                Logger.Log($"Player '{player.Username}' was banned already");
+                return;
+            }
 
-            var text = File.ReadAllText(pathToFile);
-            return JsonSerializer.Deserialize<List<T>>(text);
+            bannedPlayers.Add(new BannedPlayer()
+            {
+                Name = player.Username,
+                Ip = player.Ip
+            });
+
+            Utils.WriteToJSONFile("banned_players", bannedPlayers);
+
+            Logger.Log($"Player '{player.Username}' was banned");
         }
 
-        private static void WriteToJSONFile<T>(string filename, List<T> list) 
+        private static bool BanOfflinePlayer(string username) 
         {
-            var pathToFile = Path.Combine(PathToRes, filename + ".json");
+            using var db = new DatabaseContext();
 
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true
+            var dbPlayers = db.Players.ToList();
+            var dbPlayer = dbPlayers.Find(x => x.Username == username);
+
+            if (dbPlayer == null)
+                return false;
+
+            var player = new Player {
+                Username = dbPlayer.Username,
+                Ip = dbPlayer.Ip
             };
 
-            File.WriteAllText(pathToFile, JsonSerializer.Serialize(list, options));
+            AddPlayerToBanList(player);
+
+            return true;
         }
 
-        private static void CreateJSONFile(string filename) 
+        private static bool BanOnlinePlayer(string username)
         {
-            var pathToFile = Path.Combine(PathToRes, filename + ".json");
+            var player = Players.Find(x => x.Username == username);
+            if (player == null)
+                return false;
 
-            if (!File.Exists(pathToFile))
-            {
-                var fs = File.Create(pathToFile);
-                fs.Close();
-            }
+            player.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
 
-            // Make sure json file has valid json tokens
-            if (File.ReadAllText(pathToFile) == "") // Only write if nothing in file (note that "" is returned if nothing is in the file)
-            {
-                string json = JsonSerializer.Serialize(new List<string>());
-                File.WriteAllText(pathToFile, json);
-            }
+            AddPlayerToBanList(player);
+
+            Players.Remove(player);
+
+            return true;
         }
 
         #region WorkerThread
@@ -74,9 +89,7 @@ namespace GameServer.Server
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            PathToRes = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, $"res");
-
-            CreateJSONFile("banned_players");
+            Utils.CreateJSONFile("banned_players");
 
             // Server Version
             ServerVersionMajor = 0;
@@ -113,36 +126,19 @@ namespace GameServer.Server
                         {
                             var opcode = cmd.Key;
 
+                            if (opcode == ServerInstructionOpcode.PardonPlayer) 
+                            {
+                                
+                            }
+
                             if (opcode == ServerInstructionOpcode.BanPlayer) 
                             {
                                 var username = cmd.Value[0].ToString();
-                                var player = Players.Find(x => x.Username == username);
-                                if (player == null)
-                                {
-                                    Logger.Log($"No player with the username '{username}' is online");
-                                    break;
-                                }
 
-                                player.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
+                                var bannedOnline = BanOnlinePlayer(username);
 
-                                var bannedPlayers = ReadJSONFile<BannedPlayer>("banned_players");
-                                if (bannedPlayers.Exists(x => x.Ip == player.Ip))
-                                {
-                                    Logger.Log($"Player '{player.Username}' is in banned list already, not writing to banned list");
-                                }
-                                else 
-                                {
-                                    bannedPlayers.Add(new BannedPlayer()
-                                    {
-                                        Name = player.Username,
-                                        Ip = player.Ip
-                                    });
-
-                                    WriteToJSONFile("banned_players", bannedPlayers);
-                                }
-
-                                Players.Remove(player);
-                                Logger.Log($"Player '{player.Username}' was banned");
+                                if (!bannedOnline)
+                                    BanOfflinePlayer(username);
                             }
 
                             if (opcode == ServerInstructionOpcode.KickPlayer) 
@@ -223,7 +219,7 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Connect) 
                         {
-                            var bannedPlayers = ReadJSONFile<BannedPlayer>("banned_players");
+                            var bannedPlayers = Utils.ReadJSONFile<BannedPlayer>("banned_players");
                             var player = bannedPlayers.Find(x => x.Ip == netEvent.Peer.IP);
                             if (player != null)
                             {
@@ -299,7 +295,7 @@ namespace GameServer.Server
                 {
                     playerExistsInDatabase = true;
 
-                    SavePlayerValuesToDatabase(dbPlayer, player);
+                    UpdatePlayerValuesInDatabase(dbPlayer, player);
                     break;
                 }
             }
@@ -330,7 +326,7 @@ namespace GameServer.Server
                     if (player.Username == dbPlayer.Username)
                     {
                         AddGoldGeneratedFromStructures(player);
-                        SavePlayerValuesToDatabase(dbPlayer, player);
+                        UpdatePlayerValuesInDatabase(dbPlayer, player);
                         break;
                     }
 
@@ -347,8 +343,9 @@ namespace GameServer.Server
             db.SaveChanges();
         }
 
-        private static void SavePlayerValuesToDatabase(ModelPlayer dbPlayer, Player player) 
+        private static void UpdatePlayerValuesInDatabase(ModelPlayer dbPlayer, Player player) 
         {
+            dbPlayer.Ip = player.Ip;
             dbPlayer.Gold = player.Gold;
             dbPlayer.StructureHut = player.StructureHut;
             dbPlayer.LastCheckStructureHut = DateTime.Now;
@@ -437,7 +434,8 @@ namespace GameServer.Server
                     LastCheckStructureHut = dbPlayer.LastCheckStructureHut,
                     LastSeen = DateTime.Now,
                     Username = dbPlayer.Username,
-                    Peer = peer
+                    Peer = peer,
+                    Ip = peer.IP
                 };
 
                 Players.Add(player);
@@ -457,7 +455,8 @@ namespace GameServer.Server
                     Peer = peer,
                     Username = data.Username,
                     Gold = StartingValues.Gold,
-                    LastSeen = DateTime.Now
+                    LastSeen = DateTime.Now,
+                    Ip = peer.IP
                 });
 
                 Logger.Log($"User '{data.Username}' logged in for the first time");
@@ -574,6 +573,7 @@ namespace GameServer.Server
         GetPlayerStats,
         KickPlayer,
         BanPlayer,
+        PardonPlayer,
         ClearPlayerStats
     }
 }
