@@ -11,19 +11,19 @@ namespace GameServer.Utilities
     {
         private static readonly string pathToRes = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, $"res");
 
-        public static List<T> ReadJSONFile<T>(string filename)
+        public static T ReadJSONFile<T>(string filename)
         {
-            CreateJSONFile(filename);
+            CreateJSONDictionaryFile(filename);
 
             var pathToFile = Path.Combine(pathToRes, filename + ".json");
 
             var text = File.ReadAllText(pathToFile);
-            return JsonSerializer.Deserialize<List<T>>(text);
+            return JsonSerializer.Deserialize<T>(text);
         }
 
-        public static void WriteToJSONFile<T>(string filename, List<T> list)
+        public static void WriteToJSONFile<T>(string filename, T data)
         {
-            CreateJSONFile(filename);
+            CreateJSONDictionaryFile(filename);
 
             var pathToFile = Path.Combine(pathToRes, filename + ".json");
 
@@ -32,10 +32,10 @@ namespace GameServer.Utilities
                 WriteIndented = true
             };
 
-            File.WriteAllText(pathToFile, JsonSerializer.Serialize(list, options));
+            File.WriteAllText(pathToFile, JsonSerializer.Serialize(data, options));
         }
 
-        public static void CreateJSONFile(string filename)
+        public static void CreateJSONDictionaryFile(string filename)
         {
             var pathToFile = Path.Combine(pathToRes, filename + ".json");
 
@@ -48,7 +48,7 @@ namespace GameServer.Utilities
             // Make sure json file has valid json tokens
             if (File.ReadAllText(pathToFile) == "") // Only write if nothing in file (note that "" is returned if nothing is in the file)
             {
-                string json = JsonSerializer.Serialize(new List<string>());
+                string json = JsonSerializer.Serialize(new Dictionary<int, int>());
                 File.WriteAllText(pathToFile, json);
             }
         }
