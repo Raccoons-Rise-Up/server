@@ -1,11 +1,26 @@
 ﻿namespace GameServer.Logging.Commands
 {
-    public interface ICommand
+    public abstract class Command
     {
-        string Description { get; set; }
-        string Usage { get; set; }
-        string[] Aliases { get; set; }
+        public abstract string Description { get; set; }
+        public abstract string Usage { get; set; }
+        public abstract string[] Aliases { get; set; }
 
-        void Run(string[] args);
+        public abstract void Run(string[] args);
+
+        public override string ToString()
+        {
+            var cmdName = GetType().Name.ToLower().Replace("command", "");
+
+            if (Description == null)
+                Description = "No description defined";
+
+            if (Usage == null)
+                Usage = "No usage defined";
+
+            return $"\n{cmdName.ToUpper()}" +
+                $"\nDesc: {Description}" +
+                $"\nUsage: {Usage}";
+        }
     }
 }
