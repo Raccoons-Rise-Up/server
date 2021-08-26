@@ -16,6 +16,13 @@ I previously created a [game-server](https://github.com/The-MMORPG-Project/game-
 ### Features
 - ENet-CSharp Networking Lib
 - Entity Framework Core with SQLite
+- JSON files to read / write from
+
+### Resources
+Inside the `res/` folder the following will be generated.
+- `config.json`
+- `banned_players.json`
+- `whitelist.json`
 
 ## Console
 ### Features
@@ -32,10 +39,23 @@ I previously created a [game-server](https://github.com/The-MMORPG-Project/game-
 `Down Arrow Key` - Go to the next previous command in command history  
 
 ### Commands
-`help [cmd]` - Display a list of helpful commands or get specific information about a specified command.  
-`whois [playername]` See information about a specific player.  
-`clear [playername]` Reset specific players stats, if no arguments are given the command will clear the entire database.  
-`exit` - Allow the server to shutdown properly and then exit the application. (Pressing the 'X' top right will forcefully close the console and nothing will get saved)  
+| Command                             | Aliases     |                                                                        | Finished |
+|-------------------------------------|-----------------|--------------------------------------------------------------------|----------|
+| `help [cmd]`                        | `h`             | Show a list of helpful commands or info on a specific command.     | Yes      |
+| `clear`                             | `cls`           | Clear the console.                                                 | Yes      |
+| `exit`                              | `stop`, `quit`  | Shutdown the server properly by saving everything before exiting.  | Yes      |
+| `reset <player>`                    |                 | Clear player from database or clear the entire database.           | Yes      |
+| `whois <player>`                    | `who`           | Get info about a player.                                           | Yes      |
+| `kick <player>`                     |                 | Kick a player.                                                     | Yes      |
+| `ban <player>`                      |                 | Ban a player.                                                      | Yes      |
+| `unban <player>`                    | `pardon`        | Pardon a player.                                                   | Yes      |
+| `banlist`                           |                 | List all banned players.                                           | Yes      |
+| `list`                              |                 | List all currently connected players.                              | Yes      |
+| `whisper <player> <message>`        | `w`             | Send a private message to a player.                                | No       |
+| `broadcast <message>`               | `announce`      | Broadcast a message to every player in the server.                 | No       |
+| `reply <message>`                   | `r`             | Reply to the most recent player that messaged the console.         | No       |
+| `setperm <permLevel> <player>`      |                 | Set one or more players permission level.                          | No       |
+| `whitelist <add \| remove \| enable \| disable \| list> [player]` |             | Whitelist management.                    | No       |
 
 ### Logging
 ```cs
