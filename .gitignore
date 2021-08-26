@@ -1,4 +1,5 @@
-# Ignore database stuff
+# User Additions
+res/
 Migrations/
 
 ## Ignore Visual Studio temporary files, build results, and
