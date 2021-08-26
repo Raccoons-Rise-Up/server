@@ -4,33 +4,31 @@ using System.Diagnostics;
 using System.Linq;
 using GameServer.Database;
 using GameServer.Server;
+using GameServer.Utilities;
 
 namespace GameServer.Logging.Commands
 {
-    public class CommandKick : Command
+    public class CommandWhitelist : Command
     {
         public override string Description { get; set; }
         public override string Usage { get; set; }
         public override string[] Aliases { get; set; }
 
-        public CommandKick()
+        public CommandWhitelist() 
         {
-            Description = "Kick a player";
-            Usage = "<player>";
+            Description = "Base command for editing the whitelist";
+            Usage = "<add | remove> <player>";
         }
 
         public override void Run(string[] args) 
         {
-            if (args.Length == 0) 
+            if (args.Length < 2) 
             {
-                Logger.Log("Please provide a player name to kick");
+                Logger.Log($"Usage: {Usage}");
                 return;
             }
 
-            var cmd = new ServerInstructions();
-            cmd.Set(ServerInstructionOpcode.KickPlayer, args[0]);
-
-            ENetServer.ServerInstructions.Add(cmd);
+            // TODO: Whitelist
         }
     }
 }

@@ -60,7 +60,7 @@ namespace GameServer.Logging.Commands
             var cmd = new ServerInstructions();
             cmd.Set(ServerInstructionOpcode.GetPlayerStats, username);
 
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            ENetServer.ServerInstructions.Add(cmd);
         }
 
         private static void PlayerFromDatabase(ModelPlayer dbPlayer) 

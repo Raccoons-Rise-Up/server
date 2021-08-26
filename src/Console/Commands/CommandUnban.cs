@@ -33,7 +33,7 @@ namespace GameServer.Logging.Commands
             var cmd = new ServerInstructions();
             cmd.Set(ServerInstructionOpcode.PardonPlayer, args[0]);
 
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            ENetServer.ServerInstructions.Add(cmd);
         }
     }
 }

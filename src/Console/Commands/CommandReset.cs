@@ -60,7 +60,7 @@ namespace GameServer.Logging.Commands
             var cmd = new ServerInstructions();
             cmd.Set(ServerInstructionOpcode.ClearPlayerStats, dbPlayer.Username);
 
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            ENetServer.ServerInstructions.Add(cmd);
 
             stopwatch.Stop();
 
