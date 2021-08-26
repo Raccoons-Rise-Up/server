@@ -24,12 +24,8 @@ namespace GameServer.Server.Packets
             var data = new RPacketLogin();
             data.Read(packetReader);
 
-            ClientPacketHandleLogin(data, netEvent.Peer);
-        }
+            var peer = netEvent.Peer;
 
-        #region ClientPacketHandleLogin
-        private static void ClientPacketHandleLogin(RPacketLogin data, Peer peer)
-        {
             // Check if versions match
             if (data.VersionMajor != ENetServer.ServerVersionMajor || data.VersionMinor != ENetServer.ServerVersionMinor ||
                 data.VersionPatch != ENetServer.ServerVersionPatch)
@@ -117,6 +113,5 @@ namespace GameServer.Server.Packets
                 ENetServer.Send(packet, peer, PacketFlags.Reliable);
             }
         }
-        #endregion
     }
 }

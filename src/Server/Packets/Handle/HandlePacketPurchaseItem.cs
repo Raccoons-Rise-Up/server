@@ -23,12 +23,8 @@ namespace GameServer.Server.Packets
             var data = new RPacketPurchaseItem();
             data.Read(packetReader);
 
-            ClientPacketHandlePurchaseItem(data, netEvent.Peer);
-        }
+            var peer = netEvent.Peer;
 
-        #region ClientPacketHandlePurchaseItem
-        private static void ClientPacketHandlePurchaseItem(RPacketPurchaseItem data, Peer peer)
-        {
             var itemType = (ItemType)data.ItemId;
 
             if (itemType == ItemType.Hut)
@@ -70,6 +66,5 @@ namespace GameServer.Server.Packets
                 ENetServer.Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
             }
         }
-        #endregion
     }
 }
