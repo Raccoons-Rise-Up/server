@@ -1,50 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Linq;
-using System.Threading;
 using System.IO;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
-using GameServer.Server.Packets;
 using GameServer.Database;
 using GameServer.Logging;
-using GameServer.Utilities;
 
-namespace GameServer.Server
+namespace GameServer.Server.Packets
 {
-    public static class HandlePacket
+    public class HandlePacketLogin : HandlePacket
     {
-        public static void Handle(ref Event netEvent)
+        public override ClientPacketOpcode Opcode { get; set; }
+
+        public HandlePacketLogin() 
         {
-            var peer = netEvent.Peer;
-            var packetSizeMax = 1024;
-            var readBuffer = new byte[packetSizeMax];
-            var packetReader = new PacketReader(readBuffer);
-            packetReader.BaseStream.Position = 0;
+            Opcode = ClientPacketOpcode.Login;
+        }
 
-            netEvent.Packet.CopyTo(readBuffer);
+        public override void Handle(Event netEvent, ref PacketReader packetReader)
+        {
+            var data = new RPacketLogin();
+            data.Read(packetReader);
 
-            var opcode = (ClientPacketOpcode)packetReader.ReadByte();
-
-            if (opcode == ClientPacketOpcode.Login)
-            {
-                var data = new RPacketLogin();
-                data.Read(packetReader);
-
-                ClientPacketHandleLogin(data, peer);
-            }
-
-            if (opcode == ClientPacketOpcode.PurchaseItem)
-            {
-                var data = new RPacketPurchaseItem();
-                data.Read(packetReader);
-
-                ClientPacketHandlePurchaseItem(data, peer);
-            }
-
-            packetReader.Dispose();
+            ClientPacketHandleLogin(data, netEvent.Peer);
         }
 
         #region ClientPacketHandleLogin
@@ -135,52 +115,6 @@ namespace GameServer.Server
 
                 var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
                 ENetServer.Send(packet, peer, PacketFlags.Reliable);
-            }
-        }
-        #endregion
-
-        #region ClientPacketHandlePurchaseItem
-        private static void ClientPacketHandlePurchaseItem(RPacketPurchaseItem data, Peer peer)
-        {
-            var itemType = (ItemType)data.ItemId;
-
-            if (itemType == ItemType.Hut)
-            {
-                uint hutCost = 25;
-
-                var player = ENetServer.Players.Find(x => x.Peer.ID == peer.ID);
-
-                ENetServer.AddGoldGeneratedFromStructures(player);
-
-                // Player can't afford this
-                if (player.Gold < hutCost)
-                {
-                    var packetDataNotEnoughGold = new WPacketPurchaseItem
-                    {
-                        PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
-                        ItemId = (ushort)ItemType.Hut,
-                        Gold = player.Gold
-                    };
-                    var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
-                    ENetServer.Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
-
-                    return;
-                }
-
-                // Player bought the structure
-                player.Gold -= hutCost;
-                player.StructureHut++;
-
-                Logger.Log($"Player '{player.Username}' purchased a Hut");
-
-                var packetDataPurchasedItem = new WPacketPurchaseItem
-                {
-                    PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
-                    ItemId = (ushort)ItemType.Hut,
-                    Gold = player.Gold
-                };
-                var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
-                ENetServer.Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
             }
         }
         #endregion

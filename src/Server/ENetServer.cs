@@ -19,6 +19,7 @@ namespace GameServer.Server
         public static ConcurrentBag<Event> Incoming { get; private set; }
         public static ConcurrentQueue<ServerInstructions> ServerInstructions { get; private set; }
         public static List<Player> Players { get; private set; }
+        public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePackets { get; private set; }
 
         public static byte ServerVersionMajor { get; private set; }
         public static byte ServerVersionMinor { get; private set; }
@@ -39,6 +40,13 @@ namespace GameServer.Server
             Incoming = new();
             ServerInstructions = new();
             Players = new();
+
+            HandlePackets = typeof(HandlePacket).Assembly.GetTypes()
+                .Where(x => typeof(HandlePacket)
+                .IsAssignableFrom(x) && !x.IsAbstract)
+                .Select(Activator.CreateInstance)
+                .Cast<HandlePacket>()
+                .ToDictionary(x => x.Opcode, x => x);
 
             Library.Initialize();
 
@@ -146,7 +154,19 @@ namespace GameServer.Server
                     // Incoming
                     while (Incoming.TryTake(out Event netEvent))
                     {
-                        HandlePacket.Handle(ref netEvent);
+                        var peer = netEvent.Peer;
+                        var packetSizeMax = 1024;
+                        var readBuffer = new byte[packetSizeMax];
+                        var packetReader = new PacketReader(readBuffer);
+                        packetReader.BaseStream.Position = 0;
+
+                        netEvent.Packet.CopyTo(readBuffer);
+
+                        var opcode = (ClientPacketOpcode)packetReader.ReadByte();
+
+                        HandlePackets[opcode].Handle(netEvent, ref packetReader);
+
+                        packetReader.Dispose();
                         netEvent.Packet.Dispose();
                     }
 
