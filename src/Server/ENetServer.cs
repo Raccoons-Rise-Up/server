@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.IO;
+using System.Net.Http;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
@@ -22,6 +23,7 @@ namespace GameServer.Server
         public static List<Player> Players { get; private set; }
         public static Dictionary<ServerInstructionOpcode, ServerInstruction> ServerInstruction { get; private set; }
         public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; private set; }
+        public static HttpClient WebClient { get; private set; }
 
         public static byte ServerVersionMajor { get; private set; }
         public static byte ServerVersionMinor { get; private set; }
@@ -54,6 +56,7 @@ namespace GameServer.Server
             Incoming = new();
             ServerInstructions = new();
             Players = new();
+            WebClient = new();
 
             HandlePacket = typeof(HandlePacket).Assembly.GetTypes()
                 .Where(x => typeof(HandlePacket)
@@ -113,9 +116,8 @@ namespace GameServer.Server
 
                         var opcode = (ClientPacketOpcode)packetReader.ReadByte();
 
-                        HandlePacket[opcode].Handle(netEvent, ref packetReader);
+                        HandlePacket[opcode].Handle(netEvent, packetReader);
 
-                        packetReader.Dispose();
                         netEvent.Packet.Dispose();
                     }
 

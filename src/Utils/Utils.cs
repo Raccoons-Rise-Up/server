@@ -15,6 +15,11 @@ namespace GameServer.Utilities
     {
         private static readonly string pathToRes = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, $"res");
 
+        public static T ReadJSONString<T>(string str) 
+        {
+            return JsonSerializer.Deserialize<T>(str);
+        }
+
         public static T ReadJSONFile<T>(string filename)
         {
             CreateJSONDictionaryFile(filename);

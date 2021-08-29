@@ -18,7 +18,7 @@ namespace GameServer.Server.Packets
             Opcode = ClientPacketOpcode.PurchaseItem;
         }
 
-        public override void Handle(Event netEvent, ref PacketReader packetReader)
+        public override void Handle(Event netEvent, PacketReader packetReader)
         {
             var data = new RPacketPurchaseItem();
             data.Read(packetReader);
@@ -65,6 +65,8 @@ namespace GameServer.Server.Packets
                 var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
                 ENetServer.Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
             }
+
+            packetReader.Dispose();
         }
     }
 }
