@@ -10,6 +10,7 @@ namespace GameServer.Server.Packets
         public byte VersionMinor { get; set; }
         public byte VersionPatch { get; set; }
         public string Username { get; set; }
+        public string PasswordHash { get; set; }
 
         public void Read(PacketReader reader)
         {
@@ -17,6 +18,7 @@ namespace GameServer.Server.Packets
             VersionMinor = reader.ReadByte();
             VersionPatch = reader.ReadByte();
             Username = reader.ReadString();
+            PasswordHash = reader.ReadString();
         }
     }
 }

@@ -7,6 +7,7 @@ using Common.Networking.IO;
 using ENet;
 using GameServer.Database;
 using GameServer.Logging;
+using GameServer.Server.Security;
 
 namespace GameServer.Server.Packets
 {
@@ -49,6 +50,8 @@ namespace GameServer.Server.Packets
 
                 return;
             }
+
+            // Check if username / password match up with web server
 
             // Check if username exists in database
             using var db = new DatabaseContext();

@@ -11,6 +11,7 @@ using GameServer.Server.Packets;
 using GameServer.Database;
 using GameServer.Logging;
 using GameServer.Utilities;
+using GameServer.Server.Security;
 
 namespace GameServer.Server
 {
@@ -25,6 +26,18 @@ namespace GameServer.Server
         public static byte ServerVersionMajor { get; private set; }
         public static byte ServerVersionMinor { get; private set; }
         public static byte ServerVersionPatch { get; private set; }
+
+        // Finds all classes of type T and puts them in the value of a dictionary while the key is the property (given by the name param)
+        public Dictionary<U, T> AssembleTypesToDictKeyProp<T, U>(string name)
+        {
+            var classes = typeof(T).Assembly.GetTypes()
+                .Where(x => typeof(T)
+                .IsAssignableFrom(x) && !x.IsAbstract)
+                .Select(Activator.CreateInstance)
+                .Cast<T>();
+
+            return classes.ToDictionary(x => (U)x.GetType().GetProperty(name).GetValue(this, null), x => x);
+        }
 
         #region WorkerThread
         public static void WorkerThread() 
