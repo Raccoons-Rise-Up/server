@@ -100,7 +100,7 @@ namespace GameServer.Server.Packets
             }
         }
 
-        public async override void Handle(Event netEvent, PacketReader packetReader)
+        public override void Handle(Event netEvent, PacketReader packetReader)
         {
             var data = new RPacketLogin();
             data.Read(packetReader);
@@ -132,14 +132,14 @@ namespace GameServer.Server.Packets
             }
 
             // Check if username / password match up with web server
-            try
+            /*try
             {
                 await PostRequest(data);
             }
             catch (TaskCanceledException e) 
             {
                 Logger.Log(e.Message);
-            }
+            }*/
             
             /*var values = new Dictionary<string, string>
             {
