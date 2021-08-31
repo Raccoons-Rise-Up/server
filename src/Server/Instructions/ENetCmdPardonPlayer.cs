@@ -11,24 +11,20 @@ using GameServer.Utilities;
 
 namespace GameServer.Server
 {
-    public class ServerInstructionGetOnlinePlayers : ENetCmd
+    public class ENetCmdPardonPlayer : ENetCmd
     {
         public override ServerOpcode Opcode { get; set; }
 
-        public ServerInstructionGetOnlinePlayers()
+        public ENetCmdPardonPlayer() 
         {
-            Opcode = ServerOpcode.GetOnlinePlayers;
+            Opcode = ServerOpcode.PardonPlayer;
         }
 
         public override void Handle(List<object> value)
         {
-            if (ENetServer.Players.Count == 0)
-            {
-                Logger.Log("There are 0 players on the server");
-                return;
-            }
+            var username = value[0].ToString();
 
-            Logger.LogRaw($"\nOnline Players: {string.Join(' ', ENetServer.Players)}");
+            Utils.PardonOfflinePlayer(username);
         }
     }
 }

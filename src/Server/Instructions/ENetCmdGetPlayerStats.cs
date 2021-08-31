@@ -11,11 +11,11 @@ using GameServer.Utilities;
 
 namespace GameServer.Server
 {
-    public class ServerInstructionGetPlayerStats : ENetCmd
+    public class ENetCmdGetPlayerStats : ENetCmd
     {
         public override ServerOpcode Opcode { get; set; }
 
-        public ServerInstructionGetPlayerStats()
+        public ENetCmdGetPlayerStats()
         {
             Opcode = ServerOpcode.GetPlayerStats;
         }

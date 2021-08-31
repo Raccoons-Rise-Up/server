@@ -11,11 +11,11 @@ using GameServer.Utilities;
 
 namespace GameServer.Server
 {
-    public class ServerInstructionBanPlayer : ENetCmd
+    public class ENetCmdBanPlayer : ENetCmd
     {
         public override ServerOpcode Opcode { get; set; }
 
-        public ServerInstructionBanPlayer() 
+        public ENetCmdBanPlayer() 
         {
             Opcode = ServerOpcode.BanPlayer;
         }
