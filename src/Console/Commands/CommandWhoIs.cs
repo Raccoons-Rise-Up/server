@@ -57,10 +57,10 @@ namespace GameServer.Logging.Commands
 
         private static void PlayerFromCache(string username) 
         {
-            var cmd = new ServerInstructions();
-            cmd.Set(ServerInstructionOpcode.GetPlayerStats, username);
+            var cmd = new ENetCmds();
+            cmd.Set(ServerOpcode.GetPlayerStats, username);
 
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            ENetServer.ENetCmds.Enqueue(cmd);
         }
 
         private static void PlayerFromDatabase(ModelPlayer dbPlayer) 

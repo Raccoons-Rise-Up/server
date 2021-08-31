@@ -57,10 +57,10 @@ namespace GameServer.Logging.Commands
             db.SaveChanges();
 
             // Clear the players variables from players list
-            var cmd = new ServerInstructions();
-            cmd.Set(ServerInstructionOpcode.ClearPlayerStats, dbPlayer.Username);
+            var cmd = new ENetCmds();
+            cmd.Set(ServerOpcode.ClearPlayerStats, dbPlayer.Username);
 
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            ENetServer.ENetCmds.Enqueue(cmd);
 
             stopwatch.Stop();
 

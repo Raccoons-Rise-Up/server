@@ -11,13 +11,13 @@ using GameServer.Utilities;
 
 namespace GameServer.Server
 {
-    public class ServerInstructionPardonPlayer : ServerInstruction
+    public class ServerInstructionPardonPlayer : ENetCmd
     {
-        public override ServerInstructionOpcode Opcode { get; set; }
+        public override ServerOpcode Opcode { get; set; }
 
         public ServerInstructionPardonPlayer() 
         {
-            Opcode = ServerInstructionOpcode.PardonPlayer;
+            Opcode = ServerOpcode.PardonPlayer;
         }
 
         public override void Handle(List<object> value)

@@ -20,11 +20,11 @@ namespace GameServer.Server.Packets
 {
     public class HandlePacketLogin : HandlePacket
     {
-        public override ClientPacketOpcode Opcode { get; set; }
+        public override ClientOpcode Opcode { get; set; }
 
         public HandlePacketLogin() 
         {
-            Opcode = ClientPacketOpcode.Login;
+            Opcode = ClientOpcode.Login;
         }
 
         static async Task PostRequest(RPacketLogin data) 
@@ -108,11 +108,11 @@ namespace GameServer.Server.Packets
             var peer = netEvent.Peer;
 
             // Check if versions match
-            if (data.VersionMajor != ENetServer.ServerVersionMajor || data.VersionMinor != ENetServer.ServerVersionMinor ||
-                data.VersionPatch != ENetServer.ServerVersionPatch)
+            if (data.VersionMajor != ENetServer.ServerVersion.Major || data.VersionMinor != ENetServer.ServerVersion.Minor ||
+                data.VersionPatch != ENetServer.ServerVersion.Patch)
             {
                 var clientVersion = $"{data.VersionMajor}.{data.VersionMinor}.{data.VersionPatch}";
-                var serverVersion = $"{ENetServer.ServerVersionMajor}.{ENetServer.ServerVersionMinor}.{ENetServer.ServerVersionPatch}";
+                var serverVersion = $"{ENetServer.ServerVersion.Major}.{ENetServer.ServerVersion.Minor}.{ENetServer.ServerVersion.Patch}";
 
                 Logger.Log($"Player '{data.Username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
@@ -120,9 +120,9 @@ namespace GameServer.Server.Packets
                 var packetData = new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.VersionMismatch,
-                    VersionMajor = ENetServer.ServerVersionMajor,
-                    VersionMinor = ENetServer.ServerVersionMinor,
-                    VersionPatch = ENetServer.ServerVersionPatch,
+                    VersionMajor = ENetServer.ServerVersion.Major,
+                    VersionMinor = ENetServer.ServerVersion.Minor,
+                    VersionPatch = ENetServer.ServerVersion.Patch,
                 };
 
                 var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);

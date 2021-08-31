@@ -30,10 +30,10 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            var cmd = new ServerInstructions();
-            cmd.Set(ServerInstructionOpcode.PardonPlayer, args[0]);
+            var cmd = new ENetCmds();
+            cmd.Set(ServerOpcode.PardonPlayer, args[0]);
 
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            ENetServer.ENetCmds.Enqueue(cmd);
         }
     }
 }

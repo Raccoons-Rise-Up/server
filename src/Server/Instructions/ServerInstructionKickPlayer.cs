@@ -12,13 +12,13 @@ using GameServer.Server.Packets;
 
 namespace GameServer.Server
 {
-    public class ServerInstructionKickPlayer : ServerInstruction
+    public class ServerInstructionKickPlayer : ENetCmd
     {
-        public override ServerInstructionOpcode Opcode { get; set; }
+        public override ServerOpcode Opcode { get; set; }
 
         public ServerInstructionKickPlayer()
         {
-            Opcode = ServerInstructionOpcode.KickPlayer;
+            Opcode = ServerOpcode.KickPlayer;
         }
 
         public override void Handle(List<object> value)

@@ -32,8 +32,8 @@ namespace GameServer.Logging.Commands
 
         private static void GetOnlinePlayers() 
         {
-            var cmd = new ServerInstructions(ServerInstructionOpcode.GetOnlinePlayers);
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            var cmd = new ENetCmds(ServerOpcode.GetOnlinePlayers);
+            ENetServer.ENetCmds.Enqueue(cmd);
         }
 
         private static void GetOfflinePlayers() 

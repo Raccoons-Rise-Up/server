@@ -27,10 +27,10 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            var cmd = new ServerInstructions();
-            cmd.Set(ServerInstructionOpcode.BanPlayer, args[0]);
+            var cmd = new ENetCmds();
+            cmd.Set(ServerOpcode.BanPlayer, args[0]);
 
-            ENetServer.ServerInstructions.Enqueue(cmd);
+            ENetServer.ENetCmds.Enqueue(cmd);
         }
     }
 }

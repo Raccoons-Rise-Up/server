@@ -11,13 +11,13 @@ using GameServer.Utilities;
 
 namespace GameServer.Server
 {
-    public class ServerInstructionGetOnlinePlayers : ServerInstruction
+    public class ServerInstructionGetOnlinePlayers : ENetCmd
     {
-        public override ServerInstructionOpcode Opcode { get; set; }
+        public override ServerOpcode Opcode { get; set; }
 
         public ServerInstructionGetOnlinePlayers()
         {
-            Opcode = ServerInstructionOpcode.GetOnlinePlayers;
+            Opcode = ServerOpcode.GetOnlinePlayers;
         }
 
         public override void Handle(List<object> value)

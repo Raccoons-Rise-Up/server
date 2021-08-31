@@ -19,27 +19,12 @@ namespace GameServer.Server
     public class ENetServer
     {
         public static ConcurrentBag<Event> Incoming { get; private set; }
-        public static ConcurrentQueue<ServerInstructions> ServerInstructions { get; private set; }
+        public static ConcurrentQueue<ENetCmds> ENetCmds { get; private set; }
         public static List<Player> Players { get; private set; }
-        public static Dictionary<ServerInstructionOpcode, ServerInstruction> ServerInstruction { get; private set; }
-        public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; private set; }
+        public static Dictionary<ServerOpcode, ENetCmd> ENetCmd { get; private set; }
+        public static Dictionary<ClientOpcode, HandlePacket> HandlePacket { get; private set; }
         public static HttpClient WebClient { get; private set; }
-
-        public static byte ServerVersionMajor { get; private set; }
-        public static byte ServerVersionMinor { get; private set; }
-        public static byte ServerVersionPatch { get; private set; }
-
-        // Finds all classes of type T and puts them in the value of a dictionary while the key is the property (given by the name param)
-        public Dictionary<U, T> AssembleTypesToDictKeyProp<T, U>(string name)
-        {
-            var classes = typeof(T).Assembly.GetTypes()
-                .Where(x => typeof(T)
-                .IsAssignableFrom(x) && !x.IsAbstract)
-                .Select(Activator.CreateInstance)
-                .Cast<T>();
-
-            return classes.ToDictionary(x => (U)x.GetType().GetProperty(name).GetValue(this, null), x => x);
-        }
+        public static ServerVersion ServerVersion { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
@@ -49,12 +34,15 @@ namespace GameServer.Server
             Utils.CreateJSONDictionaryFile("banned_players");
 
             // Server Version
-            ServerVersionMajor = 0;
-            ServerVersionMinor = 1;
-            ServerVersionPatch = 0;
+            ServerVersion = new()
+            {
+                Major = 0,
+                Minor = 1,
+                Patch = 0
+            };
 
             Incoming = new();
-            ServerInstructions = new();
+            ENetCmds = new();
             Players = new();
             WebClient = new();
 
@@ -65,11 +53,11 @@ namespace GameServer.Server
                 .Cast<HandlePacket>()
                 .ToDictionary(x => x.Opcode, x => x);
 
-            ServerInstruction = typeof(ServerInstruction).Assembly.GetTypes()
-                .Where(x => typeof(ServerInstruction)
+            ENetCmd = typeof(ENetCmd).Assembly.GetTypes()
+                .Where(x => typeof(ENetCmd)
                 .IsAssignableFrom(x) && !x.IsAbstract)
                 .Select(Activator.CreateInstance)
-                .Cast<ServerInstruction>()
+                .Cast<ENetCmd>()
                 .ToDictionary(x => x.Opcode, x => x);
 
             Library.Initialize();
@@ -93,13 +81,13 @@ namespace GameServer.Server
                     var polled = false;
 
                     // Server Instructions
-                    while (ServerInstructions.TryDequeue(out ServerInstructions result))
+                    while (ENetCmds.TryDequeue(out ENetCmds result))
                     {
                         foreach (var cmd in result.Instructions)
                         {
                             var opcode = cmd.Key;
 
-                            ServerInstruction[opcode].Handle(cmd.Value);
+                            ENetCmd[opcode].Handle(cmd.Value);
                         }
                     }
 
@@ -114,7 +102,7 @@ namespace GameServer.Server
 
                         netEvent.Packet.CopyTo(readBuffer);
 
-                        var opcode = (ClientPacketOpcode)packetReader.ReadByte();
+                        var opcode = (ClientOpcode)packetReader.ReadByte();
 
                         HandlePacket[opcode].Handle(netEvent, packetReader);
 
@@ -299,30 +287,37 @@ namespace GameServer.Server
         public const uint StructureHuts = 0;
     }
 
-    public class ServerInstructions 
+    public struct ServerVersion
     {
-        public Dictionary<ServerInstructionOpcode, List<object>> Instructions { get; set; }
+        public byte Major { get; set; }
+        public byte Minor { get; set; }
+        public byte Patch { get; set; }
+    }
 
-        public ServerInstructions()
+    public class ENetCmds 
+    {
+        public Dictionary<ServerOpcode, List<object>> Instructions { get; set; }
+
+        public ENetCmds()
         {
-            Instructions = new Dictionary<ServerInstructionOpcode, List<object>>();
+            Instructions = new Dictionary<ServerOpcode, List<object>>();
         }
 
-        public ServerInstructions(ServerInstructionOpcode opcode)
+        public ENetCmds(ServerOpcode opcode)
         {
-            Instructions = new Dictionary<ServerInstructionOpcode, List<object>>
+            Instructions = new Dictionary<ServerOpcode, List<object>>
             {
                 [opcode] = null
             };
         }
 
-        public void Set(ServerInstructionOpcode opcode, params object[] data)
+        public void Set(ServerOpcode opcode, params object[] data)
         {
             Instructions[opcode] = new List<object>(data);
         }
     }
 
-    public enum ServerInstructionOpcode 
+    public enum ServerOpcode 
     {
         GetOnlinePlayers,
         GetPlayerStats,

@@ -1,7 +1,7 @@
 ﻿namespace GameServer.Server.Packets
 {
     // Received from Game Client
-    public enum ClientPacketOpcode
+    public enum ClientOpcode
     {
         Disconnect,
         PurchaseItem,

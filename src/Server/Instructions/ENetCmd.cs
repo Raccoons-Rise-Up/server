@@ -10,9 +10,9 @@ using GameServer.Logging;
 
 namespace GameServer.Server
 {
-    public abstract class ServerInstruction
+    public abstract class ENetCmd
     {
-        public abstract ServerInstructionOpcode Opcode { get; set; }
+        public abstract ServerOpcode Opcode { get; set; }
 
         public abstract void Handle(List<object> value);
     }
