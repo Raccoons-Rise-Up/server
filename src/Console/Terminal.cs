@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if Windows
+using System;
 using System.Runtime.InteropServices;
 
 namespace GameServer.Logging
@@ -109,3 +110,4 @@ namespace GameServer.Logging
         }
     }
 }
+#endif
