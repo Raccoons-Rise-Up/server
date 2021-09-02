@@ -33,7 +33,7 @@ dotnet ef database update
 ### Database Errors
 If you changed the name of one of the models and are getting the error `The entity type 'xxxxx' requires a primary key to be defined.`, this is most likely because the ID field was not changed to fit the new name of the model you renamed. For example, say there is a model class called `Player` with primary ID called `PlayerId`, if the model was renamed to `ModelPlayer`, the primary ID also has to be renamed to `ModelPlayerId`.
 
-If you feel the database is beyond repair, you can delete it at `C:\Users\USER\AppData\Local\Database.db` (for Windows).
+If you feel the database is beyond repair, you can delete it at `AppData\Local\ENet Server\Database.db`
 
 ## Notes
 - Do not forget to lock threads that are reading or writing from the same variables
