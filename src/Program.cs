@@ -12,13 +12,6 @@ namespace GameServer
         {
             StartLogger();
             StartServer();
-            #if Linux 
-            Logger.Log("Built on Linux!"); 
-            #elif OSX 
-            Logger.Log("Built on macOS!"); 
-            #elif Windows 
-            Logger.Log("Built in Windows!"); 
-            #endif
         }
 
         private static void StartLogger() 
