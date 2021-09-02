@@ -25,11 +25,18 @@ namespace GameServer.Server
         public static Dictionary<ClientOpcode, HandlePacket> HandlePacket { get; private set; }
         public static HttpClient WebClient { get; private set; }
         public static ServerVersion ServerVersion { get; private set; }
+        public static string AppDataPath { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
+
+            var folder = Environment.SpecialFolder.LocalApplicationData;
+            AppDataPath = Path.Combine(Environment.GetFolderPath(folder), "ENet Server");
+
+            if (!Directory.Exists(AppDataPath))
+                Directory.CreateDirectory(AppDataPath);
 
             Utils.CreateJSONDictionaryFile("banned_players");
 

@@ -13,8 +13,6 @@ namespace GameServer.Utilities
 {
     public static class Utils
     {
-        private static readonly string pathToRes = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, $"res");
-
         public static T ReadJSONString<T>(string str) 
         {
             return JsonSerializer.Deserialize<T>(str);
@@ -24,7 +22,7 @@ namespace GameServer.Utilities
         {
             CreateJSONDictionaryFile(filename);
 
-            var pathToFile = Path.Combine(pathToRes, filename + ".json");
+            var pathToFile = Path.Combine(ENetServer.AppDataPath, filename + ".json");
 
             var text = File.ReadAllText(pathToFile);
             return JsonSerializer.Deserialize<T>(text);
@@ -34,7 +32,7 @@ namespace GameServer.Utilities
         {
             CreateJSONDictionaryFile(filename);
 
-            var pathToFile = Path.Combine(pathToRes, filename + ".json");
+            var pathToFile = Path.Combine(ENetServer.AppDataPath, filename + ".json");
 
             var options = new JsonSerializerOptions
             {
@@ -46,7 +44,7 @@ namespace GameServer.Utilities
 
         public static void CreateJSONDictionaryFile(string filename)
         {
-            var pathToFile = Path.Combine(pathToRes, filename + ".json");
+            var pathToFile = Path.Combine(ENetServer.AppDataPath, filename + ".json");
 
             if (!File.Exists(pathToFile))
             {
