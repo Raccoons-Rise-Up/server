@@ -27,7 +27,8 @@
     public enum LoginResponseOpcode
     {
         LoginSuccess,
-        VersionMismatch
+        VersionMismatch,
+        InvalidToken
     }
 
     public enum DisconnectOpcode
