@@ -11,6 +11,7 @@ using Common.Networking.IO;
 using ENet;
 using GameServer.Database;
 using GameServer.Logging;
+using GameServer.Utilities;
 using GameServer.Server.Security;
 using GameServer.Server;
 using GameServer.Utilities;
@@ -27,85 +28,26 @@ namespace GameServer.Server.Packets
             Opcode = ClientOpcode.Login;
         }
 
-        static async Task PostRequest(RPacketLogin data) 
-        {
-            try
-            {
-                var values = new Dictionary<string, string>
-                {
-                    { "username", data.Username },
-                    { "password", data.PasswordHash }
-                };
-
-                var content = new FormUrlEncodedContent(values);
-
-                var response = await ENetServer.WebClient.PostAsync("http://localhost:4000/api/login", content);
-                Thread.CurrentThread.Name = "SERVER";
-
-                var responseString = await response.Content.ReadAsStringAsync();
-
-                var responseObj = Utils.ReadJSONString<WebLoginResponse>(responseString);
-
-                var opcode = (WebLoginResponseOpcode)responseObj.opcode;
-
-                if (opcode == WebLoginResponseOpcode.AccountDoesNotExist) 
-                {
-                    Logger.Log("account does not exist");
-                }
-
-                if (opcode == WebLoginResponseOpcode.InvalidUsernameOrPassword) 
-                {
-                    Logger.Log("invalid username or password");
-                }
-
-                if (opcode == WebLoginResponseOpcode.AccountDoesNotExist) 
-                {
-                    Logger.Log("account does not exist");
-                }
-
-                if (opcode == WebLoginResponseOpcode.PasswordsDoNotMatch) 
-                {
-                    Logger.Log("passwords do not match");
-                }
-
-                if (opcode == WebLoginResponseOpcode.LoginSuccess) 
-                {
-                    Logger.Log("login success");
-                }
-            }
-            catch (HttpRequestException e) 
-            {
-                Thread.CurrentThread.Name = "SERVER";
-                Logger.Log(e.Message);
-            }
-        }
-
-        static async Task GetRequest()
-        {
-            // Call asynchronous network methods in a try/catch block to handle exceptions.
-            try
-            {
-                HttpResponseMessage response = await ENetServer.WebClient.GetAsync("http://localhost:4000/api/");
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-                // Above three lines can be replaced with new helper method below
-                // string responseBody = await client.GetStringAsync(uri);
-
-                Console.WriteLine(responseBody);
-            }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine("\nException Caught!");
-                Console.WriteLine("Message :{0} ", e.Message);
-            }
-        }
-
         public override void Handle(Event netEvent, PacketReader packetReader)
         {
             var data = new RPacketLogin();
             data.Read(packetReader);
 
             var peer = netEvent.Peer;
+
+            // Check JWT
+            var token = new JsonWebToken(data.JsonWebToken);
+            if (token.IsValid.Error != JsonWebToken.TokenValidateError.Ok) 
+            {
+                var packetData = new WPacketLogin 
+                {
+                    LoginOpcode = LoginResponseOpcode.InvalidToken
+                };
+
+                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
+                ENetServer.Send(packet, peer, PacketFlags.Reliable);
+                return;
+            }
 
             // Check if versions match
             if (data.VersionMajor != ENetServer.ServerVersion.Major || data.VersionMinor != ENetServer.ServerVersion.Minor ||
@@ -114,7 +56,7 @@ namespace GameServer.Server.Packets
                 var clientVersion = $"{data.VersionMajor}.{data.VersionMinor}.{data.VersionPatch}";
                 var serverVersion = $"{ENetServer.ServerVersion.Major}.{ENetServer.ServerVersion.Minor}.{ENetServer.ServerVersion.Patch}";
 
-                Logger.Log($"Player '{data.Username}' tried to log in but failed because they are running on version " +
+                Logger.Log($"Player '{token.Payload.username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
 
                 var packetData = new WPacketLogin
@@ -131,35 +73,10 @@ namespace GameServer.Server.Packets
                 return;
             }
 
-            // Check if username / password match up with web server
-            /*try
-            {
-                await PostRequest(data);
-            }
-            catch (TaskCanceledException e) 
-            {
-                Logger.Log(e.Message);
-            }*/
-            
-            /*var values = new Dictionary<string, string>
-            {
-                { "username", data.Username },
-                { "password", data.PasswordHash }
-            };
-
-            var content = new FormUrlEncodedContent(values);
-            var response = await ENetServer.WebClient.PostAsync("http://localhost:4000/api/login", content).ConfigureAwait(true);
-
-            var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(true);
-
-            response.Dispose();
-
-            Logger.Log(responseString);*/
-
             // Check if username exists in database
             using var db = new DatabaseContext();
 
-            var dbPlayer = db.Players.ToList().Find(x => x.Username == data.Username);
+            var dbPlayer = db.Players.ToList().Find(x => x.Username == token.Payload.username);
 
             // These values will be sent to the client
             var playerValues = new PlayerValues();
@@ -185,7 +102,7 @@ namespace GameServer.Server.Packets
 
                 ENetServer.Players.Add(player);
 
-                Logger.Log($"Player '{data.Username}' logged in");
+                Logger.Log($"Player '{token.Payload.username}' logged in");
             }
             else
             {
@@ -198,13 +115,13 @@ namespace GameServer.Server.Packets
                 ENetServer.Players.Add(new Player
                 {
                     Peer = peer,
-                    Username = data.Username,
+                    Username = token.Payload.username,
                     Gold = StartingValues.Gold,
                     LastSeen = DateTime.Now,
                     Ip = peer.IP
                 });
 
-                Logger.Log($"User '{data.Username}' logged in for the first time");
+                Logger.Log($"User '{token.Payload.username}' logged in for the first time");
             }
 
             {
