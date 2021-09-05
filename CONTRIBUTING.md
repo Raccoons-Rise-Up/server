@@ -37,3 +37,4 @@ If you feel the database is beyond repair, you can delete it at `AppData\Local\E
 
 ## Notes
 - Do not forget to lock threads that are reading or writing from the same variables
+- Do not forget to create `public.key` in `obj\Debug\net5.0` with same key generated from [web-server](https://github.com/Kittens-Rise-Up/website)
