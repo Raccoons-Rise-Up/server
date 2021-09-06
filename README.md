@@ -76,8 +76,8 @@ Log("&3The &8red &yfox &bjumped &rover &4the &5fe&6n&7c&8e&9.");
  */
 ```
 
-## Known Issues
-Please see [Issues](https://github.com/Kittens-Rise-Up/server/issues)
+## Issues
+Please see the projects [current issues](https://github.com/Kittens-Rise-Up/server/issues)
 
 ## Contributing
 Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
