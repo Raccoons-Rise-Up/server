@@ -1,8 +1,6 @@
 # Contributing
 ## Formatting Guidelines
 - Methods should follow PascalFormat
-- Most of the time `{}` should be fully expanded
-- Variables should be camelCase regardless if private or public
 - Try to use `var` where ever possible
 
 ## Creating a Pull Request
