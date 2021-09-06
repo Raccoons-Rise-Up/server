@@ -1,4 +1,15 @@
 # Game-Server
+## Table of Contents
+1. [About](#what-is-this)
+2. [Server](#server)
+    - [Features](#features)
+    - [Resources](#resources)
+3. [Console](#console)
+    - [Features](#features)
+    - [Controls](#controls)
+    - [Logging](#logging)
+4. [Issues](#issues)
+5. [Contributing](#contributing)
 
 ## What is this?
 A multi-threaded console / game server that handles logging, user commands, database and ENet connections for Kittens Rise Up clients.
