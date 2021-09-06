@@ -28,7 +28,7 @@ I previously created a [game-server](https://github.com/The-MMORPG-Project/game-
 
 ## Setup
 ### Creating the Database
-Create the database with the following commands (you can open the terminal in VS with `Ctrl + Tilda Key`)
+Create the Entity Framework Core - SQLite Database with the following commands (you can open the terminal in VS with `Ctrl + Tilda Key`)
 ```
 dotnet tool install --global dotnet-ef
 dotnet ef migrations add InitialCreate
