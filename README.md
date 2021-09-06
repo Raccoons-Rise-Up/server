@@ -5,7 +5,7 @@
     - [Features](#features)
     - [Resources](#resources)
 3. [Console](#console)
-    - [Features](#features)
+    - [Features](#features-1)
     - [Controls](#controls)
     - [Logging](#logging)
 4. [Issues](#issues)
