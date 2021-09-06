@@ -1,15 +1,18 @@
 # Game-Server
 ## Table of Contents
 1. [About](#what-is-this)
-2. [Server](#server)
+2. [Setup](#setup)
+    - [Creating the Database](#creating-the-database)
+    - [Public JWT Key](#public-jwt-key)
+4. [Server](#server)
     - [Features](#features)
     - [Resources](#resources)
-3. [Console](#console)
+5. [Console](#console)
     - [Features](#features-1)
     - [Controls](#controls)
     - [Logging](#logging)
-4. [Issues](#issues)
-5. [Contributing](#contributing)
+6. [Issues](#issues)
+7. [Contributing](#contributing)
 
 ## What is this?
 A multi-threaded console / game server that handles logging, user commands, database and ENet connections for Kittens Rise Up clients.
@@ -22,6 +25,20 @@ I have tried using several networking libs in the past, none of them worked out 
 The only networking lib that stood out to me is [ENet-CSharp](https://github.com/nxrighthere/ENet-CSharp), I find it to be very simple and straight forward. Since the original repository has their issues closed, you'll find that [this repository](https://github.com/SoftwareGuy/ENet-CSharp) has theirs open and there are many people willing to help you with any questions you may have.
 
 I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the console. This game-server follows thread safety and does not depend on any external API for the console.
+
+## Setup
+### Creating the Database
+Create the database with the following commands (you can open the terminal in VS with `Ctrl + Tilda Key`)
+```
+dotnet tool install --global dotnet-ef
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
+
+### Public JWT Key
+Create a `public.key` in `obj\Debug\net5.0` (if you don't see these folders you need to run the project at least once with `dotnet run`) with same key generated from [web-server](https://github.com/Kittens-Rise-Up/website)
+
+Run the project with `dotnet run`
 
 ## Server
 ### Features
