@@ -139,14 +139,4 @@ namespace GameServer.Server.Packets
             packetReader.Dispose();
         }
     }
-
-    public struct PlayerValues
-    {
-        public uint Wheat { get; set; }
-        public uint Wood { get; set; }
-        public uint Stone { get; set; }
-        public uint Gold { get; set; }
-        public uint StructureHuts { get; set; }
-        public uint StructureWheatFarms { get; set; }
-    }
 }
