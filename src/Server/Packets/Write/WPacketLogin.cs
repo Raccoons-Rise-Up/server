@@ -5,12 +5,16 @@ namespace GameServer.Server.Packets
 {
     public class WPacketLogin : IWritable
     {
-        public LoginResponseOpcode LoginOpcode { private get; set; }
-        public byte VersionMajor { private get; set; }
-        public byte VersionMinor { private get; set; }
-        public byte VersionPatch { private get; set; }
+        public LoginResponseOpcode LoginOpcode { get; set; }
+        public byte VersionMajor { get; set; }
+        public byte VersionMinor { get; set; }
+        public byte VersionPatch { get; set; }
+        public uint Wood { get; set; }
+        public uint Stone { get; set; }
+        public uint Wheat { get; set; }
         public uint Gold { get; set; }
         public uint StructureHuts { get; set; }
+        public uint StructureWheatFarms { get; set; }
 
         public void Write(PacketWriter writer)
         {
@@ -23,9 +27,13 @@ namespace GameServer.Server.Packets
                     writer.Write(VersionMinor);
                     writer.Write(VersionPatch);
                     break;
-                case LoginResponseOpcode.LoginSuccess:
+                case LoginResponseOpcode.LoginSuccessReturningPlayer:
+                    writer.Write(Wood);
+                    writer.Write(Stone);
+                    writer.Write(Wheat);
                     writer.Write(Gold);
                     writer.Write(StructureHuts);
+                    writer.Write(StructureWheatFarms);
                     break;
             }
         }

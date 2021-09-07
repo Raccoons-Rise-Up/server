@@ -26,11 +26,16 @@ namespace GameServer.Server
         public static HttpClient WebClient { get; private set; }
         public static ServerVersion ServerVersion { get; private set; }
         public static string AppDataPath { get; private set; }
+        public static StructureHut StructureHut { get; private set; }
+        public static StructureWheatFarm StructureWheatFarm { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
+
+            StructureHut = new();
+            StructureWheatFarm = new();
 
             var folder = Environment.SpecialFolder.LocalApplicationData;
             AppDataPath = Path.Combine(Environment.GetFolderPath(folder), "ENet Server");
@@ -198,13 +203,17 @@ namespace GameServer.Server
             peer.Send(channelID, ref packet);
         }
         
+        /// <summary>
+        /// Save a single player to the database.
+        /// </summary>
+        /// <param name="player"></param>
         public static void SavePlayerToDatabase(Player player) 
         {
             using var db = new DatabaseContext();
 
             var playerExistsInDatabase = false;
 
-            AddGoldGeneratedFromStructures(player);
+            AddResourcesGeneratedFromStructures(player);
 
             foreach (var dbPlayer in db.Players.ToList()) 
             {
@@ -225,6 +234,9 @@ namespace GameServer.Server
             db.SaveChanges();
         }
 
+        /// <summary>
+        /// Save all players to the database.
+        /// </summary>
         public static void SaveAllPlayersToDatabase()
         {
             if (Players.Count == 0)
@@ -242,7 +254,7 @@ namespace GameServer.Server
                 {
                     if (player.Username == dbPlayer.Username)
                     {
-                        AddGoldGeneratedFromStructures(player);
+                        AddResourcesGeneratedFromStructures(player);
                         UpdatePlayerValuesInDatabase(dbPlayer, player);
                         break;
                     }
@@ -253,7 +265,7 @@ namespace GameServer.Server
 
             foreach (var player in playersThatAreNotInDatabase)
             {
-                AddGoldGeneratedFromStructures(player);
+                AddResourcesGeneratedFromStructures(player);
                 db.Add((ModelPlayer)player);
             }
 
@@ -264,34 +276,23 @@ namespace GameServer.Server
         {
             dbPlayer.Ip = player.Ip;
             dbPlayer.Gold = player.Gold;
-            dbPlayer.StructureHut = player.StructureHut;
+            dbPlayer.StructureHuts = player.StructureHuts;
             dbPlayer.LastCheckStructureHut = DateTime.Now;
             dbPlayer.LastSeen = DateTime.Now;
         }
         #endregion
 
-        public static void AddGoldGeneratedFromStructures(Player player) 
+        public static void AddResourcesGeneratedFromStructures(Player player) 
         {
-            // Calculate players new gold value based on how many structures they own
-            var diff = DateTime.Now - player.LastCheckStructureHut;
-            uint goldGenerated = player.StructureHut * (uint)diff.TotalSeconds;
+            // Calculate players new resource values based on how many structures they own
+
+            var diff = DateTime.Now - player.LastCheckStructureWheatFarm;
+            uint wheatGenerated = (uint)(player.StructureWheatFarms * StructureWheatFarm.Production[Resource.Wheat] * diff.TotalSeconds);
 
             player.LastCheckStructureHut = DateTime.Now;
 
-            player.Gold += goldGenerated;
+            player.Wheat += wheatGenerated;
         }
-    }
-
-    public struct PlayerValues 
-    {
-        public uint Gold { get; set; }
-        public uint StructureHuts { get; set; }
-    }
-
-    public static class StartingValues
-    {
-        public const uint Gold = 100;
-        public const uint StructureHuts = 0;
     }
 
     public struct ServerVersion

@@ -14,7 +14,6 @@ using GameServer.Logging;
 using GameServer.Utilities;
 using GameServer.Server.Security;
 using GameServer.Server;
-using GameServer.Utilities;
 using System.Net.Http;
 
 namespace GameServer.Server.Packets
@@ -39,12 +38,10 @@ namespace GameServer.Server.Packets
             var token = new JsonWebToken(data.JsonWebToken);
             if (token.IsValid.Error != JsonWebToken.TokenValidateError.Ok) 
             {
-                var packetData = new WPacketLogin 
+                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.InvalidToken
-                };
-
-                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
+                });
                 ENetServer.Send(packet, peer, PacketFlags.Reliable);
                 return;
             }
@@ -59,15 +56,13 @@ namespace GameServer.Server.Packets
                 Logger.Log($"Player '{token.Payload.username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
 
-                var packetData = new WPacketLogin
+                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.VersionMismatch,
                     VersionMajor = ENetServer.ServerVersion.Major,
                     VersionMinor = ENetServer.ServerVersion.Minor,
                     VersionPatch = ENetServer.ServerVersion.Patch,
-                };
-
-                var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
+                });
                 ENetServer.Send(packet, peer, PacketFlags.Reliable);
 
                 return;
@@ -79,21 +74,30 @@ namespace GameServer.Server.Packets
             var dbPlayer = db.Players.ToList().Find(x => x.Username == token.Payload.username);
 
             // These values will be sent to the client
-            var playerValues = new PlayerValues();
+            WPacketLogin packetData;
 
             if (dbPlayer != null)
             {
                 // RETURNING PLAYER
 
-                playerValues.Gold = dbPlayer.Gold;
-                playerValues.StructureHuts = dbPlayer.StructureHut;
+                packetData = new WPacketLogin
+                {
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
+                    Wood = dbPlayer.Wood,
+                    Stone = dbPlayer.Stone,
+                    Gold = dbPlayer.Gold,
+                    Wheat = dbPlayer.Wheat,
+                    StructureHuts = dbPlayer.StructureHuts,
+                    StructureWheatFarms = dbPlayer.StructureWheatFarms
+                };
 
                 // Add the player to the list of players currently on the server
                 var player = new Player
                 {
                     Gold = dbPlayer.Gold,
-                    StructureHut = dbPlayer.StructureHut,
+                    StructureHuts = dbPlayer.StructureHuts,
                     LastCheckStructureHut = dbPlayer.LastCheckStructureHut,
+                    LastCheckStructureWheatFarm = dbPlayer.LastCheckStructureWheatFarm,
                     LastSeen = DateTime.Now,
                     Username = dbPlayer.Username,
                     Peer = peer,
@@ -107,16 +111,17 @@ namespace GameServer.Server.Packets
             else
             {
                 // NEW PLAYER
+                packetData = new WPacketLogin
+                {
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer
+                };
 
-                playerValues.Gold = StartingValues.Gold;
-                playerValues.StructureHuts = StartingValues.StructureHuts;
 
                 // Add the player to the list of players currently on the server
                 ENetServer.Players.Add(new Player
                 {
                     Peer = peer,
                     Username = token.Payload.username,
-                    Gold = StartingValues.Gold,
                     LastSeen = DateTime.Now,
                     Ip = peer.IP
                 });
@@ -125,12 +130,7 @@ namespace GameServer.Server.Packets
             }
 
             {
-                var packetData = new WPacketLogin
-                {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccess,
-                    Gold = playerValues.Gold,
-                    StructureHuts = playerValues.StructureHuts
-                };
+                
 
                 var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
                 ENetServer.Send(packet, peer, PacketFlags.Reliable);
@@ -138,5 +138,15 @@ namespace GameServer.Server.Packets
 
             packetReader.Dispose();
         }
+    }
+
+    public struct PlayerValues
+    {
+        public uint Wheat { get; set; }
+        public uint Wood { get; set; }
+        public uint Stone { get; set; }
+        public uint Gold { get; set; }
+        public uint StructureHuts { get; set; }
+        public uint StructureWheatFarms { get; set; }
     }
 }

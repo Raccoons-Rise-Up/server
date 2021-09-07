@@ -72,7 +72,7 @@ namespace GameServer.Logging.Commands
                 $"\nDATABASE" +
                 $"\nUsername: {dbPlayer.Username} " +
                 $"\nGold: {dbPlayer.Gold} (+{CalculateGoldGeneratedFromStructures(dbPlayer)})" +
-                $"\nStructure Huts: {dbPlayer.StructureHut}" +
+                $"\nStructure Huts: {dbPlayer.StructureHuts}" +
                 $"\nLast Seen: {diffReadable}"
             );
         }
@@ -81,7 +81,7 @@ namespace GameServer.Logging.Commands
         {
             // Calculate players new gold value based on how many structures they own
             var diff = DateTime.Now - player.LastCheckStructureHut;
-            uint goldGenerated = player.StructureHut * (uint)diff.TotalSeconds;
+            uint goldGenerated = player.StructureHuts * (uint)diff.TotalSeconds;
 
             player.LastCheckStructureHut = DateTime.Now;
 

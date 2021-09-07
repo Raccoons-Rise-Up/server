@@ -26,7 +26,8 @@
 
     public enum LoginResponseOpcode
     {
-        LoginSuccess,
+        LoginSuccessReturningPlayer,
+        LoginSuccessNewPlayer,
         VersionMismatch,
         InvalidToken
     }

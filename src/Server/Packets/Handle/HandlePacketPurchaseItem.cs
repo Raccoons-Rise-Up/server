@@ -25,15 +25,16 @@ namespace GameServer.Server.Packets
 
             var peer = netEvent.Peer;
 
+            var player = ENetServer.Players.Find(x => x.Peer.ID == peer.ID);
+            // Add resources to player cache
+            ENetServer.AddResourcesGeneratedFromStructures(player);
+
             var itemType = (ItemType)data.ItemId;
 
             if (itemType == ItemType.Hut)
             {
                 uint hutCost = 25;
-
-                var player = ENetServer.Players.Find(x => x.Peer.ID == peer.ID);
-
-                ENetServer.AddGoldGeneratedFromStructures(player);
+                
 
                 // Player can't afford this
                 if (player.Gold < hutCost)
@@ -52,7 +53,7 @@ namespace GameServer.Server.Packets
 
                 // Player bought the structure
                 player.Gold -= hutCost;
-                player.StructureHut++;
+                player.StructureHuts++;
 
                 Logger.Log($"Player '{player.Username}' purchased a Hut");
 
@@ -67,6 +68,35 @@ namespace GameServer.Server.Packets
             }
 
             packetReader.Dispose();
+        }
+
+        private static bool CanAfford(Player player, ItemType itemType) 
+        {
+            var canAfford = true;
+
+            if (itemType == ItemType.Hut) 
+            {
+                foreach (var item in ENetServer.StructureHut.Cost) 
+                {
+                    if (item.Key == Resource.Wood) 
+                        if (player.Wood < item.Value) 
+                            canAfford = false;
+
+                    if (item.Key == Resource.Stone)
+                        if (player.Stone < item.Value)
+                            canAfford = false;
+
+                    if (item.Key == Resource.Gold)
+                        if (player.Gold < item.Value)
+                            canAfford = false;
+
+                    if (item.Key == Resource.Wheat)
+                        if (player.Wheat < item.Value)
+                            canAfford = false;
+                }
+            }
+
+            return canAfford;
         }
     }
 }

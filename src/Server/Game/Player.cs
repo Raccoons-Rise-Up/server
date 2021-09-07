@@ -12,9 +12,14 @@ namespace GameServer.Server
         public void ResetValues() 
         {
             LastSeen = DateTime.Now;
-            Gold = StartingValues.Gold;
-            StructureHut = StartingValues.StructureHuts;
+            Wood = 0;
+            Wheat = 0;
+            Stone = 0;
+            Gold = 0;
+            StructureHuts = 0;
             LastCheckStructureHut = DateTime.Now;
+            StructureWheatFarms = 0;
+            LastCheckStructureWheatFarm = DateTime.Now;
         }
     }
 }
