@@ -1,26 +1,17 @@
 # Contributing
+## Table of Contents
+1. [Formatting Guidelines](#formatting-guidelines)
+2. [Database](#database)
+    - [Updating the Database](#updating-the-database)
+    - [Database Errors](#database-errors)
+3. [Notes](#notes)
+4. [Creating a Pull Request](#creating-all-pull-request)
+
 ## Formatting Guidelines
 - Methods should follow PascalFormat
-- Most of the time `{}` should be fully expanded
-- Variables should be camelCase regardless if private or public
 - Try to use `var` where ever possible
 
-## Creating a Pull Request
-1. Always test the application to see if it works as intended with no additional bugs you may be adding!
-2. State all the changes you made in the PR, not everyone will understand what you've done!
-
-## .NET
-.NET is installed from https://dotnet.microsoft.com/download/dotnet/5.0 (cross platform) or with Visual Studio if you check the `.NET desktop environment` workload when installing.
-
-## Entity Framework Core - SQLite
-### Creating the Database
-Create the database with the following commands (you can open the terminal in VS with `Ctrl + Tilda Key`)
-```
-dotnet tool install --global dotnet-ef
-dotnet ef migrations add InitialCreate
-dotnet ef database update
-```
-
+## Database
 ### Updating the Database
 If changing the field names in a table be sure to add `migrationBuilder.DropTable("TableName");` in the migration script just before the table is created. This is not ideal if there is important data that needs to be kept, perhaps in the future someone can expand on this section of the contributing document.
 
@@ -37,3 +28,7 @@ If you feel the database is beyond repair, you can delete it at `AppData\Local\E
 
 ## Notes
 - Do not forget to lock threads that are reading or writing from the same variables
+
+## Creating a Pull Request
+1. Always test the application to see if it works as intended with no additional bugs you may be adding!
+2. State all the changes you made in the PR, not everyone will understand what you've done!
