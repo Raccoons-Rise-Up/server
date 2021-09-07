@@ -6,6 +6,7 @@ using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
 using GameServer.Logging;
+using GameServer.Server.Packets;
 
 namespace GameServer.Server.Packets
 {
@@ -18,7 +19,7 @@ namespace GameServer.Server.Packets
             Opcode = ClientOpcode.PurchaseItem;
         }
 
-        public override void Handle(Event netEvent, PacketReader packetReader)
+        public override void Handle(Event netEvent, ref PacketReader packetReader)
         {
             var data = new RPacketPurchaseItem();
             data.Read(packetReader);
@@ -26,77 +27,42 @@ namespace GameServer.Server.Packets
             var peer = netEvent.Peer;
 
             var player = ENetServer.Players.Find(x => x.Peer.ID == peer.ID);
-            // Add resources to player cache
-            ENetServer.AddResourcesGeneratedFromStructures(player);
 
-            var itemType = (ItemType)data.ItemId;
+            var structureType = (StructureType)data.StructureId;
 
-            if (itemType == ItemType.Hut)
+            var purchaseResult = player.TryPurchase(ENetServer.Structures[structureType]);
+
+            // Player can't afford this
+            if (purchaseResult.Result == PurchaseEnumResult.LackingResources)
             {
-                uint hutCost = 25;
-                
+                Logger.Log($"Player '{player.Username}' could not afford Hut");
 
-                // Player can't afford this
-                if (player.Gold < hutCost)
+                var packetDataNotEnoughGold = new WPacketPurchaseItem
                 {
-                    var packetDataNotEnoughGold = new WPacketPurchaseItem
-                    {
-                        PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
-                        ItemId = (ushort)ItemType.Hut,
-                        Gold = player.Gold
-                    };
-                    var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
-                    ENetServer.Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
+                    PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
+                    StructureId = (ushort)StructureType.Hut,
+                    Resources = purchaseResult.Resources
+                };
+                var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
+                ENetServer.Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
+                return;
+            }
 
-                    return;
-                }
-
-                // Player bought the structure
-                player.Gold -= hutCost;
-                player.StructureHuts++;
-
+            // Player bought the structure
+            if (purchaseResult.Result == PurchaseEnumResult.Success)
+            {
                 Logger.Log($"Player '{player.Username}' purchased a Hut");
 
                 var packetDataPurchasedItem = new WPacketPurchaseItem
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
-                    ItemId = (ushort)ItemType.Hut,
-                    Gold = player.Gold
+                    StructureId = (ushort)StructureType.Hut,
+                    ResourcesLength = (byte)purchaseResult.Resources.Count,
+                    Resources = purchaseResult.Resources
                 };
                 var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
                 ENetServer.Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
             }
-
-            packetReader.Dispose();
-        }
-
-        private static bool CanAfford(Player player, ItemType itemType) 
-        {
-            var canAfford = true;
-
-            if (itemType == ItemType.Hut) 
-            {
-                foreach (var item in ENetServer.StructureHut.Cost) 
-                {
-                    if (item.Key == Resource.Wood) 
-                        if (player.Wood < item.Value) 
-                            canAfford = false;
-
-                    if (item.Key == Resource.Stone)
-                        if (player.Stone < item.Value)
-                            canAfford = false;
-
-                    if (item.Key == Resource.Gold)
-                        if (player.Gold < item.Value)
-                            canAfford = false;
-
-                    if (item.Key == Resource.Wheat)
-                        if (player.Wheat < item.Value)
-                            canAfford = false;
-                }
-            }
-
-            return canAfford;
         }
     }
 }

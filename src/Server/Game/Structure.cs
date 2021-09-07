@@ -10,8 +10,8 @@ namespace GameServer.Server
     {
         public virtual string Name { get; set; }
         public virtual string Description { get; set; }
-        public virtual Dictionary<Resource, uint> Cost { get; set; }
-        public virtual Dictionary<Resource, uint> Production { get; set; }
+        public virtual Dictionary<string, uint> Cost { get; set; }
+        public virtual Dictionary<string, uint> Production { get; set; }
         public virtual List<string> TechRequired { get; set; }
 
         public Structure() 
@@ -19,13 +19,5 @@ namespace GameServer.Server
             Name = GetType().Name.Replace("Structure", "");
             Description = "No description was given for this structure.";
         }
-    }
-
-    public enum Resource 
-    {
-        Wood,
-        Wheat,
-        Stone,
-        Gold
     }
 }

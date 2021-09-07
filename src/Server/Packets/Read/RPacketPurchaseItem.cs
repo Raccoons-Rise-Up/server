@@ -16,11 +16,11 @@ namespace GameServer.Server.Packets
 
     public class RPacketPurchaseItem : IReadable
     {
-        public uint ItemId { get; set; }
+        public uint StructureId { get; set; }
 
         public void Read(PacketReader reader)
         {
-            ItemId = reader.ReadUInt16();
+            StructureId = reader.ReadUInt16();
         }
     }
 }

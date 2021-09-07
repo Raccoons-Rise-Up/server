@@ -15,15 +15,17 @@ namespace GameServer.Database
         public DateTime LastSeen { get; set; }
 
         // Resources
-        public uint Wood { get; set; }
-        public uint Stone { get; set; }
-        public uint Wheat { get; set; }
-        public uint Gold { get; set; }
+        public uint ResourceWood { get; set; }
+        public uint ResourceStone { get; set; }
+        public uint ResourceWheat { get; set; }
+        public uint ResourceGold { get; set; }
 
         // Structures
-        public uint StructureHuts { get; set; }
+        public uint StructureHut { get; set; }
+        public uint StructureWheatFarm { get; set; }
+
+        // Structure Last Checks
         public DateTime LastCheckStructureHut { get; set; }
-        public uint StructureWheatFarms { get; set; }
         public DateTime LastCheckStructureWheatFarm { get; set; }
 
         public override string ToString()

@@ -27,7 +27,7 @@ namespace GameServer.Server
                 return;
 
             // Add resources to player cache
-            ENetServer.AddResourcesGeneratedFromStructures(player);
+            player.AddResourcesGeneratedFromStructures();
 
             var diff = DateTime.Now - player.LastSeen;
             var diffReadable = $"Days: {diff.Days}, Hours: {diff.Hours}, Minutes: {diff.Minutes}, Seconds: {diff.Seconds}";
@@ -35,8 +35,8 @@ namespace GameServer.Server
             Logger.LogRaw(
                 $"\n\nCACHE" +
                 $"\nUsername: {player.Username} " +
-                $"\nGold: {player.Gold}" +
-                $"\nStructure Huts: {player.StructureHuts}" +
+                $"\nGold: {player.ResourceGold}" +
+                $"\nStructure Huts: {player.StructureHut}" +
                 $"\nLast Seen: {diffReadable}"
             );
         }

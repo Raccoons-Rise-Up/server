@@ -27,7 +27,7 @@ namespace GameServer.Server.Packets
             Opcode = ClientOpcode.Login;
         }
 
-        public override void Handle(Event netEvent, PacketReader packetReader)
+        public override void Handle(Event netEvent, ref PacketReader packetReader)
         {
             var data = new RPacketLogin();
             data.Read(packetReader);
@@ -71,7 +71,7 @@ namespace GameServer.Server.Packets
             // Check if username exists in database
             using var db = new DatabaseContext();
 
-            var dbPlayer = db.Players.ToList().Find(x => x.Username == token.Payload.username);
+            var dbPlayer = db.Players.FirstOrDefault(x => x.Username == token.Payload.username);
 
             // These values will be sent to the client
             WPacketLogin packetData;
@@ -83,19 +83,21 @@ namespace GameServer.Server.Packets
                 packetData = new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
-                    Wood = dbPlayer.Wood,
-                    Stone = dbPlayer.Stone,
-                    Gold = dbPlayer.Gold,
-                    Wheat = dbPlayer.Wheat,
-                    StructureHuts = dbPlayer.StructureHuts,
-                    StructureWheatFarms = dbPlayer.StructureWheatFarms
+                    Wood = dbPlayer.ResourceWood,
+                    Stone = dbPlayer.ResourceStone,
+                    Gold = dbPlayer.ResourceGold,
+                    Wheat = dbPlayer.ResourceWheat,
+                    StructureHuts = dbPlayer.StructureHut,
+                    StructureWheatFarms = dbPlayer.StructureWheatFarm
                 };
 
                 // Add the player to the list of players currently on the server
                 var player = new Player
                 {
-                    Gold = dbPlayer.Gold,
-                    StructureHuts = dbPlayer.StructureHuts,
+                    ResourceGold = dbPlayer.ResourceGold,
+                    ResourceWood = 101,
+                    ResourceWheat = 50,
+                    StructureHut = dbPlayer.StructureHut,
                     LastCheckStructureHut = dbPlayer.LastCheckStructureHut,
                     LastCheckStructureWheatFarm = dbPlayer.LastCheckStructureWheatFarm,
                     LastSeen = DateTime.Now,
@@ -135,8 +137,6 @@ namespace GameServer.Server.Packets
                 var packet = new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData);
                 ENetServer.Send(packet, peer, PacketFlags.Reliable);
             }
-
-            packetReader.Dispose();
         }
     }
 }

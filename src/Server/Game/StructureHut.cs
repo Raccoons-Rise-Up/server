@@ -12,7 +12,8 @@ namespace GameServer.Server
         {
             Cost = new()
             {
-                { Resource.Wood, 100 }
+                { "Wood", 100 },
+                { "Wheat", 23 }
             };
         }
     }

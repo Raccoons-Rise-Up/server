@@ -42,16 +42,18 @@
     }
 
     // Sent and received (Game Server / Game Client)
-    public enum ItemType
+    public enum ResourceType
     {
-        Hut,
-        Farm
+        Wood,
+        Stone,
+        Wheat,
+        Gold
     }
 
-    // Web Client
-    public class WebLoginResponse
+    public enum StructureType
     {
-        public int opcode { get; set; }
+        Hut,
+        WheatFarm
     }
 
     public enum WebRegisterResponseOpcode

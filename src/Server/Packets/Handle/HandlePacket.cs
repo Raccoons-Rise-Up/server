@@ -7,6 +7,6 @@ namespace GameServer.Server.Packets
     {
         public abstract ClientOpcode Opcode { get; set; }
 
-        public abstract void Handle(Event netEvent, PacketReader packetReader);
+        public abstract void Handle(Event netEvent, ref PacketReader packetReader);
     }
 }

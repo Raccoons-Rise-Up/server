@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.IO;
 using System.Net.Http;
+using System.Diagnostics;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
@@ -13,6 +14,7 @@ using GameServer.Database;
 using GameServer.Logging;
 using GameServer.Utilities;
 using GameServer.Server.Security;
+using System.Reflection;
 
 namespace GameServer.Server
 {
@@ -26,16 +28,17 @@ namespace GameServer.Server
         public static HttpClient WebClient { get; private set; }
         public static ServerVersion ServerVersion { get; private set; }
         public static string AppDataPath { get; private set; }
-        public static StructureHut StructureHut { get; private set; }
-        public static StructureWheatFarm StructureWheatFarm { get; private set; }
+        public static Dictionary<StructureType, Structure> Structures { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            StructureHut = new();
-            StructureWheatFarm = new();
+            Structures = new();
+
+            foreach (var prop in typeof(ModelPlayer).GetProperties().Where(x => x.Name.StartsWith("Structure"))) 
+                Structures.Add((StructureType)Enum.Parse(typeof(StructureType), prop.Name.Replace("Structure", "")), (Structure)Activator.CreateInstance(Type.GetType($"GameServer.Server.{prop.Name}")));
 
             var folder = Environment.SpecialFolder.LocalApplicationData;
             AppDataPath = Path.Combine(Environment.GetFolderPath(folder), "ENet Server");
@@ -116,8 +119,9 @@ namespace GameServer.Server
 
                         var opcode = (ClientOpcode)packetReader.ReadByte();
 
-                        HandlePacket[opcode].Handle(netEvent, packetReader);
+                        HandlePacket[opcode].Handle(netEvent, ref packetReader);
 
+                        packetReader.Dispose();
                         netEvent.Packet.Dispose();
                     }
 
@@ -213,7 +217,7 @@ namespace GameServer.Server
 
             var playerExistsInDatabase = false;
 
-            AddResourcesGeneratedFromStructures(player);
+            player.AddResourcesGeneratedFromStructures();
 
             foreach (var dbPlayer in db.Players.ToList()) 
             {
@@ -254,7 +258,7 @@ namespace GameServer.Server
                 {
                     if (player.Username == dbPlayer.Username)
                     {
-                        AddResourcesGeneratedFromStructures(player);
+                        player.AddResourcesGeneratedFromStructures();
                         UpdatePlayerValuesInDatabase(dbPlayer, player);
                         break;
                     }
@@ -265,7 +269,7 @@ namespace GameServer.Server
 
             foreach (var player in playersThatAreNotInDatabase)
             {
-                AddResourcesGeneratedFromStructures(player);
+                player.AddResourcesGeneratedFromStructures();
                 db.Add((ModelPlayer)player);
             }
 
@@ -275,24 +279,23 @@ namespace GameServer.Server
         private static void UpdatePlayerValuesInDatabase(ModelPlayer dbPlayer, Player player) 
         {
             dbPlayer.Ip = player.Ip;
-            dbPlayer.Gold = player.Gold;
-            dbPlayer.StructureHuts = player.StructureHuts;
-            dbPlayer.LastCheckStructureHut = DateTime.Now;
             dbPlayer.LastSeen = DateTime.Now;
+
+            var playerProps = player.GetType().GetProperties();
+            var resourceProps = playerProps.Where(x => x.Name.StartsWith("Resource"));
+            var structureProps = playerProps.Where(x => x.Name.StartsWith("Structure"));
+            var lastCheckStructureProps = playerProps.Where(x => x.Name.StartsWith("LastCheckStructure"));
+
+            foreach (var prop in resourceProps) 
+                dbPlayer.GetType().GetProperty(prop.Name).SetValue(dbPlayer, prop.GetValue(player));
+
+            foreach (var prop in structureProps)
+                dbPlayer.GetType().GetProperty(prop.Name).SetValue(dbPlayer, prop.GetValue(player));
+
+            foreach (var prop in lastCheckStructureProps)
+                dbPlayer.GetType().GetProperty(prop.Name).SetValue(dbPlayer, DateTime.Now);
         }
         #endregion
-
-        public static void AddResourcesGeneratedFromStructures(Player player) 
-        {
-            // Calculate players new resource values based on how many structures they own
-
-            var diff = DateTime.Now - player.LastCheckStructureWheatFarm;
-            uint wheatGenerated = (uint)(player.StructureWheatFarms * StructureWheatFarm.Production[Resource.Wheat] * diff.TotalSeconds);
-
-            player.LastCheckStructureHut = DateTime.Now;
-
-            player.Wheat += wheatGenerated;
-        }
     }
 
     public struct ServerVersion
