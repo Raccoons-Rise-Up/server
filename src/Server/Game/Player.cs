@@ -52,7 +52,7 @@ namespace GameServer.Server
             foreach (var resource in PropertyResources) 
             {
                 var playerResource = (uint)resource.Value.GetValue(this);
-                if (structure.Cost.TryGetValue(resource.Key, out uint resourceCost)) 
+                if (structure.Cost.TryGetValue((ResourceType)Enum.Parse(typeof(ResourceType), resource.Key), out uint resourceCost)) 
                 {
                     var remaining = playerResource - resourceCost;
                     resource.Value.SetValue(this, remaining);
@@ -75,7 +75,7 @@ namespace GameServer.Server
             foreach (var resource in PropertyResources) 
             {
                 var playerResource = (uint)resource.Value.GetValue(this);
-                if (structure.Cost.TryGetValue(resource.Key, out uint resourceCost))
+                if (structure.Cost.TryGetValue((ResourceType)Enum.Parse(typeof(ResourceType), resource.Key), out uint resourceCost))
                     if (playerResource < resourceCost) 
                     {
                         lackingResources.Add((ResourceType)Enum.Parse(typeof(ResourceType), resource.Key), resourceCost - playerResource);
@@ -103,7 +103,7 @@ namespace GameServer.Server
                     // structure count * structure production * time elapsed
                     var resourceGenerated = (uint)((uint)PropertyStructures[structureName].GetValue(this) * prod.Value * diff.TotalSeconds);
 
-                    PropertyResources[prod.Key].SetValue(this, (uint)PropertyResources[prod.Key].GetValue(this) + resourceGenerated);
+                    PropertyResources[prod.Key.ToString()].SetValue(this, (uint)PropertyResources[prod.Key.ToString()].GetValue(this) + resourceGenerated);
                 }
 
                 PropertyStructureLastChecks[structureName].SetValue(this, DateTime.Now);

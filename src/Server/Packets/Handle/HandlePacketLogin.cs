@@ -88,7 +88,8 @@ namespace GameServer.Server.Packets
                     Gold = dbPlayer.ResourceGold,
                     Wheat = dbPlayer.ResourceWheat,
                     StructureHuts = dbPlayer.StructureHut,
-                    StructureWheatFarms = dbPlayer.StructureWheatFarm
+                    StructureWheatFarms = dbPlayer.StructureWheatFarm,
+                    Structures = ENetServer.Structures.Values.ToList()
                 };
 
                 // Add the player to the list of players currently on the server
@@ -115,7 +116,8 @@ namespace GameServer.Server.Packets
                 // NEW PLAYER
                 packetData = new WPacketLogin
                 {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer,
+                    Structures = ENetServer.Structures.Values.ToList()
                 };
 
 

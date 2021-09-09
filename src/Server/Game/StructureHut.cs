@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GameServer.Server.Packets;
 
 namespace GameServer.Server
 {
@@ -12,8 +13,8 @@ namespace GameServer.Server
         {
             Cost = new()
             {
-                { "Wood", 100 },
-                { "Wheat", 23 }
+                { ResourceType.Wood, 100 },
+                { ResourceType.Wheat, 23 }
             };
         }
     }

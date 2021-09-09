@@ -56,18 +56,8 @@
         WheatFarm
     }
 
-    public enum WebRegisterResponseOpcode
+    public enum TechType 
     {
-        AccountCreated,
-        AccountExistsAlready,
-        InvalidUsernameOrPassword
-    }
-
-    public enum WebLoginResponseOpcode
-    {
-        LoginSuccess,
-        InvalidUsernameOrPassword,
-        AccountDoesNotExist,
-        PasswordsDoNotMatch
+        
     }
 }
