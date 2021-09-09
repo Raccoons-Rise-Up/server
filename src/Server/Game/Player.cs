@@ -92,7 +92,9 @@ namespace GameServer.Server
                 var diff = DateTime.Now - (DateTime)lastCheck.Value.GetValue(this);
                 var structureName = lastCheck.Key;
 
-                var production = ENetServer.Structures[(StructureType)Enum.Parse(typeof(StructureType), structureName)].Production; // Structure production
+                var structure = new StructureHut(); // TODO
+
+                var production = ENetServer.Structures[structure.Id].Production; // Structure production
 
                 // Some structures don't have any production
                 if (production == null)

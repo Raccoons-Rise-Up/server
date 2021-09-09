@@ -28,9 +28,7 @@ namespace GameServer.Server.Packets
 
             var player = ENetServer.Players.Find(x => x.Peer.ID == peer.ID);
 
-            var structureType = (StructureType)data.StructureId;
-
-            var purchaseResult = player.TryPurchase(ENetServer.Structures[structureType]);
+            var purchaseResult = player.TryPurchase(ENetServer.Structures[data.StructureId]);
 
             // Player can't afford this
             if (purchaseResult.Result == PurchaseEnumResult.LackingResources)

@@ -11,6 +11,7 @@ namespace GameServer.Server
     {
         public StructureHut()
         {
+            Description = "Housing for cats";
             Cost = new()
             {
                 { ResourceType.Wood, 100 },

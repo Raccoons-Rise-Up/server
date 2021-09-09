@@ -9,6 +9,8 @@ namespace GameServer.Server
 {
     public abstract class Structure
     {
+        public static uint StructureCount { get; private set; }
+        public uint Id { get; private set; }
         public virtual string Name { get; set; }
         public virtual string Description { get; set; }
         public virtual Dictionary<ResourceType, uint> Cost { get; set; }
@@ -17,6 +19,7 @@ namespace GameServer.Server
 
         public Structure() 
         {
+            Id = StructureCount++;
             Name = GetType().Name.Replace("Structure", "");
             Name = string.Concat(Name.Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' '); // Add space before each capital letter
             Description = "No description was given for this structure.";

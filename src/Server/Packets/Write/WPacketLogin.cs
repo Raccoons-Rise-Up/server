@@ -47,6 +47,7 @@ namespace GameServer.Server.Packets
             writer.Write((uint)Structures.Count);
             foreach (var structure in Structures)
             {
+                writer.Write((uint)structure.Id);
                 writer.Write((string)structure.Name);
                 writer.Write((string)structure.Description);
                 writer.Write((byte)structure.Cost.Count); // Assuming a single structure will not cost more than 255 resource types

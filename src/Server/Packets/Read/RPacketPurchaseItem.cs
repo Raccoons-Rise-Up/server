@@ -20,7 +20,7 @@ namespace GameServer.Server.Packets
 
         public void Read(PacketReader reader)
         {
-            StructureId = reader.ReadUInt16();
+            StructureId = reader.ReadUInt32();
         }
     }
 }

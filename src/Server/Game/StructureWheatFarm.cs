@@ -11,6 +11,7 @@ namespace GameServer.Server
     {
         public StructureWheatFarm()
         {
+            Description = "A source of food for the cats.";
             Cost = new()
             {
                 { ResourceType.Wood, 100 }
