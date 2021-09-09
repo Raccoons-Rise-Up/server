@@ -18,6 +18,7 @@ namespace GameServer.Server
         public Structure() 
         {
             Name = GetType().Name.Replace("Structure", "");
+            Name = string.Concat(Name.Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' '); // Add space before each capital letter
             Description = "No description was given for this structure.";
             Cost = new();
             Production = new();
