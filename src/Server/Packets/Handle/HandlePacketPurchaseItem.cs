@@ -34,7 +34,7 @@ namespace GameServer.Server.Packets
             // Player can't afford this
             if (purchaseResult.Result == PurchaseEnumResult.LackingResources)
             {
-                Logger.Log($"Player '{player.Username}' could not afford Hut");
+                Logger.Log($"Player '{player.Username}' could not afford '1 x {structure.Name}'");
 
                 var packetDataNotEnoughGold = new WPacketPurchaseItem
                 {
@@ -50,7 +50,7 @@ namespace GameServer.Server.Packets
             // Player bought the structure
             if (purchaseResult.Result == PurchaseEnumResult.Success)
             {
-                Logger.Log($"Player '{player.Username}' purchased a Hut");
+                Logger.Log($"Player '{player.Username}' purchased '1 x {structure.Name}'");
 
                 var packetDataPurchasedItem = new WPacketPurchaseItem
                 {
