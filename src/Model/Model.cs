@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using GameServer.Server;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GameServer.Database
 {

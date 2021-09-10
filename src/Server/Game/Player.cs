@@ -14,37 +14,6 @@ namespace GameServer.Server
     public class Player : ModelPlayer
     {
         public Peer Peer { get; set; }
-        private Dictionary<string, PropertyInfo> PropertyResources { get; set; }
-        private Dictionary<string, StructurePropertyData> PropertyStructures { get; set; }
-
-        public Player()
-        {
-            PropertyResources = new();
-            PropertyStructures = new();
-
-            var properties = typeof(ModelPlayer).GetProperties();
-
-            foreach (var prop in properties.Where(x => x.Name.StartsWith("Resource")))
-                PropertyResources.Add(prop.Name.Replace("Resource", ""), prop);
-
-            var propertiesStructure = new Dictionary<string, PropertyInfo>();
-            var propertiesStructureLastCheck = new Dictionary<string, PropertyInfo>();
-
-            foreach (var prop in properties.Where(x => x.Name.StartsWith("Structure"))) 
-                propertiesStructure.Add(prop.Name.Replace("Structure", ""), prop);
-
-            foreach (var prop in properties.Where(x => x.Name.StartsWith("LastCheckStructure"))) 
-                propertiesStructureLastCheck.Add(prop.Name.Replace("LastCheckStructure", ""), prop);
-
-            foreach (var prop in propertiesStructure)
-            {
-                PropertyStructures.Add(Utils.AddSpaceBeforeEachCapital(prop.Key), new StructurePropertyData
-                {
-                    PropertyStructure = prop.Value,
-                    PropertyStructureLastCheck = propertiesStructureLastCheck[prop.Key]
-                });
-            }
-        }
 
         public PurchaseResult TryPurchase(Structure structure) 
         {
@@ -148,11 +117,5 @@ namespace GameServer.Server
     {
         LackingResources,
         Success
-    }
-
-    public struct StructurePropertyData
-    {
-        public PropertyInfo PropertyStructure { get; set; }
-        public PropertyInfo PropertyStructureLastCheck { get; set; }
     }
 }
