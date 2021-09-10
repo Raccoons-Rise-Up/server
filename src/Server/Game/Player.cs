@@ -38,7 +38,7 @@ namespace GameServer.Server
 
             foreach (var prop in propertiesStructure)
             {
-                PropertyStructures.Add(prop.Key, new StructurePropertyData
+                PropertyStructures.Add(Utils.AddSpaceBeforeEachCapital(prop.Key), new StructurePropertyData
                 {
                     PropertyStructure = prop.Value,
                     PropertyStructureLastCheck = propertiesStructureLastCheck[prop.Key]
@@ -103,8 +103,7 @@ namespace GameServer.Server
                 var diff = DateTime.Now - (DateTime)lastCheck.Value.PropertyStructureLastCheck.GetValue(this);
                 var structureName = lastCheck.Key;
 
-                // expensive and ugly line of code
-                var structure = ENetServer.Structures[Utils.AddSpaceBeforeEachCapital(structureName)];
+                var structure = ENetServer.Structures[structureName];
 
                 var production = structure.Production; // Structure production
 
