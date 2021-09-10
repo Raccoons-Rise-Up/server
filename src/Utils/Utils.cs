@@ -13,10 +13,9 @@ namespace GameServer.Utilities
 {
     public static class Utils
     {
-        public static T ReadJSONString<T>(string str) 
-        {
-            return JsonSerializer.Deserialize<T>(str);
-        }
+        public static string AddSpaceBeforeEachCapital(string str) => string.Concat(str.Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' ');
+
+        public static T ReadJSONString<T>(string str) => JsonSerializer.Deserialize<T>(str);
 
         public static T ReadJSONFile<T>(string filename)
         {
@@ -150,7 +149,7 @@ namespace GameServer.Utilities
         }
     }
 
-    public class BannedPlayer
+    public struct BannedPlayer
     {
         public string Name { get; set; }
     }

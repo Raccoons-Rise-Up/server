@@ -7,6 +7,7 @@ using ENet;
 using System.Linq;
 using System.Threading.Tasks;
 using GameServer.Server.Packets;
+using GameServer.Utilities;
 
 namespace GameServer.Server
 {
@@ -14,25 +15,35 @@ namespace GameServer.Server
     {
         public Peer Peer { get; set; }
         private Dictionary<string, PropertyInfo> PropertyResources { get; set; }
-        private Dictionary<string, PropertyInfo> PropertyStructures { get; set; }
-        private Dictionary<string, PropertyInfo> PropertyStructureLastChecks { get; set; }
+        private Dictionary<string, StructurePropertyData> PropertyStructures { get; set; }
 
         public Player()
         {
             PropertyResources = new();
             PropertyStructures = new();
-            PropertyStructureLastChecks = new();
 
             var properties = typeof(ModelPlayer).GetProperties();
 
             foreach (var prop in properties.Where(x => x.Name.StartsWith("Resource")))
                 PropertyResources.Add(prop.Name.Replace("Resource", ""), prop);
 
-            foreach (var prop in properties.Where(x => x.Name.StartsWith("Structure")))
-                PropertyStructures.Add(prop.Name.Replace("Structure", ""), prop);
+            var propertiesStructure = new Dictionary<string, PropertyInfo>();
+            var propertiesStructureLastCheck = new Dictionary<string, PropertyInfo>();
 
-            foreach (var prop in properties.Where(x => x.Name.StartsWith("LastCheckStructure")))
-                PropertyStructureLastChecks.Add(prop.Name.Replace("LastCheckStructure", ""), prop);
+            foreach (var prop in properties.Where(x => x.Name.StartsWith("Structure"))) 
+                propertiesStructure.Add(prop.Name.Replace("Structure", ""), prop);
+
+            foreach (var prop in properties.Where(x => x.Name.StartsWith("LastCheckStructure"))) 
+                propertiesStructureLastCheck.Add(prop.Name.Replace("LastCheckStructure", ""), prop);
+
+            foreach (var prop in propertiesStructure)
+            {
+                PropertyStructures.Add(prop.Key, new StructurePropertyData
+                {
+                    PropertyStructure = prop.Value,
+                    PropertyStructureLastCheck = propertiesStructureLastCheck[prop.Key]
+                });
+            }
         }
 
         public PurchaseResult TryPurchase(Structure structure) 
@@ -60,7 +71,7 @@ namespace GameServer.Server
                 }
             }
 
-            PropertyStructures[structure.Name].SetValue(this, (uint)PropertyStructures[structure.Name].GetValue(this) + 1);
+            PropertyStructures[structure.Name].PropertyStructure.SetValue(this, (uint)PropertyStructures[structure.Name].PropertyStructure.GetValue(this) + 1);
 
             return new PurchaseResult 
             {
@@ -87,12 +98,13 @@ namespace GameServer.Server
 
         public void AddResourcesGeneratedFromStructures()
         {
-            foreach (var lastCheck in PropertyStructureLastChecks)
+            foreach (var lastCheck in PropertyStructures)
             {
-                var diff = DateTime.Now - (DateTime)lastCheck.Value.GetValue(this);
+                var diff = DateTime.Now - (DateTime)lastCheck.Value.PropertyStructureLastCheck.GetValue(this);
                 var structureName = lastCheck.Key;
 
-                var structure = new StructureHut(); // TODO
+                // expensive and ugly line of code
+                var structure = ENetServer.Structures.Values.ToList().Find(x => x.Name == Utils.AddSpaceBeforeEachCapital(structureName));
 
                 var production = ENetServer.Structures[structure.Id].Production; // Structure production
 
@@ -103,12 +115,12 @@ namespace GameServer.Server
                 foreach (var prod in production)
                 {
                     // structure count * structure production * time elapsed
-                    var resourceGenerated = (uint)((uint)PropertyStructures[structureName].GetValue(this) * prod.Value * diff.TotalSeconds);
+                    var resourceGenerated = (uint)((uint)PropertyStructures[structureName].PropertyStructure.GetValue(this) * prod.Value * diff.TotalSeconds);
 
                     PropertyResources[prod.Key.ToString()].SetValue(this, (uint)PropertyResources[prod.Key.ToString()].GetValue(this) + resourceGenerated);
                 }
 
-                PropertyStructureLastChecks[structureName].SetValue(this, DateTime.Now);
+                PropertyStructures[structureName].PropertyStructureLastCheck.SetValue(this, DateTime.Now);
             }
         }
 
@@ -120,10 +132,10 @@ namespace GameServer.Server
                 resource.SetValue(this, (uint)0);
 
             foreach (var structure in PropertyStructures.Values)
-                structure.SetValue(this, (uint)0);
+                structure.PropertyStructure.SetValue(this, (uint)0);
 
-            foreach (var lastCheck in PropertyStructureLastChecks.Values)
-                lastCheck.SetValue(this, DateTime.Now);
+            foreach (var lastCheck in PropertyStructures.Values)
+                lastCheck.PropertyStructureLastCheck.SetValue(this, DateTime.Now);
         }
     }
 
@@ -137,5 +149,11 @@ namespace GameServer.Server
     {
         LackingResources,
         Success
+    }
+
+    public struct StructurePropertyData
+    {
+        public PropertyInfo PropertyStructure { get; set; }
+        public PropertyInfo PropertyStructureLastCheck { get; set; }
     }
 }

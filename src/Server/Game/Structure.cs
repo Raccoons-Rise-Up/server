@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GameServer.Server.Packets;
+using GameServer.Utilities;
 
 namespace GameServer.Server
 {
@@ -21,7 +22,7 @@ namespace GameServer.Server
         {
             Id = StructureCount++;
             Name = GetType().Name.Replace("Structure", "");
-            Name = string.Concat(Name.Select(x => char.IsUpper(x) ? " " + x : x.ToString())).TrimStart(' '); // Add space before each capital letter
+            Name = Utils.AddSpaceBeforeEachCapital(Name);
             Description = "No description was given for this structure.";
             Cost = new();
             Production = new();
