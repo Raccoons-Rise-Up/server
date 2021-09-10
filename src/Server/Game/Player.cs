@@ -104,9 +104,9 @@ namespace GameServer.Server
                 var structureName = lastCheck.Key;
 
                 // expensive and ugly line of code
-                var structure = ENetServer.Structures.Values.ToList().Find(x => x.Name == Utils.AddSpaceBeforeEachCapital(structureName));
+                var structure = ENetServer.Structures[Utils.AddSpaceBeforeEachCapital(structureName)];
 
-                var production = ENetServer.Structures[structure.Id].Production; // Structure production
+                var production = structure.Production; // Structure production
 
                 // Some structures don't have any production
                 if (production == null)

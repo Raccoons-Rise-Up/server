@@ -183,7 +183,7 @@ namespace GameServer.Logging
                             continue;
 
                         commandHistoryIndex--;
-                        var nextCommand = CommandHistory[CommandHistory.Count - commandHistoryIndex];
+                        var nextCommand = CommandHistory[^commandHistoryIndex]; // CommandHistory.Count - commandHistoryIndex
 
                         TextField.input = nextCommand;
                         TextField.Clear(false);

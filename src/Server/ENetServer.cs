@@ -28,7 +28,7 @@ namespace GameServer.Server
         public static HttpClient WebClient { get; private set; }
         public static ServerVersion ServerVersion { get; private set; }
         public static string AppDataPath { get; private set; }
-        public static Dictionary<uint, Structure> Structures { get; private set; }
+        public static Dictionary<string, Structure> Structures { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
@@ -40,7 +40,7 @@ namespace GameServer.Server
             foreach (var prop in typeof(ModelPlayer).GetProperties().Where(x => x.Name.StartsWith("Structure"))) 
             {
                 var structure = (Structure)Activator.CreateInstance(Type.GetType($"GameServer.Server.{prop.Name}"));
-                Structures.Add(structure.Id, structure);
+                Structures.Add(structure.Name, structure);
             }
 
             var folder = Environment.SpecialFolder.LocalApplicationData;
