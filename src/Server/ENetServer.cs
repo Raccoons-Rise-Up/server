@@ -5,16 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.IO;
 using System.Net.Http;
-using System.Diagnostics;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
 using GameServer.Server.Packets;
-using GameServer.Database;
 using GameServer.Logging;
 using GameServer.Utilities;
-using GameServer.Server.Security;
-using System.Reflection;
 
 namespace GameServer.Server
 {
@@ -22,36 +18,26 @@ namespace GameServer.Server
     {
         public static ConcurrentBag<Event> Incoming { get; private set; }
         public static ConcurrentQueue<ENetCmds> ENetCmds { get; private set; }
-        public static List<Player> Players { get; private set; }
+        public static Dictionary<uint, Player> Players { get; private set; }
         public static Dictionary<ServerOpcode, ENetCmd> ENetCmd { get; private set; }
         public static Dictionary<ClientOpcode, HandlePacket> HandlePacket { get; private set; }
         public static HttpClient WebClient { get; private set; }
         public static ServerVersion ServerVersion { get; private set; }
-        public static string AppDataPath { get; private set; }
-        public static Dictionary<string, Structure> Structures { get; private set; }
+        public static Dictionary<ResourceType, ResourceInfo> ResourceInfoData { get; private set; }
+        public static Dictionary<StructureType, StructureInfo> StructureInfoData { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            Structures = new();
+            ResourceInfoData = typeof(ResourceInfo).Assembly.GetTypes().Where(x => typeof(ResourceInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ResourceInfo>()
+                .ToDictionary(x => (ResourceType)Enum.Parse(typeof(ResourceType), x.GetType().Name.Replace(typeof(ResourceInfo).Name, "")), x => x);
+            StructureInfoData = typeof(StructureInfo).Assembly.GetTypes().Where(x => typeof(StructureInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<StructureInfo>()
+                .ToDictionary(x => (StructureType)Enum.Parse(typeof(StructureType), x.GetType().Name.Replace(typeof(StructureInfo).Name, "")), x => x);
 
-            foreach (var prop in typeof(ModelPlayer).GetProperties().Where(x => x.Name.StartsWith("Structure"))) 
-            {
-                var structure = (Structure)Activator.CreateInstance(Type.GetType($"GameServer.Server.{prop.Name}"));
-                Structures.Add(structure.Name, structure);
-            }
+            ConfigManager.CreateConfig("banned_players", ConfigManager.ConfigType.Array);
 
-            var folder = Environment.SpecialFolder.LocalApplicationData;
-            AppDataPath = Path.Combine(Environment.GetFolderPath(folder), "ENet Server");
-
-            if (!Directory.Exists(AppDataPath))
-                Directory.CreateDirectory(AppDataPath);
-
-            Utils.CreateJSONDictionaryFile("banned_players");
-
-            // Server Version
             ServerVersion = new()
             {
                 Major = 0,
@@ -64,18 +50,10 @@ namespace GameServer.Server
             Players = new();
             WebClient = new();
 
-            HandlePacket = typeof(HandlePacket).Assembly.GetTypes()
-                .Where(x => typeof(HandlePacket)
-                .IsAssignableFrom(x) && !x.IsAbstract)
-                .Select(Activator.CreateInstance)
-                .Cast<HandlePacket>()
+            HandlePacket = typeof(HandlePacket).Assembly.GetTypes().Where(x => typeof(HandlePacket).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<HandlePacket>()
                 .ToDictionary(x => x.Opcode, x => x);
 
-            ENetCmd = typeof(ENetCmd).Assembly.GetTypes()
-                .Where(x => typeof(ENetCmd)
-                .IsAssignableFrom(x) && !x.IsAbstract)
-                .Select(Activator.CreateInstance)
-                .Cast<ENetCmd>()
+            ENetCmd = typeof(ENetCmd).Assembly.GetTypes().Where(x => typeof(ENetCmd).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ENetCmd>()
                 .ToDictionary(x => x.Opcode, x => x);
 
             Library.Initialize();
@@ -147,41 +125,42 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Connect) 
                         {
-                            var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
+                            var bannedPlayers = ConfigManager.ReadConfig<List<BannedPlayer>>("banned_players");
+                            var bannedPlayer = bannedPlayers.Find(x => x.Ip == netEvent.Peer.IP);
 
-                            if (bannedPlayers.ContainsKey(netEvent.Peer.IP)) 
+                            if (bannedPlayer == null)
                             {
-                                var bannedPlayer = bannedPlayers[netEvent.Peer.IP];
-
-                                netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
-                                Logger.Log($"Player '{bannedPlayer.Name}' tried to join but is banned");
+                                // Player is not banned, set timeout delays for player timeout
+                                netEvent.Peer.Timeout(32, 1000, 4000);
                             }
                             else 
                             {
-                                netEvent.Peer.Timeout(32, 1000, 4000);
+                                // Player is banned, disconnect them immediately 
+                                netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
+                                Logger.Log($"Player '{bannedPlayer.Name}' tried to join but is banned");
                             }
                         }
 
                         if (eventType == EventType.Disconnect) 
                         {
-                            var player = Players.Find(x => x.Peer.ID == netEvent.Peer.ID);
+                            var player = Players[netEvent.Peer.ID];
 
-                            SavePlayerToDatabase(player);
+                            PlayerManager.UpdatePlayerConfig(player);
 
                             // Remove player from player list
-                            Players.Remove(player);
+                            Players.Remove(netEvent.Peer.ID);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
                         }
 
                         if (eventType == EventType.Timeout) 
                         {
-                            var player = Players.Find(x => x.Peer.ID == netEvent.Peer.ID);
+                            var player = Players[netEvent.Peer.ID];
 
-                            SavePlayerToDatabase(player);
+                            PlayerManager.UpdatePlayerConfig(player);
 
                             // Remove player from player list
-                            Players.Remove(player);
+                            Players.Remove(netEvent.Peer.ID);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
                         }
@@ -209,49 +188,13 @@ namespace GameServer.Server
             byte channelID = 0;
             peer.Send(channelID, ref packet);
         }
-        
-        /// <summary>
-        /// Save a single player to the database.
-        /// </summary>
-        /// <param name="player"></param>
-        public static void SavePlayerToDatabase(Player player) 
-        {
-            using var db = new DatabaseContext();
 
-            var playerExistsInDatabase = false;
-
-            player.AddResourcesGeneratedFromStructures();
-
-            foreach (var dbPlayer in db.Players.ToList()) 
-            {
-                if (player.Username == dbPlayer.Username) 
-                {
-                    playerExistsInDatabase = true;
-
-                    UpdatePlayerValuesInDatabase(dbPlayer, player);
-                    break;
-                }
-            }
-
-            if (!playerExistsInDatabase) 
-            {
-                db.Add((ModelPlayer)player);
-            }
-
-            db.SaveChanges();
-        }
-
-        /// <summary>
-        /// Save all players to the database.
-        /// </summary>
         public static void SaveAllPlayersToDatabase()
         {
-            if (Players.Count == 0)
+            /*if (Players.Count == 0)
                 return;
 
             Logger.Log($"Saving {Players.Count} players to the database");
-
-            using var db = new DatabaseContext();
 
             var playersThatAreNotInDatabase = new List<Player>();
 
@@ -276,27 +219,7 @@ namespace GameServer.Server
                 db.Add((ModelPlayer)player);
             }
 
-            db.SaveChanges();
-        }
-
-        private static void UpdatePlayerValuesInDatabase(ModelPlayer dbPlayer, Player player) 
-        {
-            dbPlayer.Ip = player.Ip;
-            dbPlayer.LastSeen = DateTime.Now;
-
-            var playerProps = player.GetType().GetProperties();
-            var resourceProps = playerProps.Where(x => x.Name.StartsWith("Resource"));
-            var structureProps = playerProps.Where(x => x.Name.StartsWith("Structure"));
-            var lastCheckStructureProps = playerProps.Where(x => x.Name.StartsWith("LastCheckStructure"));
-
-            foreach (var prop in resourceProps) 
-                dbPlayer.GetType().GetProperty(prop.Name).SetValue(dbPlayer, prop.GetValue(player));
-
-            foreach (var prop in structureProps)
-                dbPlayer.GetType().GetProperty(prop.Name).SetValue(dbPlayer, prop.GetValue(player));
-
-            foreach (var prop in lastCheckStructureProps)
-                dbPlayer.GetType().GetProperty(prop.Name).SetValue(dbPlayer, DateTime.Now);
+            db.SaveChanges();*/
         }
         #endregion
     }

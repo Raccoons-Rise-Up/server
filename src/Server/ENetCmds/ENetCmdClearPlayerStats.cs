@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Common.Networking.Packet;
-using Common.Networking.IO;
-using ENet;
-using GameServer.Database;
+﻿using System.Collections.Generic;
 using GameServer.Logging;
-using GameServer.Utilities;
 
 namespace GameServer.Server
 {
@@ -22,12 +14,14 @@ namespace GameServer.Server
 
         public override void Handle(List<object> value)
         {
-            var player = ENetServer.Players.Find(x => x.Username == value[0].ToString());
-            if (player != null)
+            foreach (var player in ENetServer.Players.Values) 
             {
-                player.ResetValues();
+                if (player.Username == value[0].ToString()) 
+                {
+                    //player.ResetValues();
 
-                Logger.Log($"Cleared {player.Username} from list");
+                    Logger.Log($"Cleared {player.Username} from list");
+                }
             }
         }
     }

@@ -40,24 +40,4 @@
         Kicked,
         Banned
     }
-
-    // Sent and received (Game Server / Game Client)
-    public enum ResourceType
-    {
-        Wood,
-        Stone,
-        Wheat,
-        Gold
-    }
-
-    public enum StructureType
-    {
-        Hut,
-        WheatFarm
-    }
-
-    public enum TechType 
-    {
-        
-    }
 }

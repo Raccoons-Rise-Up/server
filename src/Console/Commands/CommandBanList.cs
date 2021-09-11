@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using GameServer.Database;
-using GameServer.Server;
+﻿using System.Collections.Generic;
 using GameServer.Utilities;
 
 namespace GameServer.Logging.Commands
@@ -21,7 +16,7 @@ namespace GameServer.Logging.Commands
 
         public override void Run(string[] args)
         {
-            var bannedPlayers = Utils.ReadJSONFile<Dictionary<string, BannedPlayer>>("banned_players");
+            var bannedPlayers = ConfigManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
             var bannedPlayerNames = new List<string>();
             foreach (var player in bannedPlayers)
                 bannedPlayerNames.Add(player.Value.Name);

@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using GameServer.Logging.Commands;
-using System.Runtime.InteropServices;
 
 namespace GameServer.Logging
 {
@@ -78,12 +77,8 @@ namespace GameServer.Logging
         {
             Thread.CurrentThread.Name = "CONSOLE";
 
-            Commands = typeof(Command).Assembly.GetTypes()
-                .Where(x => typeof(Command)
-                .IsAssignableFrom(x) && !x.IsAbstract)
-                .Select(Activator.CreateInstance)
-                .Cast<Command>()
-                .ToDictionary(x => x.GetType().Name.Replace("Command", "").ToLower(), x => x);
+            Commands = typeof(Command).Assembly.GetTypes().Where(x => typeof(Command).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<Command>()
+                .ToDictionary(x => x.GetType().Name.Replace(typeof(Command).Name, "").ToLower(), x => x);
 
             CommandHistory = new();
             TextField = new();

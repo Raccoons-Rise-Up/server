@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.IO;
+using System.Collections.Generic;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
 using GameServer.Logging;
-using GameServer.Server.Packets;
 
 namespace GameServer.Server.Packets
 {
@@ -26,8 +24,8 @@ namespace GameServer.Server.Packets
 
             var peer = netEvent.Peer;
 
-            var player = ENetServer.Players.Find(x => x.Peer.ID == peer.ID);
-            var structure = ENetServer.Structures.ToList().Find(x => x.Value.Id == data.StructureId).Value;
+            var player = ENetServer.Players[peer.ID];
+            var structure = ENetServer.StructureInfoData[(StructureType)data.StructureId];
 
             var purchaseResult = player.TryPurchase(structure);
 
@@ -39,7 +37,8 @@ namespace GameServer.Server.Packets
                 var packetDataNotEnoughGold = new WPacketPurchaseItem
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
-                    StructureId = (ushort)StructureType.Hut,
+                    StructureId = data.StructureId,
+                    ResourcesLength = (byte)purchaseResult.Resources.Count,
                     Resources = purchaseResult.Resources
                 };
                 var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
@@ -55,7 +54,7 @@ namespace GameServer.Server.Packets
                 var packetDataPurchasedItem = new WPacketPurchaseItem
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
-                    StructureId = (ushort)StructureType.Hut,
+                    StructureId = data.StructureId,
                     ResourcesLength = (byte)purchaseResult.Resources.Count,
                     Resources = purchaseResult.Resources
                 };

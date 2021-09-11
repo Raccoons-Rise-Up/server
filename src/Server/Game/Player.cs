@@ -1,27 +1,43 @@
 ﻿using System;
-using System.Reflection;
 using System.Collections.Generic;
-using GameServer.Database;
-using GameServer.Logging;
+using System.Text.Json.Serialization;
 using ENet;
-using System.Linq;
-using System.Threading.Tasks;
-using GameServer.Server.Packets;
-using GameServer.Utilities;
 
 namespace GameServer.Server
 {
-    public class Player : ModelPlayer
+    public class Player
     {
-        public Peer Peer { get; set; }
+        [JsonIgnore] public Peer Peer { get; set; }
+        public string Username { get; set; }
+        public DateTime LastSeen { get; set; }
+        public Dictionary<ResourceType, uint> ResourceCounts { get; set; }
+        public Dictionary<StructureType, uint> StructureCounts { get; set; }
+        public Dictionary<StructureType, DateTime> StructuresLastSeen { get; set; }
 
-        public PurchaseResult TryPurchase(Structure structure) 
+        public Player(string username, Peer peer) 
         {
-            AddResourcesGeneratedFromStructures();
+            Peer = peer;
+            Username = username;
+            LastSeen = DateTime.Now;
+
+            ResourceCounts = new();
+            foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
+                ResourceCounts.Add(type, 0);
+
+            StructureCounts = new();
+            foreach (StructureType type in Enum.GetValues(typeof(StructureType)))
+                StructureCounts.Add(type, 0);
+
+            StructuresLastSeen = new();
+        }
+
+        public PurchaseResult TryPurchase(StructureInfo structure)
+        {
+            //AddResourcesGeneratedFromStructures();
 
             var lackingResources = GetLackingResources(structure);
             if (lackingResources.Count > 0)
-                return new PurchaseResult 
+                return new PurchaseResult
                 {
                     Result = PurchaseEnumResult.LackingResources,
                     Resources = lackingResources
@@ -29,81 +45,51 @@ namespace GameServer.Server
 
             var newPlayerResources = new Dictionary<ResourceType, uint>();
 
-            foreach (var resource in PropertyResources) 
+            foreach (var resource in ResourceCounts)
             {
-                var playerResource = (uint)resource.Value.GetValue(this);
-                if (structure.Cost.TryGetValue((ResourceType)Enum.Parse(typeof(ResourceType), resource.Key), out uint resourceCost)) 
+                var playerResourceKey = resource.Key;
+                var playerResourceAmount = resource.Value;
+
+                if (structure.Cost.TryGetValue(resource.Key, out uint resourceCost))
                 {
-                    var remaining = playerResource - resourceCost;
-                    resource.Value.SetValue(this, remaining);
-                    newPlayerResources.Add((ResourceType)Enum.Parse(typeof(ResourceType), resource.Key), remaining);
+                    var remaining = playerResourceAmount - resourceCost;
+                    ResourceCounts[playerResourceKey] = remaining;
+                    newPlayerResources.Add(playerResourceKey, remaining);
                 }
             }
 
-            PropertyStructures[structure.Name].PropertyStructure.SetValue(this, (uint)PropertyStructures[structure.Name].PropertyStructure.GetValue(this) + 1);
+            StructureCounts[structure.Type] += 1;
 
-            return new PurchaseResult 
+            return new PurchaseResult
             {
                 Result = PurchaseEnumResult.Success,
                 Resources = newPlayerResources
             };
         }
 
-        public Dictionary<ResourceType, uint> GetLackingResources(Structure structure) 
+        public Dictionary<ResourceType, uint> GetLackingResources(StructureInfo structure)
         {
             var lackingResources = new Dictionary<ResourceType, uint>();
-            foreach (var resource in PropertyResources) 
+            foreach (var resource in ResourceCounts)
             {
-                var playerResource = (uint)resource.Value.GetValue(this);
-                if (structure.Cost.TryGetValue((ResourceType)Enum.Parse(typeof(ResourceType), resource.Key), out uint resourceCost))
-                    if (playerResource < resourceCost) 
+                var playerResourceKey = resource.Key;
+                var playerResourceAmount = resource.Value;
+
+                if (structure.Cost.TryGetValue(playerResourceKey, out uint structureResourceValue)) 
+                {
+                    if (playerResourceAmount < structureResourceValue)
                     {
-                        lackingResources.Add((ResourceType)Enum.Parse(typeof(ResourceType), resource.Key), resourceCost - playerResource);
+                        lackingResources.Add(playerResourceKey, structureResourceValue - playerResourceAmount);
                     }
+                }
             }
 
             return lackingResources;
         }
 
-        public void AddResourcesGeneratedFromStructures()
+        public override string ToString()
         {
-            foreach (var lastCheck in PropertyStructures)
-            {
-                var diff = DateTime.Now - (DateTime)lastCheck.Value.PropertyStructureLastCheck.GetValue(this);
-                var structureName = lastCheck.Key;
-
-                var structure = ENetServer.Structures[structureName];
-
-                var production = structure.Production; // Structure production
-
-                // Some structures don't have any production
-                if (production == null)
-                    continue;
-
-                foreach (var prod in production)
-                {
-                    // structure count * structure production * time elapsed
-                    var resourceGenerated = (uint)((uint)PropertyStructures[structureName].PropertyStructure.GetValue(this) * prod.Value * diff.TotalSeconds);
-
-                    PropertyResources[prod.Key.ToString()].SetValue(this, (uint)PropertyResources[prod.Key.ToString()].GetValue(this) + resourceGenerated);
-                }
-
-                PropertyStructures[structureName].PropertyStructureLastCheck.SetValue(this, DateTime.Now);
-            }
-        }
-
-        public void ResetValues() 
-        {
-            LastSeen = DateTime.Now;
-
-            foreach (var resource in PropertyResources.Values)
-                resource.SetValue(this, (uint)0);
-
-            foreach (var structure in PropertyStructures.Values)
-                structure.PropertyStructure.SetValue(this, (uint)0);
-
-            foreach (var lastCheck in PropertyStructures.Values)
-                lastCheck.PropertyStructureLastCheck.SetValue(this, DateTime.Now);
+            return Username;
         }
     }
 

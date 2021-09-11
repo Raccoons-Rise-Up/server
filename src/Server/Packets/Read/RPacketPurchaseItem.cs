@@ -1,6 +1,5 @@
 ﻿using Common.Networking.Message;
 using Common.Networking.IO;
-using Common.Networking.Packet;
 
 namespace GameServer.Server.Packets
 {
@@ -16,11 +15,11 @@ namespace GameServer.Server.Packets
 
     public class RPacketPurchaseItem : IReadable
     {
-        public uint StructureId { get; set; }
+        public ushort StructureId { get; set; }
 
         public void Read(PacketReader reader)
         {
-            StructureId = reader.ReadUInt32();
+            StructureId = reader.ReadUInt16();
         }
     }
 }

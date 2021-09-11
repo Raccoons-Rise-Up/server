@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Common.Networking.Packet;
-using Common.Networking.IO;
-using ENet;
-using GameServer.Database;
+﻿using System.Collections.Generic;
 using GameServer.Logging;
-using GameServer.Utilities;
 using GameServer.Server.Packets;
 
 namespace GameServer.Server
@@ -24,7 +16,16 @@ namespace GameServer.Server
         public override void Handle(List<object> value)
         {
             var username = value[0].ToString();
-            var player = ENetServer.Players.Find(x => x.Username == username);
+
+            Player player = null;
+            foreach (var p in ENetServer.Players.Values)
+            {
+                if (p.Username == username)
+                {
+                    player = p;
+                }
+            }
+
             if (player == null)
             {
                 Logger.Log($"No player with the username '{username}' is online");
@@ -32,7 +33,7 @@ namespace GameServer.Server
             }
 
             player.Peer.DisconnectNow((uint)DisconnectOpcode.Kicked);
-            ENetServer.Players.Remove(player);
+            ENetServer.Players.Remove(player.Peer.ID);
             Logger.Log($"Player '{player.Username}' was kicked");
         }
     }

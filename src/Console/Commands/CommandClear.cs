@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using GameServer.Logging;
 
 namespace GameServer.Logging.Commands
 {

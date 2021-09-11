@@ -1,13 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Common.Networking.Packet;
-using Common.Networking.IO;
-using ENet;
-using GameServer.Database;
 using GameServer.Logging;
-using GameServer.Utilities;
 
 namespace GameServer.Server
 {
@@ -22,23 +15,31 @@ namespace GameServer.Server
 
         public override void Handle(List<object> value)
         {
-            var player = ENetServer.Players.Find(x => x.Username == value[0].ToString());
+            Player player = null;
+            foreach (var p in ENetServer.Players.Values) 
+            {
+                if (p.Username == value[0].ToString()) 
+                {
+                    player = p;
+                }
+            }
+
             if (player == null)
                 return;
 
             // Add resources to player cache
-            player.AddResourcesGeneratedFromStructures();
+            //player.AddResourcesGeneratedFromStructures();
 
             var diff = DateTime.Now - player.LastSeen;
             var diffReadable = $"Days: {diff.Days}, Hours: {diff.Hours}, Minutes: {diff.Minutes}, Seconds: {diff.Seconds}";
 
-            Logger.LogRaw(
+            /*Logger.LogRaw(
                 $"\n\nCACHE" +
                 $"\nUsername: {player.Username} " +
                 $"\nGold: {player.ResourceGold}" +
                 $"\nStructure Huts: {player.StructureHut}" +
                 $"\nLast Seen: {diffReadable}"
-            );
+            );*/
         }
     }
 }

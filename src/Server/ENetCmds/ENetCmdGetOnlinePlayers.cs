@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Common.Networking.Packet;
-using Common.Networking.IO;
-using ENet;
-using GameServer.Database;
+﻿using System.Collections.Generic;
 using GameServer.Logging;
-using GameServer.Utilities;
 
 namespace GameServer.Server
 {
@@ -28,7 +20,7 @@ namespace GameServer.Server
                 return;
             }
 
-            Logger.LogRaw($"\nOnline Players: {string.Join(' ', ENetServer.Players)}");
+            Logger.LogRaw($"\nOnline Players: {string.Join(' ', ENetServer.Players.Values)}");
         }
     }
 }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using GameServer.Database;
 using GameServer.Server;
 
 namespace GameServer.Logging.Commands
@@ -23,31 +19,31 @@ namespace GameServer.Logging.Commands
 
         public override void Run(string[] args) 
         {
-            using var db = new DatabaseContext();
+            //using var db = new DatabaseContext();
 
             if (args.Length == 0)
             {
-                ResetDatabase(db);
+                //ResetDatabase(db);
                 return;
             }
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var dbPlayer = db.Players.ToList().Find(x => x.Username == args[0]);
+            //var dbPlayer = db.Players.ToList().Find(x => x.Username == args[0]);
 
             stopwatch.Stop();
 
-            if (dbPlayer == null)
+            /*if (dbPlayer == null)
             {
                 Logger.Log($"The player with the username '{args[0]}' could not be found in the database ({stopwatch.ElapsedMilliseconds} ms)");
                 return;
-            }
+            }*/
 
-            ResetPlayer(db, dbPlayer);
+            //ResetPlayer(db, dbPlayer);
         }
 
-        private static void ResetPlayer(DatabaseContext db, ModelPlayer dbPlayer) 
+        /*private static void ResetPlayer(DatabaseContext db, ModelPlayer dbPlayer) 
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -77,6 +73,6 @@ namespace GameServer.Logging.Commands
 
             stopwatch.Stop();
             Logger.Log($"Cleared database. There are {db.Players.Count()} players left in database ({stopwatch.ElapsedMilliseconds} ms)");
-        }
+        }*/
     }
 }

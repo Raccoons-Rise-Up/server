@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using GameServer.Database;
-using GameServer.Server;
+﻿using GameServer.Server;
 
 namespace GameServer.Logging.Commands
 {

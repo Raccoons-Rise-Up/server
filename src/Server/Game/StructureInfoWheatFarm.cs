@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GameServer.Server.Packets;
-
-namespace GameServer.Server
+﻿namespace GameServer.Server
 {
-    public class StructureWheatFarm : Structure
+    public class StructureInfoWheatFarm : StructureInfo
     {
-        public StructureWheatFarm()
+        public StructureInfoWheatFarm()
         {
             Description = "A source of food for the cats.";
             Cost = new()

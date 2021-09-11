@@ -1,6 +1,5 @@
 ﻿using Common.Networking.Message;
 using Common.Networking.IO;
-using Common.Networking.Packet;
 
 namespace GameServer.Server.Packets
 {

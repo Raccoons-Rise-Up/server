@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using GameServer.Database;
 using GameServer.Server;
 
 namespace GameServer.Logging.Commands
@@ -36,7 +34,7 @@ namespace GameServer.Logging.Commands
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            using var db = new DatabaseContext();
+            /*using var db = new DatabaseContext();
 
             var dbPlayers = db.Players.ToList();
             var dbPlayer = dbPlayers.Find(x => x.Username == args[0]);
@@ -51,8 +49,8 @@ namespace GameServer.Logging.Commands
 
             Logger.LogRaw($"\nFound player with username '{args[0]}' ({stopwatch.ElapsedMilliseconds} ms)");
 
-            PlayerFromDatabase(dbPlayer);
-            PlayerFromCache(dbPlayer.Username);
+            //PlayerFromDatabase(dbPlayer);
+            PlayerFromCache(dbPlayer.Username);*/
         }
 
         private static void PlayerFromCache(string username) 
@@ -63,7 +61,7 @@ namespace GameServer.Logging.Commands
             ENetServer.ENetCmds.Enqueue(cmd);
         }
 
-        private static void PlayerFromDatabase(ModelPlayer dbPlayer) 
+        /*private static void PlayerFromDatabase(ModelPlayer dbPlayer) 
         {
             var diff = DateTime.Now - dbPlayer.LastSeen;
             var diffReadable = $"Days: {diff.Days}, Hours: {diff.Hours}, Minutes: {diff.Minutes}, Seconds: {diff.Seconds}";
@@ -75,9 +73,9 @@ namespace GameServer.Logging.Commands
                 $"\nStructure Huts: {dbPlayer.StructureHut}" +
                 $"\nLast Seen: {diffReadable}"
             );
-        }
+        }*/
 
-        private static uint CalculateGoldGeneratedFromStructures(ModelPlayer player)
+        /*private static uint CalculateGoldGeneratedFromStructures(ModelPlayer player)
         {
             // Calculate players new gold value based on how many structures they own
             var diff = DateTime.Now - player.LastCheckStructureHut;
@@ -86,6 +84,6 @@ namespace GameServer.Logging.Commands
             player.LastCheckStructureHut = DateTime.Now;
 
             return goldGenerated;
-        }
+        }*/
     }
 }

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Diagnostics;
+﻿using System.Linq;
 using GameServer.Server;
-using GameServer.Database;
 
 namespace GameServer.Logging.Commands
 {
@@ -38,7 +34,7 @@ namespace GameServer.Logging.Commands
 
         private static void GetOfflinePlayers() 
         {
-            using var db = new DatabaseContext();
+            /*using var db = new DatabaseContext();
 
             var dbPlayers = db.Players.ToList();
 
@@ -48,7 +44,7 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            Logger.LogRaw($"\nOffline Players: {string.Join(' ', dbPlayers)}");
+            Logger.LogRaw($"\nOffline Players: {string.Join(' ', dbPlayers)}");*/
         }
     }
 }

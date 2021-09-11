@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using GameServer.Logging;
-
-namespace GameServer.Logging.Commands
+﻿namespace GameServer.Logging.Commands
 {
     public class CommandHelp : Command
     {

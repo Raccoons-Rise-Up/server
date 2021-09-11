@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Common.Networking.Packet;
-using Common.Networking.IO;
-using ENet;
-using GameServer.Database;
-using GameServer.Logging;
+﻿using System.Collections.Generic;
 using GameServer.Utilities;
 
 namespace GameServer.Server
@@ -24,7 +16,7 @@ namespace GameServer.Server
         {
             var username = value[0].ToString();
 
-            Utils.PardonOfflinePlayer(username);
+            BanManager.PardonOfflinePlayer(username);
         }
     }
 }
