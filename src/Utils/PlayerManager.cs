@@ -19,7 +19,7 @@ namespace GameServer.Utilities
             if (dbPlayer == null)
             {
                 // Player does not exist in database, lets add them to the database
-                ConfigManager.CreateConfig($"Players/{player.Username}");
+                //ConfigManager.CreateConfig($"Players/{player.Username}");
                 ConfigManager.WriteConfig($"Players/{player.Username}", player);
                 Logger.Log($"Player '{player.Username}' config created");
                 return;

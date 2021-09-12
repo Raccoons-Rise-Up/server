@@ -11,7 +11,6 @@ namespace GameServer
     {
         private static void Main(string[] args)
         {
-            ConfigManager.CreateAppDataFolder();
             StartLogger();
             StartServer();
         }
