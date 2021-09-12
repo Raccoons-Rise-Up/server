@@ -36,6 +36,7 @@ namespace GameServer.Server
             StructureInfoData = typeof(StructureInfo).Assembly.GetTypes().Where(x => typeof(StructureInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<StructureInfo>()
                 .ToDictionary(x => (StructureType)Enum.Parse(typeof(StructureType), x.GetType().Name.Replace(typeof(StructureInfo).Name, "")), x => x);
 
+            FileManager.SetupDirectories();
             FileManager.CreateConfig("banned_players", FileManager.ConfigType.Array);
 
             ServerVersion = new()
@@ -91,7 +92,7 @@ namespace GameServer.Server
                     while (Incoming.TryTake(out Event netEvent))
                     {
                         var peer = netEvent.Peer;
-                        var packetSizeMax = 1024;
+                        var packetSizeMax = 2048;
                         var readBuffer = new byte[packetSizeMax];
                         var packetReader = new PacketReader(readBuffer);
                         packetReader.BaseStream.Position = 0;

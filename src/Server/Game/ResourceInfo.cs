@@ -14,8 +14,9 @@ namespace GameServer.Server
 
         public ResourceInfo() 
         {
-            Name = GetType().Name.Replace(typeof(ResourceInfo).Name, "");
-            Name = Utils.AddSpaceBeforeEachCapital(Name);
+            var resourceName = GetType().Name.Replace(typeof(ResourceInfo).Name, "");
+
+            Name = Utils.AddSpaceBeforeEachCapital(resourceName);
         }
     }
 

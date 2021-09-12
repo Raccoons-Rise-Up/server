@@ -25,6 +25,7 @@
     <PackageReference Include="BouncyCastle" Version="1.8.9" />
     <PackageReference Include="ENet-CSharp" Version="2.4.7" />
     <PackageReference Include="jose-jwt" Version="3.2.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup>

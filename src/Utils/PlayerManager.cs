@@ -16,17 +16,17 @@ namespace GameServer.Utilities
             var dbPlayers = FileManager.GetAllConfigNamesInFolder("Players");
             var dbPlayer = dbPlayers.Find(str => str == player.Username);
 
+            // Reminder: WriteConfig creates a config if no file exists
+            FileManager.WriteConfig($"Players/{player.Username}", player);
+
             if (dbPlayer == null)
             {
                 // Player does not exist in database, lets add them to the database
-                //ConfigManager.CreateConfig($"Players/{player.Username}");
-                FileManager.WriteConfig($"Players/{player.Username}", player);
                 Logger.Log($"Player '{player.Username}' config created");
                 return;
             }
 
             // Player exists in the database, lets update the config
-            FileManager.WriteConfig($"Players/{player.Username}", player);
             Logger.Log($"Player '{player.Username}' config updated");
         }
 
