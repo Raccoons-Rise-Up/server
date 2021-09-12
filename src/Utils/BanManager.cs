@@ -13,7 +13,7 @@ namespace GameServer.Utilities
     {
         public static void AddPlayerToBanList(Player player)
         {
-            var bannedPlayers = ConfigManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
+            var bannedPlayers = FileManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
 
             if (bannedPlayers.ContainsKey(player.Peer.IP))
             {
@@ -26,14 +26,14 @@ namespace GameServer.Utilities
                 Name = player.Username
             };
 
-            ConfigManager.WriteConfig("banned_players", bannedPlayers);
+            FileManager.WriteConfig("banned_players", bannedPlayers);
 
             Logger.Log($"Player '{player.Username}' was banned");
         }
 
         public static void RemovePlayerFromBanList(Player player) // TODO
         {
-            var bannedPlayers = ConfigManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
+            var bannedPlayers = FileManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
 
             if (!bannedPlayers.ContainsKey(player.Peer.IP))
             {
@@ -43,14 +43,14 @@ namespace GameServer.Utilities
 
             bannedPlayers.Remove(player.Peer.IP);
 
-            ConfigManager.WriteConfig("banned_players", bannedPlayers);
+            FileManager.WriteConfig("banned_players", bannedPlayers);
 
             Logger.Log($"Player '{player.Username}' was pardoned");
         }
 
         public static void PardonOfflinePlayer(string username)
         {
-            var bannedPlayers = ConfigManager.ReadConfig<List<BannedPlayer>>("banned_players");
+            var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
             var bannedPlayer = bannedPlayers.Find(x => x.Name == username);
 
             if (bannedPlayer == null)
@@ -61,7 +61,7 @@ namespace GameServer.Utilities
 
             bannedPlayers.Remove(bannedPlayer);
 
-            ConfigManager.WriteConfig("banned_players", bannedPlayers);
+            FileManager.WriteConfig("banned_players", bannedPlayers);
         }
 
         public static bool BanOfflinePlayer(string username)

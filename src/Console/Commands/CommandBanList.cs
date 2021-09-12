@@ -16,7 +16,7 @@ namespace GameServer.Logging.Commands
 
         public override void Run(string[] args)
         {
-            var bannedPlayers = ConfigManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
+            var bannedPlayers = FileManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
             var bannedPlayerNames = new List<string>();
             foreach (var player in bannedPlayers)
                 bannedPlayerNames.Add(player.Value.Name);

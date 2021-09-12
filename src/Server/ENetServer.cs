@@ -36,7 +36,7 @@ namespace GameServer.Server
             StructureInfoData = typeof(StructureInfo).Assembly.GetTypes().Where(x => typeof(StructureInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<StructureInfo>()
                 .ToDictionary(x => (StructureType)Enum.Parse(typeof(StructureType), x.GetType().Name.Replace(typeof(StructureInfo).Name, "")), x => x);
 
-            ConfigManager.CreateConfig("banned_players", ConfigManager.ConfigType.Array);
+            FileManager.CreateConfig("banned_players", FileManager.ConfigType.Array);
 
             ServerVersion = new()
             {
@@ -125,7 +125,7 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Connect) 
                         {
-                            var bannedPlayers = ConfigManager.ReadConfig<List<BannedPlayer>>("banned_players");
+                            var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
                             var bannedPlayer = bannedPlayers.Find(x => x.Ip == netEvent.Peer.IP);
 
                             if (bannedPlayer == null)
