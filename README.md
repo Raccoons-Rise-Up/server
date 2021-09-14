@@ -22,6 +22,8 @@ The only networking lib that stood out to me is [ENet-CSharp](https://github.com
 
 I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the console. This game-server follows thread safety and does not depend on any external API for the console.
 
+[Kittens Rise Up Roadmap](https://trello.com/b/XkhJxR2x/kittens-rise-up)
+
 ## Setup
 .NET is installed from https://dotnet.microsoft.com/download/dotnet/5.0 (cross platform) or with Visual Studio if you check the `.NET desktop environment` workload when installing.
 
