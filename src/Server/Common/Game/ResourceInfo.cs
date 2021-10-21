@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GameServer.Utilities;
+using Common.Utils;
 
-namespace GameServer.Server
+namespace Common.Game
 {
     public abstract class ResourceInfo
     {
         public virtual string Name { get; set; }
         public virtual string Description { get; set; }
 
-        public ResourceInfo() 
+        public ResourceInfo()
         {
             var resourceName = GetType().Name.Replace(typeof(ResourceInfo).Name, "");
 
-            Name = Utils.AddSpaceBeforeEachCapital(resourceName);
+            Name = SharedUtils.AddSpaceBeforeEachCapital(resourceName);
         }
     }
 
     public class ResourceInfoWood : ResourceInfo
     {
-        public ResourceInfoWood() 
+        public ResourceInfoWood()
         {
             Description = "Some wood";
         }
@@ -30,23 +30,23 @@ namespace GameServer.Server
 
     public class ResourceInfoStone : ResourceInfo
     {
-        public ResourceInfoStone() 
+        public ResourceInfoStone()
         {
             Description = "Some stone";
         }
     }
 
-    public class ResourceInfoWheat : ResourceInfo 
+    public class ResourceInfoWheat : ResourceInfo
     {
-        public ResourceInfoWheat() 
+        public ResourceInfoWheat()
         {
             Description = "Some wheat";
         }
     }
 
-    public class ResourceInfoGold : ResourceInfo 
+    public class ResourceInfoGold : ResourceInfo
     {
-        public ResourceInfoGold() 
+        public ResourceInfoGold()
         {
             Description = "Some gold";
         }

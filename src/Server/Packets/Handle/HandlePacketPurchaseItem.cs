@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Common.Networking.Packet;
 using Common.Networking.IO;
+using Common.Game;
 using ENet;
 using GameServer.Logging;
 

@@ -69,9 +69,7 @@ namespace GameServer.Server.Packets
                 {
                     LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
                     ResourceCounts = player.ResourceCounts,
-                    StructureCounts = player.StructureCounts,
-                    ResourceInfoData = ENetServer.ResourceInfoData,
-                    StructureInfoData = ENetServer.StructureInfoData
+                    StructureCounts = player.StructureCounts
                 };
 
                 // Add the player to the list of players currently on the server
@@ -84,9 +82,7 @@ namespace GameServer.Server.Packets
                 // NEW PLAYER
                 packetData = new WPacketLogin
                 {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer,
-                    ResourceInfoData = ENetServer.ResourceInfoData,
-                    StructureInfoData = ENetServer.StructureInfoData
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer
                 };
 
                 // Add the player to the list of players currently on the server

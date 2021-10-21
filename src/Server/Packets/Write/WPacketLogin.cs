@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Common.Networking.IO;
 using Common.Networking.Message;
+using Common.Game;
 
 namespace GameServer.Server.Packets
 {
@@ -10,8 +11,6 @@ namespace GameServer.Server.Packets
         public ServerVersion ServerVersion { get; set; }
         public Dictionary<ResourceType, uint> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
-        public Dictionary<ResourceType, ResourceInfo> ResourceInfoData { get; set; }
-        public Dictionary<StructureType, StructureInfo> StructureInfoData { get; set; }
 
         public void Write(PacketWriter writer)
         {
@@ -41,50 +40,6 @@ namespace GameServer.Server.Packets
                         writer.Write((uint)structureCount.Value);
                     }
                     break;
-            }
-
-            SendResourceInfo(ref writer);
-            SendStructureData(ref writer);
-        }
-
-        private void SendResourceInfo(ref PacketWriter writer) 
-        {
-            writer.Write((ushort)ResourceInfoData.Count);
-            foreach (var keyValuePair in ResourceInfoData) 
-            {
-                var resource = keyValuePair.Value;
-                writer.Write((ushort)keyValuePair.Key);
-                writer.Write((string)resource.Name);
-                writer.Write((string)resource.Description);
-            }
-        }
-
-        private void SendStructureData(ref PacketWriter writer)
-        {
-            writer.Write((ushort)StructureInfoData.Count);
-            foreach (var keyValuePair in StructureInfoData)
-            {
-                var structure = keyValuePair.Value;
-                writer.Write((ushort)keyValuePair.Key);
-                writer.Write((string)structure.Name);
-                writer.Write((string)structure.Description);
-                writer.Write((byte)structure.Cost.Count); // Assuming a single structure will not cost more than 255 resource types
-                foreach (var resource in structure.Cost)
-                {
-                    writer.Write((ushort)resource.Key);
-                    writer.Write(resource.Value);
-                }
-                writer.Write((byte)structure.Production.Count); // Assuming a single structure will not produce more than 255 resource types
-                foreach (var resource in structure.Production)
-                {
-                    writer.Write((ushort)resource.Key);
-                    writer.Write(resource.Value);
-                }
-                writer.Write((byte)structure.TechRequired.Count); // Assuming a single structure will not have more than 255 tech requirements
-                foreach (var tech in structure.TechRequired)
-                {
-                    writer.Write((ushort)tech);
-                }
             }
         }
     }

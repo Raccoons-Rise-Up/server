@@ -11,6 +11,7 @@ using ENet;
 using GameServer.Server.Packets;
 using GameServer.Logging;
 using GameServer.Utilities;
+using Common.Game;
 
 namespace GameServer.Server
 {
