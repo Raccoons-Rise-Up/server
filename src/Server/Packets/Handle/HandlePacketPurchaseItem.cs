@@ -21,7 +21,7 @@ namespace GameServer.Server.Packets
         {
             var data = new RPacketPurchaseItem();
             data.Read(packetReader);
-
+            
             var peer = netEvent.Peer;
 
             var player = ENetServer.Players[peer.ID];
@@ -37,9 +37,10 @@ namespace GameServer.Server.Packets
                 var packetDataNotEnoughGold = new WPacketPurchaseItem
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
-                    StructureId = data.StructureId,
                     ResourcesLength = (byte)purchaseResult.Resources.Count,
-                    Resources = purchaseResult.Resources
+                    Resources = purchaseResult.Resources,
+                    StructureAmount = 1,
+                    StructureId = data.StructureId
                 };
                 var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
                 ENetServer.Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
@@ -54,9 +55,10 @@ namespace GameServer.Server.Packets
                 var packetDataPurchasedItem = new WPacketPurchaseItem
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
-                    StructureId = data.StructureId,
                     ResourcesLength = (byte)purchaseResult.Resources.Count,
-                    Resources = purchaseResult.Resources
+                    Resources = purchaseResult.Resources,
+                    StructureAmount = 1,
+                    StructureId = data.StructureId
                 };
                 var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
                 ENetServer.Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
