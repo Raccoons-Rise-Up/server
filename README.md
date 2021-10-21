@@ -2,11 +2,7 @@
 ## Table of Contents
 1. [About](#what-is-this)
 2. [Setup](#setup)
-    - [Creating the Database](#creating-the-database)
-    - [Public JWT Key](#public-jwt-key)
 4. [Server](#server)
-    - [Features](#features)
-    - [Resources](#resources)
 5. [Console](#console)
     - [Features](#features-1)
     - [Controls](#controls)
@@ -26,16 +22,10 @@ The only networking lib that stood out to me is [ENet-CSharp](https://github.com
 
 I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the console. This game-server follows thread safety and does not depend on any external API for the console.
 
+[Kittens Rise Up Roadmap](https://trello.com/b/XkhJxR2x/kittens-rise-up)
+
 ## Setup
 .NET is installed from https://dotnet.microsoft.com/download/dotnet/5.0 (cross platform) or with Visual Studio if you check the `.NET desktop environment` workload when installing.
-
-### Creating the Database
-Create the Entity Framework Core - SQLite Database with the following commands (you can open the terminal in VS with `Ctrl + Tilda Key`)
-```
-dotnet tool install --global dotnet-ef
-dotnet ef migrations add InitialCreate
-dotnet ef database update
-```
 
 ### Public JWT Key
 Create a `public.key` in `obj\Debug\net5.0` (if you don't see these folders you need to run the project at least once with `dotnet run`) with same key generated from [web-server](https://github.com/Kittens-Rise-Up/website)
@@ -45,14 +35,7 @@ Run the project with `dotnet run`
 ## Server
 ### Features
 - ENet-CSharp Networking Lib
-- Entity Framework Core with SQLite
 - JSON files to read / write from
-
-### Resources
-Inside the `res/` folder the following will be generated.
-- `config.json`
-- `banned_players.json`
-- `whitelist.json`
 
 ## Console
 ### Features
