@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using ENet;
 using Common.Game;
+using GameServer.Logging;
 
 namespace GameServer.Server
 {
@@ -13,7 +14,7 @@ namespace GameServer.Server
         public DateTime LastSeen { get; set; }
         public Dictionary<ResourceType, uint> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
-        public Dictionary<StructureType, DateTime> StructuresLastSeen { get; set; }
+        public DateTime StructuresLastChecked { get; set; }
 
         public Player(string username, Peer peer) 
         {
@@ -29,43 +30,66 @@ namespace GameServer.Server
             foreach (StructureType type in Enum.GetValues(typeof(StructureType)))
                 StructureCounts.Add(type, 0);
 
-            StructuresLastSeen = new();
+            StructuresLastChecked = new();
         }
 
         public PurchaseResult TryPurchase(StructureInfo structure)
         {
-            //AddResourcesGeneratedFromStructures();
+            AddResourcesGeneratedFromStructures();
 
+            // Return the resources that the player is lacking in order to make this purchase
             var lackingResources = GetLackingResources(structure);
             if (lackingResources.Count > 0)
                 return new PurchaseResult
                 {
-                    Result = PurchaseEnumResult.LackingResources,
-                    Resources = lackingResources
+                    Result = PurchaseEnumResult.LackingResources
                 };
 
+            // The player has enough to purchase this
             var newPlayerResources = new Dictionary<ResourceType, uint>();
 
             foreach (var resource in ResourceCounts)
             {
-                var playerResourceKey = resource.Key;
-                var playerResourceAmount = resource.Value;
-
                 if (structure.Cost.TryGetValue(resource.Key, out uint resourceCost))
                 {
-                    var remaining = playerResourceAmount - resourceCost;
-                    ResourceCounts[playerResourceKey] = remaining;
-                    newPlayerResources.Add(playerResourceKey, remaining);
+                    ResourceCounts[resource.Key] -= resourceCost;
+                    newPlayerResources.Add(resource.Key, resource.Value);
                 }
+            }
+
+            // Need to ensure all the resources are being updated (not just for cost resources but for production resources too)
+            foreach (var resourceKey in structure.Production.Keys) 
+            {
+                if (!newPlayerResources.ContainsKey(resourceKey)) 
+                    newPlayerResources.Add(resourceKey, ResourceCounts[resourceKey]);
             }
 
             StructureCounts[structure.Type] += 1;
 
+            // Return the now updated player resource values based on this new purchase
             return new PurchaseResult
             {
                 Result = PurchaseEnumResult.Success,
                 Resources = newPlayerResources
             };
+        }
+
+        private void AddResourcesGeneratedFromStructures() 
+        {
+            foreach (var structure in ENetServer.StructureInfoData.Values) 
+            {
+                foreach (var prod in structure.Production) 
+                {
+                    var timeDiff = DateTime.Now - StructuresLastChecked;
+                    var amountGenerated = prod.Value * (uint)timeDiff.TotalSeconds;
+
+                    Logger.Log(amountGenerated);
+
+                    ResourceCounts[prod.Key] += amountGenerated;
+                }
+            }
+
+            StructuresLastChecked = DateTime.Now;
         }
 
         public Dictionary<ResourceType, uint> GetLackingResources(StructureInfo structure)

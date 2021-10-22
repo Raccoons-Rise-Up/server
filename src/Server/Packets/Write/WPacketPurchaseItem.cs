@@ -10,14 +10,10 @@ namespace GameServer.Server.Packets
         public PurchaseItemResponseOpcode PurchaseItemResponseOpcode { get; set; }
         public Dictionary<ResourceType, uint> Resources { get; set; }
         public byte ResourcesLength { get; set; }
-        public ushort StructureId { get; set; }
-        public uint StructureAmount { get; set; }
 
         public void Write(PacketWriter writer)
         {
             writer.Write((byte)PurchaseItemResponseOpcode);
-            writer.Write(StructureId);
-            writer.Write(StructureAmount);
             writer.Write(ResourcesLength);
             foreach (var resource in Resources) 
             {

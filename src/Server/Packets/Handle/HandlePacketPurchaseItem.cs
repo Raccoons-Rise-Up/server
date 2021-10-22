@@ -39,9 +39,7 @@ namespace GameServer.Server.Packets
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
                     ResourcesLength = (byte)purchaseResult.Resources.Count,
-                    Resources = purchaseResult.Resources,
-                    StructureAmount = 1,
-                    StructureId = data.StructureId
+                    Resources = purchaseResult.Resources
                 };
                 var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
                 ENetServer.Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
@@ -57,9 +55,7 @@ namespace GameServer.Server.Packets
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.Purchased,
                     ResourcesLength = (byte)purchaseResult.Resources.Count,
-                    Resources = purchaseResult.Resources,
-                    StructureAmount = 1,
-                    StructureId = data.StructureId
+                    Resources = purchaseResult.Resources
                 };
                 var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
                 ENetServer.Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
