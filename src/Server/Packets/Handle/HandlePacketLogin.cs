@@ -65,10 +65,12 @@ namespace GameServer.Server.Packets
             {
                 // RETURNING PLAYER
 
+                player.AddResourcesGeneratedFromStructures();
+
                 packetData = new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
-                    ResourceCounts = player.ResourceCounts,
+                    ResourceCounts = player.ResourceCounts.ToDictionary(x => x.Key, x => (uint)x.Value),
                     StructureCounts = player.StructureCounts
                 };
 

@@ -12,7 +12,7 @@ namespace GameServer.Server
         [JsonIgnore] public Peer Peer { get; set; }
         public string Username { get; set; }
         public DateTime LastSeen { get; set; }
-        public Dictionary<ResourceType, uint> ResourceCounts { get; set; }
+        public Dictionary<ResourceType, float> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
         public DateTime StructuresLastChecked { get; set; }
 
@@ -53,7 +53,7 @@ namespace GameServer.Server
                 if (structure.Cost.TryGetValue(resource.Key, out uint resourceCost))
                 {
                     ResourceCounts[resource.Key] -= resourceCost;
-                    newPlayerResources.Add(resource.Key, resource.Value);
+                    newPlayerResources.Add(resource.Key, (uint)resource.Value);
                 }
             }
 
@@ -61,7 +61,7 @@ namespace GameServer.Server
             foreach (var resourceKey in structure.Production.Keys) 
             {
                 if (!newPlayerResources.ContainsKey(resourceKey)) 
-                    newPlayerResources.Add(resourceKey, ResourceCounts[resourceKey]);
+                    newPlayerResources.Add(resourceKey, (uint)ResourceCounts[resourceKey]);
             }
 
             StructureCounts[structure.Type] += 1;
@@ -74,16 +74,16 @@ namespace GameServer.Server
             };
         }
 
-        private void AddResourcesGeneratedFromStructures() 
+        public void AddResourcesGeneratedFromStructures() 
         {
-            foreach (var structure in ENetServer.StructureInfoData.Values) 
+            foreach (var structureCount in StructureCounts) 
             {
-                foreach (var prod in structure.Production) 
+                var structureData = ENetServer.StructureInfoData[structureCount.Key];
+
+                foreach (var prod in structureData.Production) 
                 {
                     var timeDiff = DateTime.Now - StructuresLastChecked;
-                    var amountGenerated = prod.Value * (uint)timeDiff.TotalSeconds;
-
-                    Logger.Log(amountGenerated);
+                    var amountGenerated = prod.Value * structureCount.Value * (uint)timeDiff.TotalSeconds;
 
                     ResourceCounts[prod.Key] += amountGenerated;
                 }
@@ -104,7 +104,7 @@ namespace GameServer.Server
                 {
                     if (playerResourceAmount < structureResourceValue)
                     {
-                        lackingResources.Add(playerResourceKey, structureResourceValue - playerResourceAmount);
+                        lackingResources.Add(playerResourceKey, (uint)(structureResourceValue - playerResourceAmount));
                     }
                 }
             }
