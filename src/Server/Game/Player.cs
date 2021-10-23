@@ -12,7 +12,7 @@ namespace GameServer.Server
         [JsonIgnore] public Peer Peer { get; set; }
         public string Username { get; set; }
         public DateTime LastSeen { get; set; }
-        public Dictionary<ResourceType, float> ResourceCounts { get; set; }
+        public Dictionary<ResourceType, double> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
         public DateTime StructuresLastChecked { get; set; }
 
@@ -83,7 +83,7 @@ namespace GameServer.Server
                 foreach (var prod in structureData.Production) 
                 {
                     var timeDiff = DateTime.Now - StructuresLastChecked;
-                    var amountGenerated = prod.Value * structureCount.Value * (uint)timeDiff.TotalSeconds;
+                    var amountGenerated = prod.Value * structureCount.Value * timeDiff.TotalSeconds;
 
                     ResourceCounts[prod.Key] += amountGenerated;
                 }
