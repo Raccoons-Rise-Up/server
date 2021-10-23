@@ -53,7 +53,7 @@ namespace GameServer.Server
                 if (structure.Cost.TryGetValue(resource.Key, out uint resourceCost))
                 {
                     ResourceCounts[resource.Key] -= resourceCost;
-                    newPlayerResources.Add(resource.Key, (uint)resource.Value);
+                    newPlayerResources.Add(resource.Key, (uint)ResourceCounts[resource.Key]);
                 }
             }
 
@@ -78,6 +78,9 @@ namespace GameServer.Server
         {
             foreach (var structureCount in StructureCounts) 
             {
+                if (structureCount.Value == 0)
+                    continue;
+
                 var structureData = ENetServer.StructureInfoData[structureCount.Key];
 
                 foreach (var prod in structureData.Production) 
