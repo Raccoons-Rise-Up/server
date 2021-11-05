@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common.Networking.Packet;
 using GameServer.Logging;
 using GameServer.Server;
 using GameServer.Server.Packets;

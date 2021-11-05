@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using ENet;
 using Common.Game;
 using GameServer.Logging;
+using GameServer.Utilities;
+using Common.Networking.Packet;
+using GameServer.Server.Packets;
 
 namespace GameServer.Server
 {
@@ -31,6 +35,24 @@ namespace GameServer.Server
                 StructureCounts.Add(type, 0);
 
             StructuresLastChecked = new();
+        }
+
+        public void ResetValues() 
+        {
+            var resourceTypes = Utils.GetEnumList<ResourceType>();
+            foreach (var resourceType in resourceTypes)
+                ResourceCounts[resourceType] = 0;
+
+            var structureTypes = Utils.GetEnumList<StructureType>();
+            foreach (var structureType in structureTypes)
+                StructureCounts[structureType] = 0;
+
+            PlayerManager.UpdatePlayerConfig(this);
+
+            var cmd = new ENetCmds();
+            cmd.Set(ServerOpcode.SendPlayerData, Username);
+
+            ENetServer.ENetCmds.Enqueue(cmd);
         }
 
         public PurchaseResult TryPurchase(StructureInfo structure)

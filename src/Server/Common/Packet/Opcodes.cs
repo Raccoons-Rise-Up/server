@@ -15,7 +15,8 @@
         ClientDisconnected,
         PurchasedItem,
         CreatedAccount,
-        LoginResponse
+        LoginResponse,
+        PlayerData
     }
 
     public enum PurchaseItemResponseOpcode

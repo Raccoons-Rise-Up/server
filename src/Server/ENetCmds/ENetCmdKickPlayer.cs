@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Common.Networking.Packet;
 using GameServer.Logging;
 using GameServer.Server.Packets;
 

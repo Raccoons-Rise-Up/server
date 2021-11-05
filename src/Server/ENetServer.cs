@@ -182,6 +182,7 @@ namespace GameServer.Server
             Library.Deinitialize();
         }
 
+        // Remember this can only be used on the ENet thread!!
         public static void Send(GamePacket gamePacket, Peer peer, PacketFlags packetFlags)
         {
             // Send data to a specific client (peer)
@@ -263,6 +264,7 @@ namespace GameServer.Server
         KickPlayer,
         BanPlayer,
         PardonPlayer,
-        ClearPlayerStats
+        ClearPlayerStats,
+        SendPlayerData
     }
 }

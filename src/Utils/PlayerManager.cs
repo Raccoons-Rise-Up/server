@@ -40,5 +40,16 @@ namespace GameServer.Utilities
 
             return FileManager.ReadConfig<Player>($"Players/{playerName}");
         }
+
+        public static List<Player> GetAllPlayerConfigs() 
+        {
+            var playerConfigs = new List<Player>();
+            var playerNames = FileManager.GetAllConfigNamesInFolder("Players");
+            foreach (var playerName in playerNames) 
+            {
+                playerConfigs.Add(FileManager.ReadConfig<Player>($"Players/{playerName}"));
+            }
+            return playerConfigs;
+        }
     }
 }

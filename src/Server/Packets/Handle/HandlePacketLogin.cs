@@ -65,6 +65,7 @@ namespace GameServer.Server.Packets
             {
                 // RETURNING PLAYER
 
+                player.Peer = netEvent.Peer;
                 player.AddResourcesGeneratedFromStructures();
 
                 packetData = new WPacketLogin

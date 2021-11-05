@@ -20,14 +20,12 @@ namespace GameServer.Logging.Commands
 
         public override void Run(string[] args) 
         {
-            Logger.Log("Command is under development");
-            return;
-
-            //using var db = new DatabaseContext();
-
             if (args.Length == 0)
             {
-                //ResetDatabase(db);
+                foreach (var player in PlayerManager.GetAllPlayerConfigs())
+                    player.ResetValues();
+
+                Logger.Log("Reset values for all players");
                 return;
             }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Common.Networking.IO;
+using Common.Networking.Packet;
 using Common.Networking.Message;
 using Common.Game;
 
