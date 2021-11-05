@@ -11,11 +11,11 @@ namespace GameServer.Server.Packets
 {
     public class HandlePacketPurchaseItem : HandlePacket
     {
-        public override ClientOpcode Opcode { get; set; }
+        public override ClientPacketOpcode Opcode { get; set; }
 
         public HandlePacketPurchaseItem()
         {
-            Opcode = ClientOpcode.PurchaseItem;
+            Opcode = ClientPacketOpcode.PurchaseItem;
         }
 
         public override void Handle(Event netEvent, ref PacketReader packetReader)

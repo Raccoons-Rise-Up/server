@@ -14,6 +14,7 @@ namespace GameServer.Server
 
         public override void Handle(List<object> value)
         {
+
             foreach (var player in ENetServer.Players.Values) 
             {
                 if (player.Username == value[0].ToString()) 

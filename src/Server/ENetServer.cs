@@ -21,7 +21,7 @@ namespace GameServer.Server
         public static ConcurrentQueue<ENetCmds> ENetCmds { get; private set; }
         public static Dictionary<uint, Player> Players { get; private set; }
         public static Dictionary<ServerOpcode, ENetCmd> ENetCmd { get; private set; }
-        public static Dictionary<ClientOpcode, HandlePacket> HandlePacket { get; private set; }
+        public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; private set; }
         public static HttpClient WebClient { get; private set; }
         public static ServerVersion ServerVersion { get; private set; }
         public static Dictionary<ResourceType, ResourceInfo> ResourceInfoData { get; private set; }
@@ -100,7 +100,7 @@ namespace GameServer.Server
 
                         netEvent.Packet.CopyTo(readBuffer);
 
-                        var opcode = (ClientOpcode)packetReader.ReadByte();
+                        var opcode = (ClientPacketOpcode)packetReader.ReadByte();
 
                         HandlePacket[opcode].Handle(netEvent, ref packetReader);
 

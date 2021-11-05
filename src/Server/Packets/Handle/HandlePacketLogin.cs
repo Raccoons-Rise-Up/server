@@ -11,11 +11,11 @@ namespace GameServer.Server.Packets
 {
     public class HandlePacketLogin : HandlePacket
     {
-        public override ClientOpcode Opcode { get; set; }
+        public override ClientPacketOpcode Opcode { get; set; }
 
         public HandlePacketLogin() 
         {
-            Opcode = ClientOpcode.Login;
+            Opcode = ClientPacketOpcode.Login;
         }
 
         public override void Handle(Event netEvent, ref PacketReader packetReader)
