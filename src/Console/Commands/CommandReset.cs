@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Diagnostics;
 using GameServer.Server;
+using GameServer.Utilities;
 
 namespace GameServer.Logging.Commands
 {
@@ -19,6 +20,9 @@ namespace GameServer.Logging.Commands
 
         public override void Run(string[] args) 
         {
+            Logger.Log("Command is under development");
+            return;
+
             //using var db = new DatabaseContext();
 
             if (args.Length == 0)
@@ -27,12 +31,7 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             //var dbPlayer = db.Players.ToList().Find(x => x.Username == args[0]);
-
-            stopwatch.Stop();
 
             /*if (dbPlayer == null)
             {
