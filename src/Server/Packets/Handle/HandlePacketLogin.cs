@@ -6,6 +6,7 @@ using GameServer.Utilities;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using Common.Game;
 
 namespace GameServer.Server.Packets
 {
@@ -27,7 +28,7 @@ namespace GameServer.Server.Packets
 
             // Check JWT
             var token = new JsonWebToken(data.JsonWebToken);
-            if (token.IsValid.Error != JsonWebToken.TokenValidateError.Ok) 
+            if (token.IsValid.Error != JsonWebToken.TokenValidateError.Ok)
             {
                 ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, new WPacketLogin
                 {
@@ -57,6 +58,23 @@ namespace GameServer.Server.Packets
             // Check if username exists in database
             var playerUsername = token.Payload.username;
             var player = PlayerManager.GetPlayerConfig(playerUsername);
+
+            // Consider the following scenario:
+            // 1. A new structure gets added to the game
+            // 2. But the current player config did not get these updated changes
+            // 3. That's what this code does, it updates the player config to include these new changes
+            var structureCountTypes = Enum.GetValues(typeof(StructureType));
+
+            if (player.StructureCounts.Count < structureCountTypes.Length) 
+            {
+                foreach (StructureType type in Enum.GetValues(typeof(StructureType))) 
+                {
+                    if (!player.StructureCounts.ContainsKey(type)) 
+                    {
+                        player.StructureCounts.Add(type, 0);
+                    }
+                }
+            }
 
             // These values will be sent to the client
             WPacketLogin packetData;
