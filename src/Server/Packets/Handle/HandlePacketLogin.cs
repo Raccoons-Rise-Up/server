@@ -60,6 +60,23 @@ namespace GameServer.Server.Packets
             var player = PlayerManager.GetPlayerConfig(playerUsername);
 
             // Consider the following scenario:
+            // 1. A new resource gets added to the game
+            // 2. But the current player config did not get these updated changes
+            // 3. That's what this code does, it updates the player config to include these new changes
+            var resourceCountTypes = Enum.GetValues(typeof(ResourceType));
+
+            if (player.ResourceCounts.Count < resourceCountTypes.Length)
+            {
+                foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
+                {
+                    if (!player.ResourceCounts.ContainsKey(type))
+                    {
+                        player.ResourceCounts.Add(type, 0);
+                    }
+                }
+            }
+
+            // Consider the following scenario:
             // 1. A new structure gets added to the game
             // 2. But the current player config did not get these updated changes
             // 3. That's what this code does, it updates the player config to include these new changes
