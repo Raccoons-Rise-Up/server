@@ -1,4 +1,5 @@
 ﻿using GameServer.Server;
+using GameServer.Utilities;
 
 namespace GameServer.Logging.Commands
 {
@@ -22,10 +23,7 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            var cmd = new ENetCmds();
-            cmd.Set(ServerOpcode.BanPlayer, args[0]);
-
-            ENetServer.ENetCmds.Enqueue(cmd);
+            BanManager.BanPlayer(args[0]);
         }
     }
 }

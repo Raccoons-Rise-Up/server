@@ -1,4 +1,5 @@
 ﻿using GameServer.Server;
+using GameServer.Utilities;
 
 namespace GameServer.Logging.Commands
 {
@@ -23,10 +24,7 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            var cmd = new ENetCmds();
-            cmd.Set(ServerOpcode.PardonPlayer, args[0]);
-
-            ENetServer.ENetCmds.Enqueue(cmd);
+            BanManager.PardonOfflinePlayer(args[0]);
         }
     }
 }

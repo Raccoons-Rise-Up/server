@@ -12,96 +12,109 @@ namespace GameServer.Utilities
 {
     public static class BanManager
     {
-        public static void AddPlayerToBanList(Player player)
+        public static void BanPlayer(string username)
         {
-            var bannedPlayers = FileManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
-
-            if (bannedPlayers.ContainsKey(player.Peer.IP))
-            {
-                Logger.Log($"Player '{player.Username}' was banned already");
+            // First check if the player is online and try to ban them
+            if (BanOnlinePlayer(username))
                 return;
+
+            // The player is not online, see if they joined before and if so ban them
+            BanOfflinePlayer(username);
+        }
+
+        private static bool BanOnlinePlayer(string username) 
+        {
+            Player onlinePlayer = null;
+            foreach (var p in ENetServer.Players.Values)
+            {
+                if (p.Username == username)
+                    onlinePlayer = p;
             }
 
-            bannedPlayers[player.Peer.IP] = new BannedPlayer()
-            {
-                Name = player.Username
-            };
+            // Player is not online
+            if (onlinePlayer == null)
+                return false;
+
+            // Player is online, disconnect them immediately and remove them from the player cache
+            onlinePlayer.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
+            ENetServer.Players.Remove(onlinePlayer.Peer.ID);
+
+            // Add the player to the banlist
+            var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
+            bannedPlayers.Add(new BannedPlayer {
+                Name = onlinePlayer.Username,
+                Ip = onlinePlayer.Ip
+            });
 
             FileManager.WriteConfig("banned_players", bannedPlayers);
 
-            Logger.Log($"Player '{player.Username}' was banned");
+            Logger.Log($"Player '{username}' has been banned");
+
+            return true;
         }
 
-        public static void RemovePlayerFromBanList(Player player) // TODO
+        private static bool BanOfflinePlayer(string username)
         {
-            var bannedPlayers = FileManager.ReadConfig<Dictionary<string, BannedPlayer>>("banned_players");
+            var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
+            var bannedPlayer = bannedPlayers.Find(x => x.Name.Equals(username));
 
-            if (!bannedPlayers.ContainsKey(player.Peer.IP))
+            // The player exists in the banlist already
+            if (bannedPlayer != null)
             {
-                Logger.Log($"Player '{player.Username}' was pardoned already");
-                return;
+                Logger.Log($"Player '{username}' was banned already");
+                return true;
             }
 
-            bannedPlayers.Remove(player.Peer.IP);
+            // Check if the player has joined the server before
+            var playerConfigs = PlayerManager.GetAllPlayerConfigs();
+            Player player = null;
 
+            foreach (var playerConfig in playerConfigs)
+                if (playerConfig.Username.Equals(username))
+                    player = playerConfig;
+
+            // Player has never played before
+            if (player == null)
+            {
+                Logger.Log($"No such player with the username '{username}' exists");
+                return false;
+            }
+
+            // Player has played before, add them to the banlist
+            bannedPlayers.Add(new BannedPlayer {
+                Name = player.Username,
+                Ip = player.Ip
+            });
             FileManager.WriteConfig("banned_players", bannedPlayers);
 
-            Logger.Log($"Player '{player.Username}' was pardoned");
+            Logger.Log($"Player '{username}' has been banned");
+
+            return true;
         }
 
+        // Note that there is no method called "PardonOnlinePlayer(string username)" as this would not make sense because a banned player can never be online
         public static void PardonOfflinePlayer(string username)
         {
             var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
-            var bannedPlayer = bannedPlayers.Find(x => x.Name == username);
+            var bannedPlayer = bannedPlayers.Find(x => x.Name.Equals(username));
 
+            // No such player with the username exists
             if (bannedPlayer == null)
             {
-                Logger.Log($"No player with the username '{username}' could be found to be pardoned");
+                Logger.Log($"Player '{username}' could be found");
                 return;
             }
 
+            // Pardon the player, remove them from the banlist
             bannedPlayers.Remove(bannedPlayer);
 
             FileManager.WriteConfig("banned_players", bannedPlayers);
-        }
 
-        public static bool BanOfflinePlayer(string username)
-        {
-            /*var bannedPlayers = ConfigManager.ReadConfig<List<BannedPlayer>>("banned_players");
-            var bannedPlayer = bannedPlayers.Find(x => x.Name == username);
-
-            if (bannedPlayer == null) 
-            {
-                bannedPlayers.Add(new BannedPlayer {
-                    Name
-                });
-            }*/
-
-            return true;
-        }
-
-        public static bool BanOnlinePlayer(string username)
-        {
-            Player player = null;
-            foreach (var p in ENetServer.Players.Values) 
-            {
-                if (p.Username == username)
-                    player = p;
-            }
-
-            if (player == null)
-                return false;
-
-            player.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
-
-            AddPlayerToBanList(player);
-
-            ENetServer.Players.Remove(player.Peer.ID);
-
-            return true;
+            Logger.Log($"Player '{bannedPlayer.Name}' was pardoned");
         }
     }
 
+    // This structure is stored in JSON format in banned_players.json
     public class BannedPlayer
     {
         public string Ip { get; set; }

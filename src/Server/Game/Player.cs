@@ -15,6 +15,7 @@ namespace GameServer.Server
     {
         [JsonIgnore] public Peer Peer { get; set; }
         public string Username { get; set; }
+        public string Ip { get; set; }
         public DateTime LastSeen { get; set; }
         public Dictionary<ResourceType, double> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
@@ -23,6 +24,8 @@ namespace GameServer.Server
         public Player(string username, Peer peer) 
         {
             Peer = peer;
+            if (peer.IsSet)
+                Ip = peer.IP;
             Username = username;
             LastSeen = DateTime.Now;
 

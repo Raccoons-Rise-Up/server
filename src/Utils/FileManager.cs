@@ -10,6 +10,7 @@ namespace GameServer.Utilities
 {
     public static class FileManager
     {
+        // All configs are stored relative to the executable since C# is a compiled language
         private static readonly string ResPath = Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).ToString(), "res");
 
         public static void SetupDirectories() 
@@ -44,6 +45,10 @@ namespace GameServer.Utilities
             var pathToFile = GetPath(ResPath, $"Config/{path}.json");
 
             TryCreateDirectoriesToFile(pathToFile);
+
+            // Do not overwrite config if exists already
+            if (File.Exists(pathToFile))
+                return;
 
             if (configType == ConfigType.Array)
                 await File.WriteAllTextAsync(pathToFile, "[]");
