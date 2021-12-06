@@ -57,41 +57,20 @@ namespace GameServer.Server.Packets
 
             // Check if username exists in database
             var playerUsername = token.Payload.username;
+
+            // Check if username is in the player banlist
+            var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
+            var bannedPlayer = bannedPlayers.Find(x => x.Name == playerUsername);
+
+            if (bannedPlayer != null) 
+            {
+                // Player is banned, disconnect them immediately 
+                netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
+                Logger.Log($"Player '{bannedPlayer.Name}' tried to join but is banned");
+                return;
+            }
+
             var player = PlayerManager.GetPlayerConfig(playerUsername);
-
-            // Consider the following scenario:
-            // 1. A new resource gets added to the game
-            // 2. But the current player config did not get these updated changes
-            // 3. That's what this code does, it updates the player config to include these new changes
-            var resourceCountTypes = Enum.GetValues(typeof(ResourceType));
-
-            if (player.ResourceCounts.Count < resourceCountTypes.Length)
-            {
-                foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
-                {
-                    if (!player.ResourceCounts.ContainsKey(type))
-                    {
-                        player.ResourceCounts.Add(type, 0);
-                    }
-                }
-            }
-
-            // Consider the following scenario:
-            // 1. A new structure gets added to the game
-            // 2. But the current player config did not get these updated changes
-            // 3. That's what this code does, it updates the player config to include these new changes
-            var structureCountTypes = Enum.GetValues(typeof(StructureType));
-
-            if (player.StructureCounts.Count < structureCountTypes.Length) 
-            {
-                foreach (StructureType type in Enum.GetValues(typeof(StructureType))) 
-                {
-                    if (!player.StructureCounts.ContainsKey(type)) 
-                    {
-                        player.StructureCounts.Add(type, 0);
-                    }
-                }
-            }
 
             // These values will be sent to the client
             WPacketLogin packetData;
