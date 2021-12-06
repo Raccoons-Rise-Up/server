@@ -70,7 +70,7 @@ namespace GameServer.Server.Packets
                 return;
             }
 
-            var player = PlayerManager.GetPlayerConfig(playerUsername);
+            var player = Player.GetPlayerConfig(playerUsername);
 
             // These values will be sent to the client
             WPacketLogin packetData;

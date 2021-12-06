@@ -22,7 +22,7 @@ namespace GameServer.Logging.Commands
         {
             if (args.Length == 0)
             {
-                foreach (var player in PlayerManager.GetAllPlayerConfigs())
+                foreach (var player in Player.GetAllPlayerConfigs())
                     player.ResetValues();
 
                 Logger.Log("Reset values for all players");

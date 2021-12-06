@@ -66,7 +66,7 @@ namespace GameServer.Utilities
             }
 
             // Check if the player has joined the server before
-            var playerConfigs = PlayerManager.GetAllPlayerConfigs();
+            var playerConfigs = Player.GetAllPlayerConfigs();
             Player player = null;
 
             foreach (var playerConfig in playerConfigs)

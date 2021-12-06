@@ -30,7 +30,7 @@ namespace GameServer.Server
         #region WorkerThread
         private static void ValidatePlayerConfigs() 
         {
-            var playerConfigs = PlayerManager.GetAllPlayerConfigs();
+            var playerConfigs = Player.GetAllPlayerConfigs();
 
             // Consider the following scenario:
             // 1. A new structure / resource gets added to the game
@@ -175,8 +175,7 @@ namespace GameServer.Server
                         if (eventType == EventType.Disconnect) 
                         {
                             var player = Players[netEvent.Peer.ID];
-
-                            PlayerManager.UpdatePlayerConfig(player);
+                            player.UpdatePlayerConfig();
 
                             // Remove player from player list
                             Players.Remove(netEvent.Peer.ID);
@@ -187,8 +186,7 @@ namespace GameServer.Server
                         if (eventType == EventType.Timeout) 
                         {
                             var player = Players[netEvent.Peer.ID];
-
-                            PlayerManager.UpdatePlayerConfig(player);
+                            player.UpdatePlayerConfig();
 
                             // Remove player from player list
                             Players.Remove(netEvent.Peer.ID);

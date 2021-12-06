@@ -50,7 +50,7 @@ namespace GameServer.Server
             foreach (var structureType in structureTypes)
                 StructureCounts[structureType] = 0;
 
-            PlayerManager.UpdatePlayerConfig(this);
+            UpdatePlayerConfig();
 
             var cmd = new ENetCmds();
             cmd.Set(ServerOpcode.SendPlayerData, Username);
@@ -138,6 +138,48 @@ namespace GameServer.Server
             }
 
             return lackingResources;
+        }
+
+        public void UpdatePlayerConfig()
+        {
+            // Check if player exists in configs
+            var dbPlayers = FileManager.GetAllConfigNamesInFolder("Players");
+            var dbPlayer = dbPlayers.Find(str => str == Username);
+
+            // Reminder: WriteConfig creates a config if no file exists
+            FileManager.WriteConfig($"Players/{Username}", this);
+
+            if (dbPlayer == null)
+            {
+                // Player does not exist in database, lets add them to the database
+                Logger.Log($"Player '{Username}' config created");
+                return;
+            }
+
+            // Player exists in the database, lets update the config
+            Logger.Log($"Player '{Username}' config updated");
+        }
+
+        public static Player GetPlayerConfig(string username)
+        {
+            var playerNames = FileManager.GetAllConfigNamesInFolder("Players");
+            var playerName = playerNames.Find(str => str == username);
+
+            if (playerName == null)
+                return null;
+
+            return FileManager.ReadConfig<Player>($"Players/{playerName}");
+        }
+
+        public static List<Player> GetAllPlayerConfigs()
+        {
+            var playerConfigs = new List<Player>();
+            var playerNames = FileManager.GetAllConfigNamesInFolder("Players");
+            foreach (var playerName in playerNames)
+            {
+                playerConfigs.Add(FileManager.ReadConfig<Player>($"Players/{playerName}"));
+            }
+            return playerConfigs;
         }
 
         public override string ToString()
