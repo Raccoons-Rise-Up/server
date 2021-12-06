@@ -24,7 +24,7 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            BanManager.PardonOfflinePlayer(args[0]);
+            Player.PardonOfflinePlayer(args[0]);
         }
     }
 }

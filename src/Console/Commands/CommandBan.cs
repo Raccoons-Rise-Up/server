@@ -23,7 +23,7 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            BanManager.BanPlayer(args[0]);
+            Player.BanPlayer(args[0]);
         }
     }
 }
