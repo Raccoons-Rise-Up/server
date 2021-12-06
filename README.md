@@ -6,6 +6,7 @@
 5. [Console](#console)
     - [Features](#features-1)
     - [Controls](#controls)
+    - [Commands](#commands)
     - [Logging](#logging)
 6. [Issues](#issues)
 7. [Contributing](#contributing)
