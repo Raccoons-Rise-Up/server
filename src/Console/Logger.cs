@@ -83,12 +83,13 @@ namespace GameServer.Logging
             CommandHistory = new();
             TextField = new();
 
-            #if Windows
+#if Windows
             Terminal.DisableMinimize();
             Terminal.DisableMaximize();
             Terminal.DisableResize();
             Terminal.DisableConsoleFeatures();
-            #endif
+            Terminal.DisableAbruptExit();
+#endif
 
             TextField.row = 1; // Keep the text field 1 row ahead of the logged messages
 

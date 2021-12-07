@@ -1,33 +1,53 @@
 ﻿#if Windows
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using GameServer.Logging;
+using GameServer.Server;
+using GameServer.Utilities;
 
 namespace GameServer.Logging
 {
     public static class Terminal
     {
-        private const uint ENABLE_QUICK_EDIT = 0x0040;
-        private const uint ENABLE_MOUSE_INPUT = 0x0010;
-        private const int STD_INPUT_HANDLE = -10; // STD_INPUT_HANDLE (DWORD): -10 is the standard input device.
+        internal const uint ENABLE_QUICK_EDIT = 0x0040;
+        internal const uint ENABLE_MOUSE_INPUT = 0x0010;
+        internal const int STD_INPUT_HANDLE = -10; // STD_INPUT_HANDLE (DWORD): -10 is the standard input device.
 
         [DllImport("user32.dll")]
-        private static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
+        internal static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
 
         [DllImport("user32.dll")]
-        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+        internal static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
 
         [DllImport("kernel32.dll", ExactSpelling = true)]
-        private static extern IntPtr GetConsoleWindow();
+        internal static extern IntPtr GetConsoleWindow();
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
+        internal static extern IntPtr GetStdHandle(int nStdHandle);
 
         [DllImport("kernel32.dll")]
-        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+        internal static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
 
         // https://docs.microsoft.com/en-us/windows/console/setconsolemode
         [DllImport("kernel32.dll")]
-        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+        internal static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+        [DllImport("Kernel32")]
+        internal static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
+
+        internal delegate bool EventHandler(CtrlType sig);
+        internal static EventHandler _handler;
+
+        internal enum CtrlType
+        {
+            CTRL_C_EVENT = 0,
+            CTRL_BREAK_EVENT = 1,
+            CTRL_CLOSE_EVENT = 2,
+            CTRL_LOGOFF_EVENT = 5,
+            CTRL_SHUTDOWN_EVENT = 6
+        }
 
         internal static void DisableConsoleFeatures()
         {
@@ -107,6 +127,24 @@ namespace GameServer.Logging
             {
                 _ = DeleteMenu(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
             }
+        }
+
+        internal static bool Handler(CtrlType sig)
+        {
+            Thread.CurrentThread.Name = "SERVER"; // Abrubtly exiting seems to clear the current thread name
+            ENetServer.SaveAllPlayersToDatabase();
+            Logger.LogRaw("\nExiting application in 3 seconds...");
+            Thread.Sleep(3000);
+
+            Environment.Exit(-1);
+
+            return true;
+        }
+
+        internal static void DisableAbruptExit() 
+        {
+            _handler += new EventHandler(Handler);
+            SetConsoleCtrlHandler(_handler, true);
         }
     }
 }
