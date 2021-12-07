@@ -42,9 +42,6 @@ namespace GameServer.Logging.Commands
 
         /*private static void ResetPlayer(DatabaseContext db, ModelPlayer dbPlayer) 
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             // Remove the player from the database
             db.Remove(dbPlayer);
             db.SaveChanges();
@@ -54,8 +51,6 @@ namespace GameServer.Logging.Commands
             cmd.Set(ServerOpcode.ClearPlayerStats, dbPlayer.Username);
 
             ENetServer.ENetCmds.Enqueue(cmd);
-
-            stopwatch.Stop();
 
             Logger.Log($"Cleared {dbPlayer.Username} from database ({stopwatch.ElapsedMilliseconds} ms)");
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GameServer.Server;
+using GameServer.Utilities;
 using Common.Game;
 using Common.Utils;
 using Common.Networking.Packet;
@@ -32,35 +33,12 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            // First see if the player is online
-            var isOffline = false;
-            Player player = null;
-            foreach (var p in ENetServer.Players.Values)
-            {
-                if (p.Username == args[0])
-                    player = p;
-            }
+            var playerSearchResultData = ServerUtils.FindPlayer(args[0]);
 
-            if (player == null) 
-            {
-                // Player was not found to be online, lets search the offline configs
-                var playerConfigs = Player.GetAllPlayerConfigs();
-                foreach (var p in playerConfigs)
-                {
-                    if (p.Username.Equals(args[0]))
-                        player = p;
-                }
+            if (playerSearchResultData.SearchResult == ServerUtils.PlayerSearchResultType.FoundNoPlayer)
+                return;
 
-                // Could not find a offline player by this username
-                if (player == null) 
-                {
-                    Logger.Log($"Player by the username '{args[0]}' was not found");
-                    return;
-                }
-
-                // Found a offline player with this username
-                isOffline = true;
-            }
+            var player = playerSearchResultData.Player;
             
             if (args.Length < 2) 
             {
@@ -92,7 +70,7 @@ namespace GameServer.Logging.Commands
             Logger.Log($"Player '{player.Username}' now has {player.ResourceCounts[resourceType]} {resourceType}");
 
             // Player is offline there is no need to send packet data to a non existant client
-            if (isOffline) 
+            if (playerSearchResultData.SearchResult == ServerUtils.PlayerSearchResultType.FoundOfflinePlayer) 
             {
                 // Save the players config
                 player.UpdatePlayerConfig();

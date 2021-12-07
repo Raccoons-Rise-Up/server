@@ -131,7 +131,7 @@ namespace GameServer.Logging
 
         internal static bool Handler(CtrlType sig)
         {
-            Thread.CurrentThread.Name = "SERVER"; // Abrubtly exiting seems to clear the current thread name
+            Thread.CurrentThread.Name = "CONSOLE"; // Abrubtly exiting seems to clear the current thread name
             ENetServer.SaveAllOnlinePlayersToDatabase();
             Logger.LogRaw("\nExiting application in 3 seconds...");
             Thread.Sleep(3000);
