@@ -22,49 +22,20 @@ namespace GameServer.Logging.Commands
         {
             if (args.Length == 0)
             {
-                foreach (var player in Player.GetAllPlayerConfigs())
-                    player.ResetValues();
+                foreach (var p in Player.GetAllPlayerConfigs())
+                    p.ResetValues();
 
-                Logger.Log("Reset values for all players");
+                Logger.Log("Reset values for all player configs");
                 return;
             }
 
-            //var dbPlayer = db.Players.ToList().Find(x => x.Username == args[0]);
+            var playerSearchResultData = ServerUtils.FindPlayer(args[0]);
 
-            /*if (dbPlayer == null)
-            {
-                Logger.Log($"The player with the username '{args[0]}' could not be found in the database ({stopwatch.ElapsedMilliseconds} ms)");
+            if (playerSearchResultData.SearchResult == ServerUtils.PlayerSearchResultType.FoundNoPlayer)
                 return;
-            }*/
 
-            //ResetPlayer(db, dbPlayer);
+            var player = playerSearchResultData.Player;
+            player.ResetValues();
         }
-
-        /*private static void ResetPlayer(DatabaseContext db, ModelPlayer dbPlayer) 
-        {
-            // Remove the player from the database
-            db.Remove(dbPlayer);
-            db.SaveChanges();
-
-            // Clear the players variables from players list
-            var cmd = new ENetCmds();
-            cmd.Set(ServerOpcode.ClearPlayerStats, dbPlayer.Username);
-
-            ENetServer.ENetCmds.Enqueue(cmd);
-
-            Logger.Log($"Cleared {dbPlayer.Username} from database ({stopwatch.ElapsedMilliseconds} ms)");
-        }
-
-        private static void ResetDatabase(DatabaseContext db) 
-        {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            db.RemoveRange(db.Players);
-            db.SaveChanges();
-
-            stopwatch.Stop();
-            Logger.Log($"Cleared database. There are {db.Players.Count()} players left in database ({stopwatch.ElapsedMilliseconds} ms)");
-        }*/
     }
 }
