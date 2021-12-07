@@ -194,35 +194,13 @@ namespace GameServer.Server
 
         public static void SaveAllPlayersToDatabase()
         {
-            /*if (Players.Count == 0)
-                return;
-
-            Logger.Log($"Saving {Players.Count} players to the database");
-
-            var playersThatAreNotInDatabase = new List<Player>();
-
-            foreach (var player in Players)
-            {
-                foreach (var dbPlayer in db.Players.ToList())
-                {
-                    if (player.Username == dbPlayer.Username)
-                    {
-                        player.AddResourcesGeneratedFromStructures();
-                        UpdatePlayerValuesInDatabase(dbPlayer, player);
-                        break;
-                    }
-
-                    playersThatAreNotInDatabase.Add(player);
-                }
-            }
-
-            foreach (var player in playersThatAreNotInDatabase)
+            foreach (var player in Players.Values) 
             {
                 player.AddResourcesGeneratedFromStructures();
-                db.Add((ModelPlayer)player);
+                player.UpdatePlayerConfig();
             }
 
-            db.SaveChanges();*/
+            Logger.Log($"Saved {Players.Count} players to the database");
         }
 
         private static void ValidatePlayerConfigs()
