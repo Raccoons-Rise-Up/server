@@ -32,6 +32,8 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
+            // First see if the player is online
+            var isOffline = false;
             Player player = null;
             foreach (var p in ENetServer.Players.Values)
             {
@@ -41,8 +43,23 @@ namespace GameServer.Logging.Commands
 
             if (player == null) 
             {
-                Logger.Log($"Player by the username '{args[0]}' was not found");
-                return;
+                // Player was not found to be online, lets search the offline configs
+                var playerConfigs = Player.GetAllPlayerConfigs();
+                foreach (var p in playerConfigs)
+                {
+                    if (p.Username.Equals(args[0]))
+                        player = p;
+                }
+
+                // Could not find a offline player by this username
+                if (player == null) 
+                {
+                    Logger.Log($"Player by the username '{args[0]}' was not found");
+                    return;
+                }
+
+                // Found a offline player with this username
+                isOffline = true;
             }
             
             if (args.Length < 2) 
@@ -71,6 +88,18 @@ namespace GameServer.Logging.Commands
 
             player.ResourceCounts[resourceType] = player.ResourceCounts[resourceType] + amount;
 
+            // Although this log message is sent before the logic, it would be awkward to put it after and would require a duplicate so that's why it's here right now
+            Logger.Log($"Player '{player.Username}' now has {player.ResourceCounts[resourceType]} {resourceType}");
+
+            // Player is offline there is no need to send packet data to a non existant client
+            if (isOffline) 
+            {
+                // Save the players config
+                player.UpdatePlayerConfig();
+                return;
+            }
+
+            // Send the resource data to the player client
             var resourcesToSend = new Dictionary<ResourceType, uint>
             {
                 { resourceType, (uint)player.ResourceCounts[resourceType] }
@@ -80,8 +109,6 @@ namespace GameServer.Logging.Commands
             {
                 ResourceCounts = resourcesToSend
             }), player.Peer, PacketFlags.Reliable);
-
-            Logger.Log($"Player '{player.Username}' now has {player.ResourceCounts[resourceType]} {resourceType}");
         }
     }
 }
