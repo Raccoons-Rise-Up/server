@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using GameServer.Server;
 using Common.Game;
 using Common.Utils;
+using Common.Networking.Packet;
+using GameServer.Server.Packets;
+using ENet;
 
 namespace GameServer.Logging.Commands
 {
@@ -60,7 +63,7 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            if (!double.TryParse(args[2], out double amount))
+            if (!uint.TryParse(args[2], out uint amount))
             {
                 Logger.Log($"'{args[2]}' is not a valid number");
                 return;
@@ -68,7 +71,17 @@ namespace GameServer.Logging.Commands
 
             player.ResourceCounts[resourceType] = player.ResourceCounts[resourceType] + amount;
 
-            Logger.Log($"Player '{player.Username}' now has {player.ResourceCounts[resourceType] + amount} {resourceType}");
+            var resourcesToSend = new Dictionary<ResourceType, uint>
+            {
+                { resourceType, (uint)player.ResourceCounts[resourceType] }
+            };
+
+            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerData, new WPacketPlayerData
+            {
+                ResourceCounts = resourcesToSend
+            }), player.Peer, PacketFlags.Reliable);
+
+            Logger.Log($"Player '{player.Username}' now has {player.ResourceCounts[resourceType]} {resourceType}");
         }
     }
 }

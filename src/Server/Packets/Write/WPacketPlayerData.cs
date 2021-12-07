@@ -11,6 +11,12 @@ namespace GameServer.Server.Packets
         public Dictionary<ResourceType, uint> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
 
+        public WPacketPlayerData() 
+        {
+            ResourceCounts = new();
+            StructureCounts = new();
+        }
+
         public void Write(PacketWriter writer)
         {
             // Resource counts

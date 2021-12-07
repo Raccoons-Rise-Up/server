@@ -28,33 +28,6 @@ namespace GameServer.Server
         public static Dictionary<StructureType, StructureInfo> StructureInfoData { get; private set; }
 
         #region WorkerThread
-        private static void ValidatePlayerConfigs() 
-        {
-            var playerConfigs = Player.GetAllPlayerConfigs();
-
-            // Consider the following scenario:
-            // 1. A new structure / resource gets added to the game
-            // 2. But the current player config did not get these updated changes
-            // 3. That's what this code does, it updates the player config to include these new changes
-            var resourceCountTypes = Enum.GetValues(typeof(ResourceType));
-            var structureCountTypes = Enum.GetValues(typeof(StructureType));
-
-            foreach (var player in playerConfigs)
-            {
-                if (player.ResourceCounts.Count < resourceCountTypes.Length)
-                    foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
-                        if (!player.ResourceCounts.ContainsKey(type))
-                            player.ResourceCounts.Add(type, 0);
-
-                if (player.StructureCounts.Count < structureCountTypes.Length)
-                    foreach (StructureType type in Enum.GetValues(typeof(StructureType)))
-                        if (!player.StructureCounts.ContainsKey(type))
-                            player.StructureCounts.Add(type, 0);
-            }
-
-            Logger.Log("Validated all player configs successfully");
-        }
-
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
@@ -250,6 +223,33 @@ namespace GameServer.Server
             }
 
             db.SaveChanges();*/
+        }
+
+        private static void ValidatePlayerConfigs()
+        {
+            var playerConfigs = Player.GetAllPlayerConfigs();
+
+            // Consider the following scenario:
+            // 1. A new structure / resource gets added to the game
+            // 2. But the current player config did not get these updated changes
+            // 3. That's what this code does, it updates the player config to include these new changes
+            var resourceCountTypes = Enum.GetValues(typeof(ResourceType));
+            var structureCountTypes = Enum.GetValues(typeof(StructureType));
+
+            foreach (var player in playerConfigs)
+            {
+                if (player.ResourceCounts.Count < resourceCountTypes.Length)
+                    foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
+                        if (!player.ResourceCounts.ContainsKey(type))
+                            player.ResourceCounts.Add(type, 0);
+
+                if (player.StructureCounts.Count < structureCountTypes.Length)
+                    foreach (StructureType type in Enum.GetValues(typeof(StructureType)))
+                        if (!player.StructureCounts.ContainsKey(type))
+                            player.StructureCounts.Add(type, 0);
+            }
+
+            Logger.Log("Validated all player configs successfully");
         }
         #endregion
     }
