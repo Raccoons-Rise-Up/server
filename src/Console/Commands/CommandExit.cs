@@ -18,7 +18,7 @@ namespace GameServer.Logging.Commands
 
         public async override void Run(string[] args)
         {
-            ENetServer.SaveAllPlayersToDatabase();
+            ENetServer.SaveAllOnlinePlayersToDatabase();
 
             Logger.LogRaw("\nExiting application in 3 seconds...");
             await Task.Delay(3000);

@@ -192,7 +192,7 @@ namespace GameServer.Server
             peer.Send(channelID, ref packet);
         }
 
-        public static void SaveAllPlayersToDatabase()
+        public static void SaveAllOnlinePlayersToDatabase()
         {
             foreach (var player in Players.Values) 
             {
@@ -200,7 +200,7 @@ namespace GameServer.Server
                 player.UpdatePlayerConfig();
             }
 
-            Logger.Log($"Saved {Players.Count} players to the database");
+            Logger.Log($"Saved {Players.Count} online players to the database");
         }
 
         private static void ValidatePlayerConfigs()
