@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using GameServer.Server;
+using GameServer.Utilities;
 
 namespace GameServer.Logging.Commands
 {
@@ -26,64 +27,25 @@ namespace GameServer.Logging.Commands
                 return;
             }
 
-            FindPlayer(args);
-        }
+            var playerSearchResultData = ServerUtils.FindPlayer(args[0]);
 
-        private static void FindPlayer(string[] args) 
-        {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            /*using var db = new DatabaseContext();
-
-            var dbPlayers = db.Players.ToList();
-            var dbPlayer = dbPlayers.Find(x => x.Username == args[0]);
-
-            stopwatch.Stop();
-
-            if (dbPlayer == null)
-            {
-                Logger.Log($"Could not find any player with the username '{args[0]}' ({stopwatch.ElapsedMilliseconds} ms)");
+            if (playerSearchResultData.SearchResult == ServerUtils.PlayerSearchResultType.FoundNoPlayer)
                 return;
-            }
 
-            Logger.LogRaw($"\nFound player with username '{args[0]}' ({stopwatch.ElapsedMilliseconds} ms)");
+            var player = playerSearchResultData.Player;
 
-            //PlayerFromDatabase(dbPlayer);
-            PlayerFromCache(dbPlayer.Username);*/
-        }
-
-        private static void PlayerFromCache(string username) 
-        {
-            var cmd = new ENetCmds();
-            cmd.Set(ServerOpcode.GetPlayerStats, username);
-
-            ENetServer.ENetCmds.Enqueue(cmd);
-        }
-
-        /*private static void PlayerFromDatabase(ModelPlayer dbPlayer) 
-        {
-            var diff = DateTime.Now - dbPlayer.LastSeen;
+            var diff = DateTime.Now - player.LastSeen;
             var diffReadable = $"Days: {diff.Days}, Hours: {diff.Hours}, Minutes: {diff.Minutes}, Seconds: {diff.Seconds}";
+
+            player.AddResourcesGeneratedFromStructures();
 
             Logger.LogRaw(
                 $"\nDATABASE" +
-                $"\nUsername: {dbPlayer.Username} " +
-                $"\nGold: {dbPlayer.ResourceGold} (+{CalculateGoldGeneratedFromStructures(dbPlayer)})" +
-                $"\nStructure Huts: {dbPlayer.StructureHut}" +
+                $"\nUsername: {player.Username} " +
+                $"\nGold: {player.ResourceCounts[Common.Game.ResourceType.Gold]}" +
+                $"\nLumber Yards: {player.StructureCounts[Common.Game.StructureType.LumberYard]}" +
                 $"\nLast Seen: {diffReadable}"
             );
-        }*/
-
-        /*private static uint CalculateGoldGeneratedFromStructures(ModelPlayer player)
-        {
-            // Calculate players new gold value based on how many structures they own
-            var diff = DateTime.Now - player.LastCheckStructureHut;
-            uint goldGenerated = player.StructureHut * (uint)diff.TotalSeconds;
-
-            player.LastCheckStructureHut = DateTime.Now;
-
-            return goldGenerated;
-        }*/
+        }
     }
 }
