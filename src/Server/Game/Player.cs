@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using ENet;
 using Common.Game;
+using Common.Utils;
 using GameServer.Logging;
 using GameServer.Utilities;
 using Common.Networking.Packet;
@@ -42,11 +43,11 @@ namespace GameServer.Server
 
         public void ResetValues() 
         {
-            var resourceTypes = Utils.GetEnumList<ResourceType>();
+            var resourceTypes = SharedUtils.GetEnumList<ResourceType>();
             foreach (var resourceType in resourceTypes)
                 ResourceCounts[resourceType] = 0;
 
-            var structureTypes = Utils.GetEnumList<StructureType>();
+            var structureTypes = SharedUtils.GetEnumList<StructureType>();
             foreach (var structureType in structureTypes)
                 StructureCounts[structureType] = 0;
 
