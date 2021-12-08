@@ -12,7 +12,7 @@
 7. [Contributing](#contributing)
 
 ## What is this?
-A multi-threaded console / game server that handles logging, user commands, database and ENet connections for Kittens Rise Up clients.
+A multi-threaded console / game server that handles logging, user commands, database and ENet connections for Raccoons Rise Up clients.
 
 I have tried using several networking libs in the past, none of them worked out for me.
 - Unity's 2019 LLMAPI has little documentation and unexplained behavior
@@ -23,7 +23,7 @@ The only networking lib that stood out to me is [ENet-CSharp](https://github.com
 
 I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the console. This game-server follows thread safety and does not depend on any external API for the console.
 
-[Kittens Rise Up Roadmap](https://trello.com/b/XkhJxR2x/kittens-rise-up)
+[Raccoons Rise Up Roadmap](https://trello.com/b/XkhJxR2x/raccoons-rise-up)
 
 ## Setup
 .NET is installed from https://dotnet.microsoft.com/download/dotnet/5.0 (cross platform) or with Visual Studio if you check the `.NET desktop environment` workload when installing.
@@ -96,4 +96,4 @@ Please see the projects [current issues](https://github.com/Kittens-Rise-Up/serv
 ## Contributing
 Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
 
-Talk to `valk#9904` in the [Kittens Rise Up](https://discord.gg/cDNf8ja) discord for more info.
+Not all the things to do are listed in the [issues](https://github.com/Raccoons-Rise-Up/server/issues), if you want to know more of what needs to be done please talk to `valk#9904` in the [Raccoons Rise Up](https://discord.gg/cDNf8ja) discord for more info.
