@@ -35,15 +35,14 @@ namespace GameServer.Server.Packets
             {
                 Logger.Log($"Player '{player.Username}' could not afford '1 x {structure.Name}'");
 
-                // TODO: Change from "not enough gold" to "not enough resources"
-                var packetDataNotEnoughGold = new WPacketPurchaseItem
+                var packetDataNotEnoughResources = new WPacketPurchaseItem
                 {
-                    PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
+                    PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughResources,
                     ResourcesLength = (byte)purchaseResult.Resources.Count,
                     Resources = purchaseResult.Resources
                 };
-                var serverPacketNotEnoughGold = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughGold);
-                ENetServer.Send(serverPacketNotEnoughGold, peer, PacketFlags.Reliable);
+                var serverPacketNotEnoughResources = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughResources);
+                ENetServer.Send(serverPacketNotEnoughResources, peer, PacketFlags.Reliable);
                 return;
             }
 
