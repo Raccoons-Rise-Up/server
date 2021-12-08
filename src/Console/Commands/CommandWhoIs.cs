@@ -40,12 +40,41 @@ namespace GameServer.Logging.Commands
             player.AddResourcesGeneratedFromStructures();
 
             Logger.LogRaw(
-                $"\nDATABASE" +
                 $"\nUsername: {player.Username} " +
-                $"\nGold: {player.ResourceCounts[Common.Game.ResourceType.Gold]}" +
-                $"\nLumber Yards: {player.StructureCounts[Common.Game.StructureType.LumberYard]}" +
-                $"\nLast Seen: {diffReadable}"
+                $"\nLast Seen: {diffReadable}" +
+                GetPlayerResourcesAsString(player) +
+                GetPlayerStructuresAsString(player)
             );
+        }
+
+        private static string GetPlayerStructuresAsString(Player player) 
+        {
+            var structuresReadable = "\n\n--- Structures ---";
+
+            foreach (var structure in player.StructureCounts) 
+            {
+                var structureName = Enum.GetName(typeof(Common.Game.StructureType), structure.Key);
+                var structureValue = structure.Value;
+
+                structuresReadable += $"\n{structureName}: {structureValue}";
+            }
+
+            return structuresReadable;
+        }
+
+        private static string GetPlayerResourcesAsString(Player player) 
+        {
+            var resourcesReadable = "\n\n--- Resources ---";
+
+            foreach (var resource in player.ResourceCounts)
+            {
+                var resourceName = Enum.GetName(typeof(Common.Game.ResourceType), resource.Key);
+                var resourceValue = resource.Value;
+
+                resourcesReadable += $"\n{resourceName}: {resourceValue}";
+            }
+
+            return resourcesReadable;
         }
     }
 }
