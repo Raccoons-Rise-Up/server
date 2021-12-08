@@ -186,6 +186,9 @@ namespace GameServer.Logging
 
                         Console.WriteLine(nextCommand);
 
+                        // CursorLeft should be at the very end of the text
+                        Console.CursorLeft = nextCommand.Length;
+
                         continue;
                     }
 
@@ -204,6 +207,9 @@ namespace GameServer.Logging
                         TextField.Clear(false);
 
                         Console.WriteLine(prevCommand);
+
+                        // CursorLeft should be at the very end of the text
+                        Console.CursorLeft = prevCommand.Length;
 
                         continue;
                     }
