@@ -17,46 +17,56 @@ namespace GameServer.Utilities
         public static PlayerSearchResult FindPlayer(string username) 
         {
             // Check to see if the player is online
-            Player player = null;
-            var isOffline = false;
-            foreach (var p in ENetServer.Players.Values) 
+            Player player = FindOnlinePlayer(username);
+
+            if (player != null) // Found a online player
             {
-                if (p.Username.Equals(username))
-                    player = p;
+                return new PlayerSearchResult
+                {
+                    SearchResult = PlayerSearchResultType.FoundOnlinePlayer,
+                    Player = player
+                };
             }
 
-            if (player == null) 
+            // Could not find a online player
+            // Lets check to see if the player exists in the offline configs
+            player = FindOfflinePlayer(username);
+
+            if (player == null)
             {
-                // Could not find a player that was online
-                // Lets check to see if the player is in the offline configs
-                var offlinePlayerConfigs = Player.GetAllPlayerConfigs();
-                foreach (var p in offlinePlayerConfigs) 
+                // Could not find a player that was offline
+                Logger.Log($"Player by the username '{username}' was not found");
+                return new PlayerSearchResult
                 {
-                    if (p.Username.Equals(username))
-                        player = p;
-                }
-
-                if (player == null) 
-                {
-                    // Could not find a player that was offline
-                    Logger.Log($"Player by the username '{username}' was not found");
-                    return new PlayerSearchResult 
-                    {
-                        SearchResult = PlayerSearchResultType.FoundNoPlayer,
-                        Player = null
-                    };
-                }
-
-                // Found a player that was offline with this username
-                isOffline = true;
+                    SearchResult = PlayerSearchResultType.FoundNoPlayer,
+                    Player = null
+                };
             }
 
-            // If the code has reached this point we have either found a online or offline player
+            // Found a player that was offline with this username
             return new PlayerSearchResult
             {
-                SearchResult = isOffline ? PlayerSearchResultType.FoundOfflinePlayer : PlayerSearchResultType.FoundOnlinePlayer,
+                SearchResult = PlayerSearchResultType.FoundOfflinePlayer,
                 Player = player
             };
+        }
+
+        public static Player FindOnlinePlayer(string username) 
+        {
+            foreach (var p in ENetServer.Players.Values)
+                if (p.Username.Equals(username))
+                    return p;
+
+            return null;
+        }
+
+        public static Player FindOfflinePlayer(string username) 
+        {
+            foreach (var p in Player.GetAllPlayerConfigs())
+                if (p.Username.Equals(username))
+                    return p;
+
+            return null;
         }
 
         public struct PlayerSearchResult 
