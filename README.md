@@ -12,7 +12,7 @@
 7. [Contributing](#contributing)
 
 ## What is this?
-A multi-threaded console / game server that handles logging, user commands, database and ENet connections for Kittens Rise Up clients.
+A multi-threaded console / game server that handles logging, user commands, database and ENet connections for Raccoons Rise Up clients.
 
 I have tried using several networking libs in the past, none of them worked out for me.
 - Unity's 2019 LLMAPI has little documentation and unexplained behavior
