@@ -267,7 +267,7 @@ namespace GameServer.Logging
                             CommandHistory.RemoveAt(0);
 
                         // Add command along with args[] to command history
-                        CommandHistory.Add(TextField.input);
+                        CommandHistory.Add(TextField.input.Trim().ToLower().Split(' ')[0]);
 
                         // Reset command history index to 0 on enter
                         commandHistoryIndex = 0;
