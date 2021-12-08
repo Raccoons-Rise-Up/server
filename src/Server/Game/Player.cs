@@ -68,7 +68,8 @@ namespace GameServer.Server
             if (lackingResources.Count > 0)
                 return new PurchaseResult
                 {
-                    Result = PurchaseEnumResult.LackingResources
+                    Result = PurchaseEnumResult.LackingResources,
+                    Resources = lackingResources
                 };
 
             // The player has enough to purchase this

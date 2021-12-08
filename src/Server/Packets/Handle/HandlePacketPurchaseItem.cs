@@ -35,6 +35,7 @@ namespace GameServer.Server.Packets
             {
                 Logger.Log($"Player '{player.Username}' could not afford '1 x {structure.Name}'");
 
+                // TODO: Change from "not enough gold" to "not enough resources"
                 var packetDataNotEnoughGold = new WPacketPurchaseItem
                 {
                     PurchaseItemResponseOpcode = PurchaseItemResponseOpcode.NotEnoughGold,
