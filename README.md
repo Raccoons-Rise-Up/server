@@ -29,7 +29,7 @@ I previously created a [game-server](https://github.com/The-MMORPG-Project/game-
 .NET is installed from https://dotnet.microsoft.com/download/dotnet/5.0 (cross platform) or with Visual Studio if you check the `.NET desktop environment` workload when installing.
 
 ### Public JWT Key
-Create a `public.key` in `obj\Debug\net5.0` (if you don't see these folders you need to run the project at least once with `dotnet run`) with same key generated from [web-server](https://github.com/Kittens-Rise-Up/website)
+Copy the `public.key` which was created from the [web-server](https://github.com/Kittens-Rise-Up/website) and paste it in `obj\Debug\net5.0` (if you don't see these folders you need to run the project at least once with `dotnet run`)
 
 Run the project with `dotnet run`
 
