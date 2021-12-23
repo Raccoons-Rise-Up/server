@@ -182,14 +182,33 @@ namespace GameServer.Server
             Library.Deinitialize();
         }
 
-        // Remember this can only be used on the ENet thread!!
-        public static void Send(GamePacket gamePacket, Peer peer, PacketFlags packetFlags)
+        public static List<Peer> GetOtherPeers(Peer peer)
+        {
+            var peers = new List<Peer>();
+            foreach (var p in ENetServer.Players)
+                if (p.Key != peer.ID)
+                    peers.Add(p.Value.Peer);
+
+            return peers;
+        }
+
+        // Remember this can only be used on the ENet thread!! (why though I forget)
+        public static void Send(GamePacket gamePacket, Peer peer)
         {
             // Send data to a specific client (peer)
             var packet = default(Packet);
-            packet.Create(gamePacket.Data, packetFlags);
+            packet.Create(gamePacket.Data, gamePacket.PacketFlags);
             byte channelID = 0;
             peer.Send(channelID, ref packet);
+        }
+
+        public static void Send(GamePacket gamePacket, List<Peer> peers) 
+        {
+            var packet = default(Packet);
+            packet.Create(gamePacket.Data, gamePacket.PacketFlags);
+            byte channelID = 0;
+            foreach (var peer in peers)
+                peer.Send(channelID, ref packet);
         }
 
         public static void SaveAllOnlinePlayersToDatabase()
