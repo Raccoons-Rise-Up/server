@@ -86,7 +86,7 @@ namespace GameServer.Logging.Commands
             ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerData, new WPacketPlayerData
             {
                 ResourceCounts = resourcesToSend
-            }), player.Peer, PacketFlags.Reliable);
+            }), player.Peer);
         }
     }
 }

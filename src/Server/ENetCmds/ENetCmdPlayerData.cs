@@ -38,7 +38,7 @@ namespace GameServer.Server
                 {
                     ResourceCounts = player.ResourceCounts.ToDictionary(x => x.Key, x => (uint)x.Value),
                     StructureCounts = player.StructureCounts
-                }), player.Peer, PacketFlags.Reliable);
+                }), player.Peer);
             }
 
             Logger.Log($"Reset \'{username}\' values");
