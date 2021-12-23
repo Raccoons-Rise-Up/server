@@ -42,7 +42,7 @@ namespace GameServer.Server.Packets
                     Resources = purchaseResult.Resources
                 };
                 var serverPacketNotEnoughResources = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataNotEnoughResources);
-                ENetServer.Send(serverPacketNotEnoughResources, peer, PacketFlags.Reliable);
+                ENetServer.Send(serverPacketNotEnoughResources, peer);
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace GameServer.Server.Packets
                     Resources = purchaseResult.Resources
                 };
                 var serverPacketPurchasedItem = new ServerPacket((byte)ServerPacketOpcode.PurchasedItem, packetDataPurchasedItem);
-                ENetServer.Send(serverPacketPurchasedItem, peer, PacketFlags.Reliable);
+                ENetServer.Send(serverPacketPurchasedItem, peer);
             }
         }
     }
