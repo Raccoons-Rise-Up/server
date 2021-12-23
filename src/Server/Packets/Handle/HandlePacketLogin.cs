@@ -33,7 +33,7 @@ namespace GameServer.Server.Packets
                 ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.InvalidToken
-                }), peer, PacketFlags.Reliable);
+                }), peer);
                 return;
             }
 
@@ -50,7 +50,7 @@ namespace GameServer.Server.Packets
                 {
                     LoginOpcode = LoginResponseOpcode.VersionMismatch,
                     ServerVersion = ENetServer.ServerVersion
-                }), peer, PacketFlags.Reliable);
+                }), peer);
 
                 return;
             }
@@ -86,7 +86,8 @@ namespace GameServer.Server.Packets
                 {
                     LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
                     ResourceCounts = player.ResourceCounts.ToDictionary(x => x.Key, x => (uint)x.Value),
-                    StructureCounts = player.StructureCounts
+                    StructureCounts = player.StructureCounts,
+                    PlayerName = playerUsername
                 };
 
                 // Add the player to the list of players currently on the server
@@ -99,7 +100,8 @@ namespace GameServer.Server.Packets
                 // NEW PLAYER
                 packetData = new WPacketLogin
                 {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer,
+                    PlayerName = playerUsername
                 };
 
                 // Add the player to the list of players currently on the server
@@ -108,7 +110,16 @@ namespace GameServer.Server.Packets
                 Logger.Log($"User '{playerUsername}' logged in for the first time");
             }
 
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData), peer, PacketFlags.Reliable);
+            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData), peer);
+
+            // Tell the joining client how many players are on the server
+            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerList, new WPacketPlayerList()), peer);
+
+            // Tell all other clients that this player has joined
+            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerJoined, new WPacketPlayerJoined {
+                PlayerId = peer.ID,
+                PlayerName = playerUsername
+            }), ENetServer.GetOtherPeers(peer));
         }
     }
 }
