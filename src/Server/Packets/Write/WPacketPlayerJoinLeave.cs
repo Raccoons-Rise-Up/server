@@ -6,15 +6,19 @@ using Common.Game;
 
 namespace GameServer.Server.Packets
 {
-    public class WPacketPlayerJoined : IWritable
+    public class WPacketPlayerJoinLeave : IWritable
     {
+        public JoinLeaveOpcode JoinLeaveOpcode { get; set; }
         public uint PlayerId { get; set; }
         public string PlayerName { get; set; }
 
         public void Write(PacketWriter writer)
         {
+            writer.Write((byte)JoinLeaveOpcode);
             writer.Write(PlayerId);
-            writer.Write(PlayerName);
+
+            if (JoinLeaveOpcode == JoinLeaveOpcode.Join)
+                writer.Write(PlayerName);
         }
     }
 }
