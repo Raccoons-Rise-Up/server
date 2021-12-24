@@ -72,6 +72,16 @@ namespace GameServer.Server.Packets
 
             var player = Player.GetPlayerConfig(playerUsername);
 
+            // Check if a player with this username is logged in already
+            foreach (var p in ENetServer.Players)
+            {
+                if (p.Value.Username.Equals(playerUsername)) 
+                {
+                    netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.PlayerWithUsernameExistsOnServerAlready);
+                    return;
+                }
+            }
+
             // These values will be sent to the client
             WPacketLogin packetData;
 
@@ -116,7 +126,8 @@ namespace GameServer.Server.Packets
             ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerList, new WPacketPlayerList()), peer);
 
             // Tell all other clients that this player has joined
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerJoined, new WPacketPlayerJoined {
+            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerJoinLeave, new WPacketPlayerJoinLeave {
+                JoinLeaveOpcode = JoinLeaveOpcode.Join,
                 PlayerId = peer.ID,
                 PlayerName = playerUsername
             }), ENetServer.GetOtherPeers(peer));
