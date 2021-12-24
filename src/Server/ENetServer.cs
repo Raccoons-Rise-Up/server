@@ -132,17 +132,16 @@ namespace GameServer.Server
                             var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
                             var bannedPlayer = bannedPlayers.Find(x => x.Ip == netEvent.Peer.IP);
 
-                            if (bannedPlayer == null)
-                            {
-                                // Player is not banned, set timeout delays for player timeout
-                                netEvent.Peer.Timeout(32, 1000, 4000);
-                            }
-                            else 
+                            if (bannedPlayer != null) 
                             {
                                 // Player is banned, disconnect them immediately 
                                 netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
                                 Logger.Log($"Player '{bannedPlayer.Name}' tried to join but is banned");
+                                break;
                             }
+
+                            // Set timeout delays for player timeout
+                            netEvent.Peer.Timeout(32, 1000, 4000);
                         }
 
                         if (eventType == EventType.Disconnect) 
@@ -150,8 +149,7 @@ namespace GameServer.Server
                             var player = Players[netEvent.Peer.ID];
                             player.UpdatePlayerConfig();
 
-                            // Remove player from player list
-                            Players.Remove(netEvent.Peer.ID);
+                            HandleDisconnectAndTimeout(netEvent);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
                         }
@@ -161,8 +159,7 @@ namespace GameServer.Server
                             var player = Players[netEvent.Peer.ID];
                             player.UpdatePlayerConfig();
 
-                            // Remove player from player list
-                            Players.Remove(netEvent.Peer.ID);
+                            HandleDisconnectAndTimeout(netEvent);
 
                             Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
                         }
@@ -182,12 +179,36 @@ namespace GameServer.Server
             Library.Deinitialize();
         }
 
+        private static void HandleDisconnectAndTimeout(Event netEvent) 
+        {
+            // Remove player from player list
+            Players.Remove(netEvent.Peer.ID);
+
+            // Tell all other clients that this player has left
+            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerJoinLeave, new WPacketPlayerJoinLeave
+            {
+                JoinLeaveOpcode = JoinLeaveOpcode.Leave,
+                PlayerId = netEvent.Peer.ID
+            }), ENetServer.GetOtherPeers(netEvent.Peer));
+        }
+
+        // Gets every peer in ENetServer.Players except for the current 'peer'
         public static List<Peer> GetOtherPeers(Peer peer)
         {
             var peers = new List<Peer>();
             foreach (var p in ENetServer.Players)
                 if (p.Key != peer.ID)
                     peers.Add(p.Value.Peer);
+
+            return peers;
+        }
+
+        // Gets all peers
+        public static List<Peer> GetAllPeers() 
+        {
+            var peers = new List<Peer>();
+            foreach (var p in Players)
+                peers.Add(p.Value.Peer);
 
             return peers;
         }
