@@ -4,6 +4,7 @@ using Common.Networking.Message;
 using Common.Networking.Packet;
 using Common.Game;
 using GameServer.Logging;
+using ENet;
 
 namespace GameServer.Server.Packets
 {
@@ -11,9 +12,6 @@ namespace GameServer.Server.Packets
     {
         public void Write(PacketWriter writer)
         {
-            foreach (var p in ENetServer.Players)
-                Logger.Log($"{p.Key}: {p.Value}");
-
             writer.Write((byte)ENetServer.Players.Count);
             foreach (var p in ENetServer.Players) 
             {

@@ -13,6 +13,7 @@ namespace GameServer.Server.Packets
         public Dictionary<ResourceType, uint> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
         public string PlayerName { get; set; }
+        public uint PlayerId { get; set; }
 
         public void Write(PacketWriter writer)
         {
@@ -26,6 +27,7 @@ namespace GameServer.Server.Packets
                     writer.Write((byte)ServerVersion.Patch);
                     break;
                 case LoginResponseOpcode.LoginSuccessReturningPlayer:
+                    writer.Write((uint)PlayerId);
                     writer.Write((string)PlayerName);
 
                     // Resource counts

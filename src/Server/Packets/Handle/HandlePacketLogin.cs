@@ -70,8 +70,6 @@ namespace GameServer.Server.Packets
                 return;
             }
 
-            var player = Player.GetPlayerConfig(playerUsername);
-
             // Check if a player with this username is logged in already
             foreach (var p in ENetServer.Players)
             {
@@ -85,6 +83,8 @@ namespace GameServer.Server.Packets
             // These values will be sent to the client
             WPacketLogin packetData;
 
+            var player = Player.GetPlayerConfig(playerUsername);
+
             if (player != null)
             {
                 // RETURNING PLAYER
@@ -97,6 +97,7 @@ namespace GameServer.Server.Packets
                     LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
                     ResourceCounts = player.ResourceCounts.ToDictionary(x => x.Key, x => (uint)x.Value),
                     StructureCounts = player.StructureCounts,
+                    PlayerId = player.Peer.ID,
                     PlayerName = playerUsername
                 };
 
@@ -111,6 +112,7 @@ namespace GameServer.Server.Packets
                 packetData = new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer,
+                    PlayerId = netEvent.Peer.ID,
                     PlayerName = playerUsername
                 };
 
