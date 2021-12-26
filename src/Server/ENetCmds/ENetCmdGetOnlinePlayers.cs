@@ -20,7 +20,11 @@ namespace GameServer.Server
                 return;
             }
 
-            Logger.LogRaw($"\nOnline Players: {string.Join(' ', ENetServer.Players.Values)}");
+            var players = new List<string>();
+            foreach (var p in ENetServer.Players)
+                players.Add($"{p.Value} ({p.Key})");
+
+            Logger.LogRaw($"\nOnline Players: {string.Join(' ', players)}");
         }
     }
 }

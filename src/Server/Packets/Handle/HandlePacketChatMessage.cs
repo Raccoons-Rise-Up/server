@@ -53,9 +53,9 @@ namespace GameServer.Server.Packets
             }
             else 
             {
-                var peerIds = ENetServer.Channels[data.ChannelId];
+                var channel = ENetServer.Channels[data.ChannelId];
                 var peers = new List<Peer>();
-                foreach (var peerId in peerIds)
+                foreach (var peerId in channel.Users)
                     peers.Add(ENetServer.Players[peerId].Peer);
 
                 ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChatMessage, new WPacketChatMessage

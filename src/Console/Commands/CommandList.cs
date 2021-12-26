@@ -17,34 +17,13 @@ namespace GameServer.Logging.Commands
 
         public override void Run(string[] args)
         {
-            if (args.Length == 0) 
-            {
-                GetOnlinePlayers();
-                return;
-            }
-
-            GetOfflinePlayers();
+            GetOnlinePlayers();
         }
 
         private static void GetOnlinePlayers() 
         {
             var cmd = new ENetCmds(ServerOpcode.GetOnlinePlayers);
             ENetServer.ENetCmds.Enqueue(cmd);
-        }
-
-        private static void GetOfflinePlayers() 
-        {
-            /*using var db = new DatabaseContext();
-
-            var dbPlayers = db.Players.ToList();
-
-            if (dbPlayers.Count == 0)
-            {
-                Logger.Log("There are 0 players in the database");
-                return;
-            }
-
-            Logger.LogRaw($"\nOffline Players: {string.Join(' ', dbPlayers)}");*/
         }
     }
 }

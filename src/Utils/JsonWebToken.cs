@@ -49,7 +49,7 @@ namespace GameServer.Utilities
                 };
 
             // Check iss, aud and sub
-            if (Payload.iss != "Kittens Rise Up")
+            if (Payload.iss != "Raccoons Rise Up")
                 return new TokenValidateResponse 
                 {
                     Error = TokenValidateError.InvalidIssuer,

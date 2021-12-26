@@ -26,14 +26,14 @@ namespace GameServer.Server
         public static ServerVersion ServerVersion { get; private set; }
         public static Dictionary<ResourceType, ResourceInfo> ResourceInfoData { get; private set; }
         public static Dictionary<StructureType, StructureInfo> StructureInfoData { get; private set; }
-        public static Dictionary<string, List<uint>> Channels { get; set; } // The text channels the clients see
+        public static Dictionary<string, UIChannel> Channels { get; set; } // The text channels the clients see
 
         #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            Channels = new Dictionary<string, List<uint>>();
+            Channels = new Dictionary<string, UIChannel>();
 
             ResourceInfoData = typeof(ResourceInfo).Assembly.GetTypes().Where(x => typeof(ResourceInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ResourceInfo>()
                 .ToDictionary(x => (ResourceType)Enum.Parse(typeof(ResourceType), x.GetType().Name.Replace(typeof(ResourceInfo).Name, "")), x => x);

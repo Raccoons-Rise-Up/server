@@ -30,6 +30,19 @@ namespace GameServer.Server.Packets
                     writer.Write((uint)PlayerId);
                     writer.Write((string)PlayerName);
 
+                    // Channels
+                    writer.Write((ushort)ENetServer.Channels.Count);
+                    foreach (var channel in ENetServer.Channels) 
+                    {
+                        writer.Write(channel.Key);
+                        writer.Write(channel.Value.Creator);
+                        writer.Write((ushort)channel.Value.Users.Count);
+                        foreach (var userId in channel.Value.Users) 
+                        {
+                            writer.Write(userId);
+                        }
+                    }
+
                     // Resource counts
                     writer.Write((ushort)ResourceCounts.Count);
                     foreach (var resourceCount in ResourceCounts) 
