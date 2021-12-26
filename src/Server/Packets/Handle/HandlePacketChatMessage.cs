@@ -42,14 +42,31 @@ namespace GameServer.Server.Packets
             foreach (var blockedString in BlockedStrings)
                 message = message.Replace(blockedString, "meowww");
 
-            // Not sure if this is allowed with threading but going to try anyways!
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChatMessage, new WPacketChatMessage
+            if (data.ChannelId == "Global" || data.ChannelId == "Game")
             {
-                PlayerId = peer.ID,
-                Message = message
-            }), ENetServer.GetAllPeers());
+                ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChatMessage, new WPacketChatMessage
+                {
+                    PlayerId = peer.ID,
+                    ChannelId = data.ChannelId,
+                    Message = message
+                }), ENetServer.GetAllPeers());
+            }
+            else 
+            {
+                var peerIds = ENetServer.Channels[data.ChannelId];
+                var peers = new List<Peer>();
+                foreach (var peerId in peerIds)
+                    peers.Add(ENetServer.Players[peerId].Peer);
 
-            Logger.Log($"{player.Username}: {message}");
+                ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChatMessage, new WPacketChatMessage
+                {
+                    PlayerId = peer.ID,
+                    ChannelId = data.ChannelId,
+                    Message = message
+                }), peers);
+            }
+
+            Logger.Log($"[{data.ChannelId}] {player.Username}: {message}");
         }
     }
 }
