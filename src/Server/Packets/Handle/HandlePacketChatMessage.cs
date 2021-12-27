@@ -53,7 +53,7 @@ namespace GameServer.Server.Packets
             }
             else 
             {
-                var channel = ENetServer.Channels[data.ChannelId];
+                var channel = ENetServer.Channels.Find(x => x.Name == data.ChannelId);
                 var peers = new List<Peer>();
                 foreach (var peerId in channel.Users)
                     peers.Add(ENetServer.Players[peerId].Peer);

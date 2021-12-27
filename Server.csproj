@@ -3,6 +3,7 @@
 	<OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
 	<DebugType>embedded</DebugType>
+	<DefineConstants>SERVER;</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup>

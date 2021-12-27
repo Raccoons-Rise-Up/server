@@ -34,10 +34,10 @@ namespace GameServer.Server.Packets
                     writer.Write((ushort)ENetServer.Channels.Count);
                     foreach (var channel in ENetServer.Channels) 
                     {
-                        writer.Write(channel.Key);
-                        writer.Write(channel.Value.Creator);
-                        writer.Write((ushort)channel.Value.Users.Count);
-                        foreach (var userId in channel.Value.Users) 
+                        writer.Write(channel.Name);
+                        writer.Write(channel.Creator);
+                        writer.Write((ushort)channel.Users.Count);
+                        foreach (var userId in channel.Users) 
                         {
                             writer.Write(userId);
                         }
