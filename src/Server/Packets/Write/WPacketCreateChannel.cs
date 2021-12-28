@@ -8,22 +8,27 @@ namespace GameServer.Server.Packets
     public class WPacketCreateChannel : IWritable
     {
         public ResponseChannelCreateOpcode ResponseChannelCreateOpcode { get; set; }
-        public string ChannelName { get; set; }
-        public uint OtherUserId { get; set; }
+        public Dictionary<uint, string> Users { get; set; }
+        public uint CreatorId { get; set; }
+        public uint ChannelId { get; set; }
 
         public void Write(PacketWriter writer)
         {
             writer.Write((byte)ResponseChannelCreateOpcode);
 
-            if (ResponseChannelCreateOpcode == ResponseChannelCreateOpcode.Success)
-            {
-                writer.Write(ChannelName);
-                writer.Write(OtherUserId);
-            }
+            writer.Write(ChannelId);
 
-            if (ResponseChannelCreateOpcode == ResponseChannelCreateOpcode.ChannelExistsAlready) 
+            if (ResponseChannelCreateOpcode == ResponseChannelCreateOpcode.Success) 
             {
-                writer.Write(ChannelName);
+                writer.Write(CreatorId);
+
+                writer.Write((ushort)Users.Count);
+                Users = new Dictionary<uint, string>();
+                foreach (var pair in Users) 
+                {
+                    writer.Write((uint)pair.Key); // user id
+                    writer.Write((string)pair.Value); // user username
+                }
             }
         }
     }

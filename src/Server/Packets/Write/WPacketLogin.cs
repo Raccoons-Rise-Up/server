@@ -32,14 +32,18 @@ namespace GameServer.Server.Packets
 
                     // Channels
                     writer.Write((ushort)ENetServer.Channels.Count);
-                    foreach (var channel in ENetServer.Channels) 
+                    foreach (var pair in ENetServer.Channels) 
                     {
-                        writer.Write(channel.Name);
-                        writer.Write(channel.Creator);
+                        var channelId = pair.Key;
+                        var channel = pair.Value;
+
+                        writer.Write(channelId);
+                        writer.Write(channel.CreatorId);
                         writer.Write((ushort)channel.Users.Count);
-                        foreach (var userId in channel.Users) 
+                        foreach (var user in channel.Users) 
                         {
-                            writer.Write(userId);
+                            writer.Write((uint)user.Key);
+                            writer.Write((string)user.Value);
                         }
                     }
 

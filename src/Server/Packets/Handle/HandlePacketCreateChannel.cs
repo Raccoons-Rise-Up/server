@@ -22,46 +22,48 @@ namespace GameServer.Server.Packets
 
             var peer = netEvent.Peer;
 
-            var player = ENetServer.Players[peer.ID];
+            var creator = ENetServer.Players[peer.ID];
+            var otherUser = ENetServer.Players[data.OtherUserId];
 
-            // Search for channel duos with the same users
-            foreach (var channel in ENetServer.Channels) 
+            // Check to see if this channel exists already
+            foreach (var channel in ENetServer.Channels.Values) 
             {
-                if (channel.Users.Count == 2 && channel.Users.Contains(peer.ID) && channel.Users.Contains(data.OtherUserId)) 
+                if (channel.Users.Count == 2 && channel.Users.ContainsKey(peer.ID) && channel.Users.ContainsKey(data.OtherUserId)) 
                 {
-                    Logger.Log($"{player.Username} tried to create a channel but one exists already with users: {player.Username}, {ENetServer.Players[data.OtherUserId].Username}");
+                    Logger.Log($"{creator.Username} tried to create a channel but one exists already with users: {creator.Username}, {ENetServer.Players[data.OtherUserId].Username}");
 
                     ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.CreateChannel, new WPacketCreateChannel { 
                         ResponseChannelCreateOpcode = ResponseChannelCreateOpcode.ChannelExistsAlready
-                    }), peer);
+                    }), creator.Peer);
                     return;
                 }
             }
 
-            ENetServer.Channels.Add(new UIChannel { 
-                Name = ENetServer.Players[netEvent.Peer.ID].Username, // Set the channel name to the name of the creator
-                Creator = netEvent.Peer.ID,
-                Users = new List<uint> { peer.ID, data.OtherUserId }
+            var channelId = ENetServer.ChannelId++;
+            var creatorId = creator.Peer.ID;
+            var users = new Dictionary<uint, string>() {
+                { creatorId, creator.Username },
+                { otherUser.Peer.ID, otherUser.Username }
+            };
+
+            // Create the channel
+            ENetServer.Channels.Add(channelId, new UIChannel {
+                CreatorId = creatorId,
+                Users = users
             });
 
-            // Tell the other user were opening a channel with them
-            Logger.Log($"Telling the other user '{ENetServer.Players[data.OtherUserId].Username}' were opening a channel with them");
+            // Tell the creator and the other user a new channel has been created
+            Logger.Log($"Telling the creator '{creator.Username}' and other user '{otherUser.Username}' were opening a channel with them");
             ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.CreateChannel, new WPacketCreateChannel
             {
                 ResponseChannelCreateOpcode = ResponseChannelCreateOpcode.Success,
-                ChannelName = data.ChannelName,
-                OtherUserId = peer.ID
-            }), ENetServer.Players[data.OtherUserId].Peer );
-
-            // Tell the creator were opening a channel with the other user
-            Logger.Log($"Telling the creator '{player.Username}' were opening a channel with the other user '{ENetServer.Players[data.OtherUserId].Username}'");
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.CreateChannel, new WPacketCreateChannel
-            {
-                ChannelName = data.ChannelName,
-                OtherUserId = data.OtherUserId
-            }), peer);
-
-            Logger.Log($"{player.Username} created channel '{data.ChannelName}'");
+                ChannelId = channelId,
+                CreatorId = creatorId,
+                Users = users
+            }), new List<Peer> {
+                creator.Peer,
+                otherUser.Peer
+            });
         }
     }
 }

@@ -42,25 +42,26 @@ namespace GameServer.Server.Packets
             foreach (var blockedString in BlockedStrings)
                 message = message.Replace(blockedString, "meowww");
 
-            if (data.ChannelId == "Global" || data.ChannelId == "Game")
+            if (data.ChannelId == (uint)SpecialChannel.Global || data.ChannelId == (uint)SpecialChannel.Game)
             {
                 ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChatMessage, new WPacketChatMessage
                 {
-                    PlayerId = peer.ID,
+                    UserId = peer.ID,
                     ChannelId = data.ChannelId,
                     Message = message
                 }), ENetServer.GetAllPeers());
             }
             else 
             {
-                var channel = ENetServer.Channels.Find(x => x.Name == data.ChannelId);
                 var peers = new List<Peer>();
-                foreach (var peerId in channel.Users)
-                    peers.Add(ENetServer.Players[peerId].Peer);
+
+                foreach (var userId in ENetServer.Channels[data.ChannelId].Users.Keys)
+                    if (ENetServer.Players.ContainsKey(userId)) // Only send the chat message to users that are online
+                        peers.Add(ENetServer.Players[userId].Peer);
 
                 ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChatMessage, new WPacketChatMessage
                 {
-                    PlayerId = peer.ID,
+                    UserId = peer.ID,
                     ChannelId = data.ChannelId,
                     Message = message
                 }), peers);
