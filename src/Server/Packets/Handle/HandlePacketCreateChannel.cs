@@ -26,14 +26,17 @@ namespace GameServer.Server.Packets
             var otherUser = ENetServer.Players[data.OtherUserId];
 
             // Check to see if this channel exists already
-            foreach (var channel in ENetServer.Channels.Values) 
+            foreach (var pair in ENetServer.Channels) 
             {
+                var channel = pair.Value;
+
                 if (channel.Users.Count == 2 && channel.Users.ContainsKey(peer.ID) && channel.Users.ContainsKey(data.OtherUserId)) 
                 {
                     Logger.Log($"{creator.Username} tried to create a channel but one exists already with users: {creator.Username}, {ENetServer.Players[data.OtherUserId].Username}");
 
                     ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.CreateChannel, new WPacketCreateChannel { 
-                        ResponseChannelCreateOpcode = ResponseChannelCreateOpcode.ChannelExistsAlready
+                        ResponseChannelCreateOpcode = ResponseChannelCreateOpcode.ChannelExistsAlready,
+                        ChannelId = pair.Key
                     }), creator.Peer);
                     return;
                 }

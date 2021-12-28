@@ -243,12 +243,14 @@ namespace GameServer.Server
 
         public static void Send(GamePacket gamePacket, List<Peer> peers) 
         {
-            var packet = default(Packet);
-            packet.Create(gamePacket.Data, gamePacket.PacketFlags);
-            byte channelID = 0;
+            foreach (var peer in peers) 
+            {
+                var packet = default(Packet);
+                packet.Create(gamePacket.Data, gamePacket.PacketFlags);
+                byte channelID = 0;
 
-            foreach (var peer in peers)
                 peer.Send(channelID, ref packet);
+            }
 
             // DEBUG
             var players = new List<string>();

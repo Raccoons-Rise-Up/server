@@ -23,7 +23,6 @@ namespace GameServer.Server.Packets
                 writer.Write(CreatorId);
 
                 writer.Write((ushort)Users.Count);
-                Users = new Dictionary<uint, string>();
                 foreach (var pair in Users) 
                 {
                     writer.Write((uint)pair.Key); // user id
