@@ -35,7 +35,7 @@ namespace GameServer.Server
             Thread.CurrentThread.Name = "SERVER";
 
             Channels = new Dictionary<uint, UIChannel>();
-            ChannelId = 0;
+            ChannelId = (uint)Enum.GetNames(typeof(SpecialChannel)).Length;
 
             ResourceInfoData = typeof(ResourceInfo).Assembly.GetTypes().Where(x => typeof(ResourceInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ResourceInfo>()
                 .ToDictionary(x => (ResourceType)Enum.Parse(typeof(ResourceType), x.GetType().Name.Replace(typeof(ResourceInfo).Name, "")), x => x);
@@ -105,9 +105,19 @@ namespace GameServer.Server
                         var packetReader = new PacketReader(readBuffer);
                         packetReader.BaseStream.Position = 0;
 
+                        if (netEvent.Packet.Length > packetSizeMax) 
+                        {
+                            Logger.LogWarning($"Tried to read a packet from peer {netEvent.Peer.ID} of size {netEvent.Packet.Length} when the max packet size is {packetSizeMax}");
+                            packetReader.Dispose();
+                            netEvent.Packet.Dispose();
+                            continue;
+                        }
+
                         netEvent.Packet.CopyTo(readBuffer);
 
                         var opcode = (ClientPacketOpcode)packetReader.ReadByte();
+
+                        Logger.Log($"Received New Client Packet: {opcode}");
 
                         HandlePacket[opcode].Handle(netEvent, ref packetReader);
 
@@ -218,7 +228,7 @@ namespace GameServer.Server
             return peers;
         }
 
-        // Remember this can only be used on the ENet thread!! (why though I forget)
+        // Remember this can only be used on the ENet thread!!
         public static void Send(GamePacket gamePacket, Peer peer)
         {
             // Send data to a specific client (peer)
@@ -226,6 +236,9 @@ namespace GameServer.Server
             packet.Create(gamePacket.Data, gamePacket.PacketFlags);
             byte channelID = 0;
             peer.Send(channelID, ref packet);
+
+            // DEBUG
+            Logger.Log($"Sending New Server Packet {Enum.GetName(typeof(ServerPacketOpcode), gamePacket.Opcode)} to {ENetServer.Players[peer.ID].Username}");
         }
 
         public static void Send(GamePacket gamePacket, List<Peer> peers) 
@@ -233,8 +246,15 @@ namespace GameServer.Server
             var packet = default(Packet);
             packet.Create(gamePacket.Data, gamePacket.PacketFlags);
             byte channelID = 0;
+
             foreach (var peer in peers)
                 peer.Send(channelID, ref packet);
+
+            // DEBUG
+            var players = new List<string>();
+            foreach (var peer in peers)
+                players.Add(ENetServer.Players[peer.ID].Username);
+            Logger.Log($"Sending New Server Packet {Enum.GetName(typeof(ServerPacketOpcode), gamePacket.Opcode)} to {string.Join(" ", players)}");
         }
 
         public static void SaveAllOnlinePlayersToDatabase()
