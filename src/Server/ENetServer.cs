@@ -161,22 +161,28 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Disconnect) 
                         {
-                            var player = Players[netEvent.Peer.ID];
-                            player.UpdatePlayerConfig();
+                            if (Players.ContainsKey(netEvent.Peer.ID)) 
+                            {
+                                var player = Players[netEvent.Peer.ID];
+                                player.UpdatePlayerConfig();
 
-                            HandleDisconnectAndTimeout(netEvent);
+                                HandleDisconnectAndTimeout(netEvent);
 
-                            Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
+                                Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
+                            }
                         }
 
                         if (eventType == EventType.Timeout) 
                         {
-                            var player = Players[netEvent.Peer.ID];
-                            player.UpdatePlayerConfig();
+                            if (Players.ContainsKey(netEvent.Peer.ID)) 
+                            {
+                                var player = Players[netEvent.Peer.ID];
+                                player.UpdatePlayerConfig();
 
-                            HandleDisconnectAndTimeout(netEvent);
+                                HandleDisconnectAndTimeout(netEvent);
 
-                            Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
+                                Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
+                            }
                         }
 
                         if (eventType == EventType.Receive) 
@@ -238,7 +244,7 @@ namespace GameServer.Server
             peer.Send(channelID, ref packet);
 
             // DEBUG
-            Logger.Log($"Sending New Server Packet {Enum.GetName(typeof(ServerPacketOpcode), gamePacket.Opcode)} to {ENetServer.Players[peer.ID].Username}");
+            Logger.Log($"Sending New Server Packet {Enum.GetName(typeof(ServerPacketOpcode), gamePacket.Opcode)} to {peer.ID}");
         }
 
         public static void Send(GamePacket gamePacket, List<Peer> peers) 
