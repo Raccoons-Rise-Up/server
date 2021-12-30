@@ -8,3 +8,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Unused", Scope = "member", Target = "~M:GameServer.Program.Main(System.String[])")]
 [assembly: SuppressMessage("Style", "IDE0090:Use 'new(...)'", Justification = "Code used in client and uses older .NET", Scope = "member", Target = "~M:Common.Utils.SharedUtils.GetEnumList``1~System.Collections.Generic.List{``0}")]
 [assembly: SuppressMessage("Style", "IDE0090:Use 'new(...)'", Justification = "Code used in client and uses older .NET", Scope = "member", Target = "~F:Common.Game.UIChannel.Users")]
+[assembly: SuppressMessage("Style", "IDE0090:Use 'new(...)'", Justification = "Code used in client and uses older .NET", Scope = "member", Target = "~F:Common.Game.UIChannel.Messages")]

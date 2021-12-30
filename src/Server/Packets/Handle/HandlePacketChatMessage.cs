@@ -42,6 +42,12 @@ namespace GameServer.Server.Packets
             foreach (var blockedString in BlockedStrings)
                 message = message.Replace(blockedString, "meowww");
 
+            // Add message to channel
+            ENetServer.Channels[data.ChannelId].Messages.Add(new UIMessage {
+                UserId = peer.ID,
+                Message = message
+            });
+
             if (data.ChannelId == (uint)SpecialChannel.Global || data.ChannelId == (uint)SpecialChannel.Game)
             {
                 ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChatMessage, new WPacketChatMessage

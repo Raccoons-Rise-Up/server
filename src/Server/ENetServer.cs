@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
-using System.IO;
 using System.Net.Http;
 using Common.Networking.Packet;
 using Common.Networking.IO;
@@ -20,6 +19,7 @@ namespace GameServer.Server
         public static ConcurrentBag<Event> Incoming { get; private set; }
         public static ConcurrentQueue<ENetCmds> ENetCmds { get; private set; }
         public static Dictionary<uint, Player> Players { get; private set; }
+        public static Dictionary<uint, Peer> Peers { get; private set; }
         public static Dictionary<ServerOpcode, ENetCmd> ENetCmd { get; private set; }
         public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; private set; }
         public static HttpClient WebClient { get; private set; }
@@ -34,8 +34,12 @@ namespace GameServer.Server
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            Channels = new Dictionary<uint, UIChannel>();
-            ChannelId = (uint)Enum.GetNames(typeof(SpecialChannel)).Length;
+            ChannelId = 0;
+            Channels = new Dictionary<uint, UIChannel>
+            {
+                { ChannelId++, new UIChannel { ChannelName = "Global" } },
+                { ChannelId++, new UIChannel { ChannelName = "Game"   } }
+            };
 
             ResourceInfoData = typeof(ResourceInfo).Assembly.GetTypes().Where(x => typeof(ResourceInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ResourceInfo>()
                 .ToDictionary(x => (ResourceType)Enum.Parse(typeof(ResourceType), x.GetType().Name.Replace(typeof(ResourceInfo).Name, "")), x => x);
@@ -57,6 +61,7 @@ namespace GameServer.Server
             Incoming = new();
             ENetCmds = new();
             Players = new();
+            Peers = new();
             WebClient = new();
 
             HandlePacket = typeof(HandlePacket).Assembly.GetTypes().Where(x => typeof(HandlePacket).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<HandlePacket>()
@@ -142,46 +147,59 @@ namespace GameServer.Server
                             Logger.LogWarning("Received EventType.None");
                         }
 
+                        var peer = netEvent.Peer;
+
                         if (eventType == EventType.Connect) 
                         {
                             var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
-                            var bannedPlayer = bannedPlayers.Find(x => x.Ip == netEvent.Peer.IP);
+                            var bannedPlayer = bannedPlayers.Find(x => x.Ip == peer.IP);
 
                             if (bannedPlayer != null) 
                             {
                                 // Player is banned, disconnect them immediately 
-                                netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.Banned);
+                                peer.DisconnectNow((uint)DisconnectOpcode.Banned);
                                 Logger.Log($"Player '{bannedPlayer.Name}' tried to join but is banned");
                                 break;
                             }
 
+                            // Player is not banned
                             // Set timeout delays for player timeout
-                            netEvent.Peer.Timeout(32, 1000, 4000);
+                            if (!Peers.ContainsKey(peer.ID))
+                                Peers.Add(peer.ID, peer);
+                            peer.Timeout(32, 1000, 4000);
                         }
 
                         if (eventType == EventType.Disconnect) 
                         {
-                            if (Players.ContainsKey(netEvent.Peer.ID)) 
+                            if (Peers.ContainsKey(peer.ID))
+                                Peers.Remove(peer.ID);
+                            if (Players.ContainsKey(peer.ID)) 
                             {
-                                var player = Players[netEvent.Peer.ID];
+                                Channels[(uint)SpecialChannel.Global].Users.Remove(peer.ID);
+
+                                var player = Players[peer.ID];
                                 player.UpdatePlayerConfig();
 
                                 HandleDisconnectAndTimeout(netEvent);
 
-                                Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' disconnected");
+                                Logger.Log($"Player '{player.Username}' disconnected");
                             }
                         }
 
                         if (eventType == EventType.Timeout) 
                         {
-                            if (Players.ContainsKey(netEvent.Peer.ID)) 
+                            if (Peers.ContainsKey(peer.ID))
+                                Peers.Remove(peer.ID);
+                            if (Players.ContainsKey(peer.ID)) 
                             {
-                                var player = Players[netEvent.Peer.ID];
+                                Channels[(uint)SpecialChannel.Global].Users.Remove(peer.ID);
+
+                                var player = Players[peer.ID];
                                 player.UpdatePlayerConfig();
 
                                 HandleDisconnectAndTimeout(netEvent);
 
-                                Logger.Log($"Player '{(player == null ? netEvent.Peer.ID : player.Username)}' timed out");
+                                Logger.Log($"Player '{player.Username}' timed out");
                             }
                         }
 
@@ -234,7 +252,18 @@ namespace GameServer.Server
             return peers;
         }
 
-        // Remember this can only be used on the ENet thread!!
+        public static void SendAll(GamePacket gamePacket) 
+        {
+            foreach (var peer in Peers.Values)
+                Send(gamePacket, peer);
+        }
+
+        public static void Send(GamePacket gamePacket, List<Peer> peers)
+        {
+            foreach (var peer in peers)
+                Send(gamePacket, peer);
+        }
+
         public static void Send(GamePacket gamePacket, Peer peer)
         {
             // Send data to a specific client (peer)
@@ -244,25 +273,7 @@ namespace GameServer.Server
             peer.Send(channelID, ref packet);
 
             // DEBUG
-            Logger.Log($"Sending New Server Packet {Enum.GetName(typeof(ServerPacketOpcode), gamePacket.Opcode)} to {peer.ID}");
-        }
-
-        public static void Send(GamePacket gamePacket, List<Peer> peers) 
-        {
-            foreach (var peer in peers) 
-            {
-                var packet = default(Packet);
-                packet.Create(gamePacket.Data, gamePacket.PacketFlags);
-                byte channelID = 0;
-
-                peer.Send(channelID, ref packet);
-            }
-
-            // DEBUG
-            var players = new List<string>();
-            foreach (var peer in peers)
-                players.Add(ENetServer.Players[peer.ID].Username);
-            Logger.Log($"Sending New Server Packet {Enum.GetName(typeof(ServerPacketOpcode), gamePacket.Opcode)} to {string.Join(" ", players)}");
+            //Logger.Log($"Sending New Server Packet {Enum.GetName(typeof(ServerPacketOpcode), gamePacket.Opcode)} to {peer.ID}");
         }
 
         public static void SaveAllOnlinePlayersToDatabase()

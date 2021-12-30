@@ -30,6 +30,10 @@ namespace GameServer.Server.Packets
             {
                 var channel = pair.Value;
 
+                // Do not check the special channels
+                if (pair.Key == (uint)SpecialChannel.Global || pair.Key == (uint)SpecialChannel.Game)
+                    continue;
+
                 if (channel.Users.Count == 2 && channel.Users.ContainsKey(peer.ID) && channel.Users.ContainsKey(data.OtherUserId)) 
                 {
                     Logger.Log($"{creator.Username} tried to create a channel but one exists already with users: {creator.Username}, {ENetServer.Players[data.OtherUserId].Username}");
