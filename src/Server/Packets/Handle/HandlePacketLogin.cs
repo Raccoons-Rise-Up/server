@@ -128,10 +128,10 @@ namespace GameServer.Server.Packets
             ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerList, new WPacketPlayerList()), peer);
 
             // Add the user to the global channel
-            ENetServer.Channels[(uint)SpecialChannel.Global].Users.Add(peer.ID, playerUsername);
+            ENetServer.Channels[(uint)SpecialChannel.Global].Users.Add(peer.ID, new User(playerUsername));
 
             // Tell the joining client how many channels they should know about
-            var channelsToSend = new Dictionary<uint, UIChannel>();
+            var channelsToSend = new Dictionary<uint, Channel>();
             foreach (var pair in ENetServer.Channels) 
                 foreach (var user in pair.Value.Users) 
                     if (user.Key == peer.ID) // If the peer is a participant of this channel add it

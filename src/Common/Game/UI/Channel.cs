@@ -2,19 +2,19 @@
 
 namespace Common.Game
 {
-    public class UIChannel
+    public class Channel
     {
         public string ChannelName { get; set; }
-        public Dictionary<uint, string> Users = new Dictionary<uint, string>();
+        public Dictionary<uint, User> Users = new Dictionary<uint, User>();
         public List<UIMessage> Messages = new List<UIMessage>();
         public uint CreatorId { get; set; }
 
 #if CLIENT
-        public Godot.Button Button { get; set; }
+        public Godot.Button TabButton { get; set; }
 #endif
     }
 
-    public struct UIMessage 
+    public struct UIMessage
     {
         public uint UserId { get; set; }
         public string Message { get; set; }

@@ -48,13 +48,13 @@ namespace GameServer.Server.Packets
 
             var channelId = ENetServer.ChannelId++;
             var creatorId = creator.Peer.ID;
-            var users = new Dictionary<uint, string>() {
-                { creatorId, creator.Username },
-                { otherUser.Peer.ID, otherUser.Username }
+            var users = new Dictionary<uint, User>() {
+                { creatorId,         new User(creator.Username) },
+                { otherUser.Peer.ID, new User(otherUser.Username) }
             };
 
             // Create the channel
-            ENetServer.Channels.Add(channelId, new UIChannel {
+            ENetServer.Channels.Add(channelId, new Channel {
                 CreatorId = creatorId,
                 Users = users
             });

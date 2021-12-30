@@ -8,15 +8,15 @@ namespace GameServer.Server.Packets
 {
     public class WPacketChannelList : IWritable
     {
-        public Dictionary<uint, UIChannel> Channels { get; set; }
+        public Dictionary<uint, Channel> Channels { get; set; }
 
         public void Write(PacketWriter writer) 
         {
             writer.Write((ushort)Channels.Count);
-            foreach (var pair in Channels)
+            foreach (var channelPair in Channels)
             {
-                var channelId = pair.Key;
-                var channel = pair.Value;
+                var channelId = channelPair.Key;
+                var channel = channelPair.Value;
 
                 writer.Write(channelId);
                 writer.Write(channel.CreatorId);
@@ -29,10 +29,13 @@ namespace GameServer.Server.Packets
                 }
 
                 writer.Write((ushort)channel.Users.Count);
-                foreach (var user in channel.Users)
+                foreach (var userPair in channel.Users)
                 {
-                    writer.Write((uint)user.Key);
-                    writer.Write((string)user.Value);
+                    var userId = userPair.Key;
+                    var user = userPair.Value;
+
+                    writer.Write((uint)userId);
+                    writer.Write((string)user.Username);
                 }
             }
         }

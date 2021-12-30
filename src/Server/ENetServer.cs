@@ -26,7 +26,7 @@ namespace GameServer.Server
         public static ServerVersion ServerVersion { get; private set; }
         public static Dictionary<ResourceType, ResourceInfo> ResourceInfoData { get; private set; }
         public static Dictionary<StructureType, StructureInfo> StructureInfoData { get; private set; }
-        public static Dictionary<uint, UIChannel> Channels { get; set; }
+        public static Dictionary<uint, Channel> Channels { get; set; }
         public static uint ChannelId { get; set; }
 
         #region WorkerThread
@@ -35,10 +35,10 @@ namespace GameServer.Server
             Thread.CurrentThread.Name = "SERVER";
 
             ChannelId = 0;
-            Channels = new Dictionary<uint, UIChannel>
+            Channels = new Dictionary<uint, Channel>
             {
-                { ChannelId++, new UIChannel { ChannelName = "Global" } },
-                { ChannelId++, new UIChannel { ChannelName = "Game"   } }
+                { ChannelId++, new Channel { ChannelName = "Global" } },
+                { ChannelId++, new Channel { ChannelName = "Game"   } }
             };
 
             ResourceInfoData = typeof(ResourceInfo).Assembly.GetTypes().Where(x => typeof(ResourceInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ResourceInfo>()
