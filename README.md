@@ -1,15 +1,14 @@
 # Game-Server
 ## Table of Contents
 1. [About](#what-is-this)
-2. [Setup](#setup)
-4. [Server](#server)
-5. [Console](#console)
+2. [Server](#server)
+3. [Console](#console)
     - [Features](#features-1)
     - [Controls](#controls)
     - [Commands](#commands)
     - [Logging](#logging)
-6. [Issues](#issues)
-7. [Contributing](#contributing)
+4. [Issues](#issues)
+5. [Contributing](#contributing)
 
 ## What is this?
 A multi-threaded console / game server that handles logging, user commands, database and ENet connections for Raccoons Rise Up clients.
@@ -24,14 +23,6 @@ The only networking lib that stood out to me is [ENet-CSharp](https://github.com
 I previously created a [game-server](https://github.com/The-MMORPG-Project/game-server) for [The MMORPG Project](https://github.com/The-MMORPG-Project/website) but it did not follow thread safety and depended on an external API for the console. This game-server follows thread safety and does not depend on any external API for the console.
 
 [Raccoons Rise Up Roadmap](https://trello.com/b/XkhJxR2x/raccoons-rise-up)
-
-## Setup
-.NET is installed from https://dotnet.microsoft.com/download/dotnet/5.0 (cross platform) or with Visual Studio if you check the `.NET desktop environment` workload when installing.
-
-### Public JWT Key
-Copy the `public.key` which was created from the [web-server](https://github.com/Kittens-Rise-Up/website) and paste it in `obj\Debug\net5.0` (if you don't see these folders you need to run the project at least once with `dotnet run`)
-
-Run the project with `dotnet run`
 
 ## Server
 ### Features
