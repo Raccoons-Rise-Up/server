@@ -1,4 +1,4 @@
-# Game-Server
+# Game Server
 ## Table of Contents
 1. [About](#what-is-this)
 2. [Server](#server)
@@ -85,6 +85,6 @@ Log("&3The &8red &yfox &bjumped &rover &4the &5fe&6n&7c&8e&9.");
 Please see the projects [current issues](https://github.com/Kittens-Rise-Up/server/issues)
 
 ## Contributing
-Please see [CONTRIBUTING.md](https://github.com/Kittens-Rise-Up/server/blob/main/CONTRIBUTING.md)
+Please see [CONTRIBUTING.md](https://github.com/Raccoons-Rise-Up/server/blob/main/.github/CONTRIBUTING.md)
 
 Not all the things to do are listed in the [issues](https://github.com/Raccoons-Rise-Up/server/issues), if you want to know more of what needs to be done please talk to `valk#9904` in the [Raccoons Rise Up](https://discord.gg/cDNf8ja) discord for more info.
