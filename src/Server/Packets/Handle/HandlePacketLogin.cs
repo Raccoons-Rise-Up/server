@@ -71,9 +71,9 @@ namespace GameServer.Server.Packets
             }
 
             // Check if a player with this username is logged in already
-            foreach (var p in ENetServer.Players)
+            foreach (var p in ENetServer.Players.Values)
             {
-                if (p.Value.Username.Equals(playerUsername)) 
+                if (p.InGame && p.Username.Equals(playerUsername)) 
                 {
                     netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.PlayerWithUsernameExistsOnServerAlready);
                     return;
@@ -101,8 +101,10 @@ namespace GameServer.Server.Packets
                     PlayerName = playerUsername
                 };
 
+                player.InGame = true;
+
                 // Add the player to the list of players currently on the server
-                ENetServer.Players.Add(peer.ID, player);
+                ENetServer.Players[peer.ID] = player;
 
                 Logger.Log($"Player '{playerUsername}' logged in");
             }
@@ -117,7 +119,7 @@ namespace GameServer.Server.Packets
                 };
 
                 // Add the player to the list of players currently on the server
-                ENetServer.Players.Add(peer.ID, new Player(playerUsername, peer));
+                ENetServer.Players[peer.ID] = new Player(peer) { Username = playerUsername, InGame = true };
 
                 Logger.Log($"User '{playerUsername}' logged in for the first time");
             }
@@ -125,16 +127,16 @@ namespace GameServer.Server.Packets
             ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData), peer);
 
             // Tell the joining client how many players are on the server
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerList, new WPacketPlayerList()), peer);
+            //ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerList, new WPacketPlayerList()), peer);
 
             // Add the user to the global channel
-            ENetServer.Channels[(uint)SpecialChannel.Global].Users.Add(peer.ID, new User(playerUsername));
+            ENetServer.Channels[(uint)SpecialChannel.Global].Users.Add(peer.ID);
 
             // Tell the joining client how many channels they should know about
             var channelsToSend = new Dictionary<uint, Channel>();
             foreach (var pair in ENetServer.Channels) 
                 foreach (var user in pair.Value.Users) 
-                    if (user.Key == peer.ID) // If the peer is a participant of this channel add it
+                    if (user == peer.ID) // If the peer is a participant of this channel add it
                     {
                         channelsToSend.Add(pair.Key, pair.Value);
                         break;

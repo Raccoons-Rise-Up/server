@@ -34,7 +34,7 @@ namespace GameServer.Server.Packets
                 if (pair.Key == (uint)SpecialChannel.Global || pair.Key == (uint)SpecialChannel.Game)
                     continue;
 
-                if (channel.Users.Count == 2 && channel.Users.ContainsKey(peer.ID) && channel.Users.ContainsKey(data.OtherUserId)) 
+                if (channel.Users.Count == 2 && channel.Users.Contains(peer.ID) && channel.Users.Contains(data.OtherUserId)) 
                 {
                     Logger.Log($"{creator.Username} tried to create a channel but one exists already with users: {creator.Username}, {ENetServer.Players[data.OtherUserId].Username}");
 
@@ -48,9 +48,9 @@ namespace GameServer.Server.Packets
 
             var channelId = ENetServer.ChannelId++;
             var creatorId = creator.Peer.ID;
-            var users = new Dictionary<uint, User>() {
-                { creatorId,         new User(creator.Username) },
-                { otherUser.Peer.ID, new User(otherUser.Username) }
+            var users = new List<uint>() {
+                { creatorId         },
+                { otherUser.Peer.ID }
             };
 
             // Create the channel

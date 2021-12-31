@@ -29,10 +29,9 @@ namespace GameServer.Server.Packets
                 }
 
                 writer.Write((ushort)channel.Users.Count);
-                foreach (var userPair in channel.Users)
+                foreach (var userId in channel.Users)
                 {
-                    var userId = userPair.Key;
-                    var user = userPair.Value;
+                    var user = ENetServer.Players[userId];
 
                     writer.Write((uint)userId);
                     writer.Write((string)user.Username);

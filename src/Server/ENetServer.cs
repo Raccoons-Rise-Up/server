@@ -18,14 +18,13 @@ namespace GameServer.Server
     {
         public static ConcurrentBag<Event> Incoming { get; private set; }
         public static ConcurrentQueue<ENetCmds> ENetCmds { get; private set; }
-        public static Dictionary<uint, Player> Players { get; private set; }
-        public static Dictionary<uint, Peer> Peers { get; private set; }
         public static Dictionary<ServerOpcode, ENetCmd> ENetCmd { get; private set; }
         public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; private set; }
         public static HttpClient WebClient { get; private set; }
         public static ServerVersion ServerVersion { get; private set; }
         public static Dictionary<ResourceType, ResourceInfo> ResourceInfoData { get; private set; }
         public static Dictionary<StructureType, StructureInfo> StructureInfoData { get; private set; }
+        public static Dictionary<uint, Player> Players { get; private set; }
         public static Dictionary<uint, Channel> Channels { get; set; }
         public static uint ChannelId { get; set; }
 
@@ -61,7 +60,6 @@ namespace GameServer.Server
             Incoming = new();
             ENetCmds = new();
             Players = new();
-            Peers = new();
             WebClient = new();
 
             HandlePacket = typeof(HandlePacket).Assembly.GetTypes().Where(x => typeof(HandlePacket).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<HandlePacket>()
@@ -164,21 +162,19 @@ namespace GameServer.Server
 
                             // Player is not banned
                             // Set timeout delays for player timeout
-                            if (!Peers.ContainsKey(peer.ID))
-                                Peers.Add(peer.ID, peer);
+                            Players.Add(peer.ID, new Player(peer));
                             peer.Timeout(32, 1000, 4000);
                         }
 
                         if (eventType == EventType.Disconnect) 
                         {
-                            if (Peers.ContainsKey(peer.ID))
-                                Peers.Remove(peer.ID);
                             if (Players.ContainsKey(peer.ID)) 
                             {
                                 Channels[(uint)SpecialChannel.Global].Users.Remove(peer.ID);
 
                                 var player = Players[peer.ID];
                                 player.UpdatePlayerConfig();
+                                Players.Remove(peer.ID);
 
                                 HandleDisconnectAndTimeout(netEvent);
 
@@ -188,14 +184,13 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Timeout) 
                         {
-                            if (Peers.ContainsKey(peer.ID))
-                                Peers.Remove(peer.ID);
                             if (Players.ContainsKey(peer.ID)) 
                             {
                                 Channels[(uint)SpecialChannel.Global].Users.Remove(peer.ID);
 
                                 var player = Players[peer.ID];
                                 player.UpdatePlayerConfig();
+                                Players.Remove(peer.ID);
 
                                 HandleDisconnectAndTimeout(netEvent);
 
@@ -254,8 +249,8 @@ namespace GameServer.Server
 
         public static void SendAll(GamePacket gamePacket) 
         {
-            foreach (var peer in Peers.Values)
-                Send(gamePacket, peer);
+            foreach (var player in Players.Values)
+                Send(gamePacket, player.Peer);
         }
 
         public static void Send(GamePacket gamePacket, List<Peer> peers)

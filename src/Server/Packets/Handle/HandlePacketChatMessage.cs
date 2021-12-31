@@ -61,7 +61,7 @@ namespace GameServer.Server.Packets
             {
                 var peers = new List<Peer>();
 
-                foreach (var userId in ENetServer.Channels[data.ChannelId].Users.Keys)
+                foreach (var userId in ENetServer.Channels[data.ChannelId].Users)
                     if (ENetServer.Players.ContainsKey(userId)) // Only send the chat message to users that are online
                         peers.Add(ENetServer.Players[userId].Peer);
 

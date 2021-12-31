@@ -9,7 +9,7 @@ namespace GameServer.Server.Packets
     public class WPacketCreateChannel : IWritable
     {
         public ResponseChannelCreateOpcode ResponseChannelCreateOpcode { get; set; }
-        public Dictionary<uint, User> Users { get; set; }
+        public List<uint> Users { get; set; }
         public uint CreatorId { get; set; }
         public uint ChannelId { get; set; }
 
@@ -24,10 +24,9 @@ namespace GameServer.Server.Packets
                 writer.Write(CreatorId);
 
                 writer.Write((ushort)Users.Count);
-                foreach (var pair in Users) 
+                foreach (var userId in Users) 
                 {
-                    var userId = pair.Key;
-                    var user = pair.Value;
+                    var user = ENetServer.Players[userId];
 
                     writer.Write((uint)userId);
                     writer.Write((string)user.Username);

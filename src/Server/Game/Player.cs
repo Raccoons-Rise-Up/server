@@ -12,22 +12,22 @@ using GameServer.Server.Packets;
 
 namespace GameServer.Server
 {
-    public class Player
+    public class Player : User
     {
         [JsonIgnore] public Peer Peer { get; set; }
-        public string Username { get; set; }
         public string Ip { get; set; }
         public DateTime LastSeen { get; set; }
         public Dictionary<ResourceType, double> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
         public DateTime StructuresLastChecked { get; set; }
+        [JsonIgnore] public bool InGame { get; set; }
 
-        public Player(string username, Peer peer) 
+        public Player(Peer peer) : base()
         {
             Peer = peer;
             if (peer.IsSet)
                 Ip = peer.IP;
-            Username = username;
+
             LastSeen = DateTime.Now;
 
             ResourceCounts = new();

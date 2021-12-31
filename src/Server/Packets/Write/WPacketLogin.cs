@@ -12,6 +12,7 @@ namespace GameServer.Server.Packets
         public ServerVersion ServerVersion { get; set; }
         public Dictionary<ResourceType, uint> ResourceCounts { get; set; }
         public Dictionary<StructureType, uint> StructureCounts { get; set; }
+        public Dictionary<uint, User> Players { get; set; }
         public string PlayerName { get; set; }
         public uint PlayerId { get; set; }
 
@@ -19,33 +20,42 @@ namespace GameServer.Server.Packets
         {
             writer.Write((byte)LoginOpcode);
 
-            switch (LoginOpcode) 
+            if (LoginOpcode == LoginResponseOpcode.VersionMismatch) 
             {
-                case LoginResponseOpcode.VersionMismatch:
-                    writer.Write((byte)ServerVersion.Major);
-                    writer.Write((byte)ServerVersion.Minor);
-                    writer.Write((byte)ServerVersion.Patch);
-                    break;
-                case LoginResponseOpcode.LoginSuccessReturningPlayer:
-                    writer.Write((uint)PlayerId);
-                    writer.Write((string)PlayerName);
+                writer.Write((byte)ServerVersion.Major);
+                writer.Write((byte)ServerVersion.Minor);
+                writer.Write((byte)ServerVersion.Patch);
+                return;
+            }
 
-                    // Resource counts
-                    writer.Write((ushort)ResourceCounts.Count);
-                    foreach (var resourceCount in ResourceCounts) 
-                    {
-                        writer.Write((ushort)resourceCount.Key);
-                        writer.Write((uint)resourceCount.Value);
-                    }
+            writer.Write((uint)ENetServer.Players.Count);
+            foreach (var p in ENetServer.Players)
+            {
+                writer.Write(p.Key);
+                writer.Write(p.Value.Username);
+            }
 
-                    // Structure counts
-                    writer.Write((ushort)StructureCounts.Count);
-                    foreach (var structureCount in StructureCounts) 
-                    {
-                        writer.Write((ushort)structureCount.Key);
-                        writer.Write((uint)structureCount.Value);
-                    }
-                    break;
+            if (LoginOpcode == LoginResponseOpcode.LoginSuccessReturningPlayer) 
+            {
+                writer.Write((uint)PlayerId);
+                writer.Write((string)PlayerName);
+
+                // Resource counts
+                writer.Write((ushort)ResourceCounts.Count);
+                foreach (var resourceCount in ResourceCounts)
+                {
+                    writer.Write((ushort)resourceCount.Key);
+                    writer.Write((uint)resourceCount.Value);
+                }
+
+                // Structure counts
+                writer.Write((ushort)StructureCounts.Count);
+                foreach (var structureCount in StructureCounts)
+                {
+                    writer.Write((ushort)structureCount.Key);
+                    writer.Write((uint)structureCount.Value);
+                }
+                return;
             }
         }
     }
