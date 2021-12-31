@@ -9,3 +9,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Style", "IDE0090:Use 'new(...)'", Justification = "Code used in client and uses older .NET", Scope = "member", Target = "~M:Common.Utils.SharedUtils.GetEnumList``1~System.Collections.Generic.List{``0}")]
 [assembly: SuppressMessage("Style", "IDE0090:Use 'new(...)'", Justification = "Code used in client and uses older .NET", Scope = "member", Target = "~F:Common.Game.Channel.Users")]
 [assembly: SuppressMessage("Style", "IDE0090:Use 'new(...)'", Justification = "Code used in client and uses older .NET", Scope = "member", Target = "~F:Common.Game.Channel.Messages")]
+[assembly: SuppressMessage("Style", "IDE0090:Use 'new(...)'", Justification = "Code used in client and uses older .NET", Scope = "member", Target = "~F:Common.Game.User.Channels")]
