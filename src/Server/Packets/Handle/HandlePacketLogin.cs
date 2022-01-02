@@ -94,11 +94,7 @@ namespace GameServer.Server.Packets
 
                 packetData = new WPacketLogin
                 {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
-                    ResourceCounts = player.ResourceCounts.ToDictionary(x => x.Key, x => (uint)x.Value),
-                    StructureCounts = player.StructureCounts,
-                    PlayerId = player.Peer.ID,
-                    PlayerName = playerUsername
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer
                 };
 
                 player.InGame = true;
@@ -113,9 +109,7 @@ namespace GameServer.Server.Packets
                 // NEW PLAYER
                 packetData = new WPacketLogin
                 {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer,
-                    PlayerId = netEvent.Peer.ID,
-                    PlayerName = playerUsername
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer
                 };
 
                 // Add the player to the list of players currently on the server
@@ -131,31 +125,6 @@ namespace GameServer.Server.Packets
 
             // Add the user to the global channel
             ENetServer.Channels[(uint)SpecialChannel.Global].Users.Add(peer.ID);
-
-            // Tell the joining client how many channels they should know about
-            var channelsToSend = new Dictionary<uint, Channel>();
-            foreach (var pair in ENetServer.Channels) 
-                foreach (var user in pair.Value.Users) 
-                    if (user == peer.ID) // If the peer is a participant of this channel add it
-                    {
-                        channelsToSend.Add(pair.Key, pair.Value);
-                        break;
-                    }
-
-            // No need to add Global channel as Game channel has no users in it, it is a special channel
-            channelsToSend.Add((uint)SpecialChannel.Game, ENetServer.Channels[(uint)SpecialChannel.Game]);
-
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.ChannelList, new WPacketChannelList { 
-                Channels = channelsToSend
-            }), peer);
-
-
-            // Tell all other clients that this player has joined
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerJoinLeave, new WPacketPlayerJoinLeave {
-                JoinLeaveOpcode = JoinLeaveOpcode.Join,
-                PlayerId = peer.ID,
-                PlayerName = playerUsername
-            }), ENetServer.GetOtherPeers(peer));
         }
     }
 }
