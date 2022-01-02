@@ -9,7 +9,7 @@ namespace GameServer.Server.Packets
     public class WPacketLogin : IWritable
     {
         public LoginResponseOpcode LoginOpcode { get; set; }
-        public ServerVersion ServerVersion { get; set; }
+        public Version ServerVersion { get; set; }
 
         public void Write(PacketWriter writer)
         {

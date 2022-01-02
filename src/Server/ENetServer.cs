@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
-using System.Net.Http;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using ENet;
@@ -12,45 +11,28 @@ using GameServer.Logging;
 using GameServer.Utilities;
 using Common.Game;
 
+using Version = Common.Networking.Packet.Version;
+
 namespace GameServer.Server
 {
     public class ENetServer
     {
         public static ConcurrentBag<Event> Incoming { get; private set; }
         public static ConcurrentQueue<ENetCmds> ENetCmds { get; private set; }
-        public static Dictionary<ServerOpcode, ENetCmd> ENetCmd { get; private set; }
         public static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; private set; }
-        public static HttpClient WebClient { get; private set; }
-        public static ServerVersion ServerVersion { get; private set; }
-        public static Dictionary<ResourceType, ResourceInfo> ResourceInfoData { get; private set; }
-        public static Dictionary<StructureType, StructureInfo> StructureInfoData { get; private set; }
-        public static Dictionary<uint, Player> Players { get; private set; }
-        public static Dictionary<uint, Channel> Channels { get; set; }
-        public static uint ChannelId { get; set; }
+        public static Version Version { get; private set; }
 
         #region WorkerThread
         public static void WorkerThread() 
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            ChannelId = 0;
-            Channels = new Dictionary<uint, Channel>
-            {
-                { ChannelId++, new Channel { ChannelName = "Global" } },
-                { ChannelId++, new Channel { ChannelName = "Game"   } }
-            };
-
-            ResourceInfoData = typeof(ResourceInfo).Assembly.GetTypes().Where(x => typeof(ResourceInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ResourceInfo>()
-                .ToDictionary(x => (ResourceType)Enum.Parse(typeof(ResourceType), x.GetType().Name.Replace(typeof(ResourceInfo).Name, "")), x => x);
-            StructureInfoData = typeof(StructureInfo).Assembly.GetTypes().Where(x => typeof(StructureInfo).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<StructureInfo>()
-                .ToDictionary(x => (StructureType)Enum.Parse(typeof(StructureType), x.GetType().Name.Replace(typeof(StructureInfo).Name, "")), x => x);
-
             FileManager.SetupDirectories();
             FileManager.CreateConfig("banned_players", FileManager.ConfigType.Array);
 
             ValidatePlayerConfigs();
 
-            ServerVersion = new()
+            Version = new()
             {
                 Major = 0,
                 Minor = 1,
@@ -59,13 +41,8 @@ namespace GameServer.Server
 
             Incoming = new();
             ENetCmds = new();
-            Players = new();
-            WebClient = new();
 
             HandlePacket = typeof(HandlePacket).Assembly.GetTypes().Where(x => typeof(HandlePacket).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<HandlePacket>()
-                .ToDictionary(x => x.Opcode, x => x);
-
-            ENetCmd = typeof(ENetCmd).Assembly.GetTypes().Where(x => typeof(ENetCmd).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ENetCmd>()
                 .ToDictionary(x => x.Opcode, x => x);
 
             Library.Initialize();
@@ -87,17 +64,6 @@ namespace GameServer.Server
                 while (!Console.KeyAvailable)
                 {
                     var polled = false;
-
-                    // Server Instructions
-                    while (ENetCmds.TryDequeue(out ENetCmds result))
-                    {
-                        foreach (var cmd in result.Instructions)
-                        {
-                            var opcode = cmd.Key;
-
-                            ENetCmd[opcode].Handle(cmd.Value);
-                        }
-                    }
 
                     // Incoming
                     while (Incoming.TryTake(out Event netEvent))
@@ -149,7 +115,8 @@ namespace GameServer.Server
 
                         if (eventType == EventType.Connect) 
                         {
-                            var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
+                            peer.Timeout(32, 1000, 4000);
+                            /*var bannedPlayers = FileManager.ReadConfig<List<BannedPlayer>>("banned_players");
                             var bannedPlayer = bannedPlayers.Find(x => x.Ip == peer.IP);
 
                             if (bannedPlayer != null) 
@@ -163,12 +130,12 @@ namespace GameServer.Server
                             // Player is not banned
                             // Set timeout delays for player timeout
                             Players.Add(peer.ID, new Player(peer));
-                            peer.Timeout(32, 1000, 4000);
+                            peer.Timeout(32, 1000, 4000);*/
                         }
 
                         if (eventType == EventType.Disconnect) 
                         {
-                            if (Players.ContainsKey(peer.ID)) 
+                            /*if (Players.ContainsKey(peer.ID)) 
                             {
                                 Channels[(uint)SpecialChannel.Global].Users.Remove(peer.ID);
 
@@ -179,12 +146,12 @@ namespace GameServer.Server
                                 HandleDisconnectAndTimeout(netEvent);
 
                                 Logger.Log($"Player '{player.Username}' disconnected");
-                            }
+                            }*/
                         }
 
                         if (eventType == EventType.Timeout) 
                         {
-                            if (Players.ContainsKey(peer.ID)) 
+                            /*if (Players.ContainsKey(peer.ID)) 
                             {
                                 Channels[(uint)SpecialChannel.Global].Users.Remove(peer.ID);
 
@@ -195,7 +162,7 @@ namespace GameServer.Server
                                 HandleDisconnectAndTimeout(netEvent);
 
                                 Logger.Log($"Player '{player.Username}' timed out");
-                            }
+                            }*/
                         }
 
                         if (eventType == EventType.Receive) 
@@ -211,19 +178,6 @@ namespace GameServer.Server
             }
 
             Library.Deinitialize();
-        }
-
-        private static void HandleDisconnectAndTimeout(Event netEvent) 
-        {
-            // Remove player from player list
-            Players.Remove(netEvent.Peer.ID);
-
-            // Tell all other clients that this player has left
-            ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerJoinLeave, new WPacketPlayerJoinLeave
-            {
-                JoinLeaveOpcode = JoinLeaveOpcode.Leave,
-                PlayerId = netEvent.Peer.ID
-            }), ENetServer.GetOtherPeers(netEvent.Peer));
         }
 
         // Gets every peer in ENetServer.Players except for the current 'peer'
@@ -309,13 +263,6 @@ namespace GameServer.Server
             Logger.Log("Validated all player configs successfully");
         }
         #endregion
-    }
-
-    public struct ServerVersion
-    {
-        public byte Major { get; set; }
-        public byte Minor { get; set; }
-        public byte Patch { get; set; }
     }
 
     public class ENetCmds 

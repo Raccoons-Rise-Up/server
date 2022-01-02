@@ -66,4 +66,11 @@
         Banned,
         PlayerWithUsernameExistsOnServerAlready
     }
+
+    public struct Version
+    {
+        public byte Major { get; set; }
+        public byte Minor { get; set; }
+        public byte Patch { get; set; }
+    }
 }

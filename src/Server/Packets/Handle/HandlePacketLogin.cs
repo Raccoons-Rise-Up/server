@@ -38,10 +38,10 @@ namespace GameServer.Server.Packets
             }
 
             // Check if versions match
-            if (data.VersionMajor != ENetServer.ServerVersion.Major || data.VersionMinor != ENetServer.ServerVersion.Minor || data.VersionPatch != ENetServer.ServerVersion.Patch)
+            if (data.VersionMajor != ENetServer.Version.Major || data.VersionMinor != ENetServer.Version.Minor || data.VersionPatch != ENetServer.Version.Patch)
             {
                 var clientVersion = $"{data.VersionMajor}.{data.VersionMinor}.{data.VersionPatch}";
-                var serverVersion = $"{ENetServer.ServerVersion.Major}.{ENetServer.ServerVersion.Minor}.{ENetServer.ServerVersion.Patch}";
+                var serverVersion = $"{ENetServer.Version.Major}.{ENetServer.Version.Minor}.{ENetServer.Version.Patch}";
 
                 Logger.Log($"Player '{token.Payload.username}' tried to log in but failed because they are running on version " +
                     $"'{clientVersion}' but the server is on version '{serverVersion}'");
@@ -49,7 +49,7 @@ namespace GameServer.Server.Packets
                 ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, new WPacketLogin
                 {
                     LoginOpcode = LoginResponseOpcode.VersionMismatch,
-                    ServerVersion = ENetServer.ServerVersion
+                    ServerVersion = ENetServer.Version
                 }), peer);
 
                 return;
@@ -71,14 +71,14 @@ namespace GameServer.Server.Packets
             }
 
             // Check if a player with this username is logged in already
-            foreach (var p in ENetServer.Players.Values)
+            /*foreach (var p in ENetServer.Players.Values)
             {
                 if (p.InGame && p.Username.Equals(playerUsername)) 
                 {
                     netEvent.Peer.DisconnectNow((uint)DisconnectOpcode.PlayerWithUsernameExistsOnServerAlready);
                     return;
                 }
-            }
+            }*/
 
             // These values will be sent to the client
             WPacketLogin packetData;
@@ -119,12 +119,6 @@ namespace GameServer.Server.Packets
             }
 
             ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.LoginResponse, packetData), peer);
-
-            // Tell the joining client how many players are on the server
-            //ENetServer.Send(new ServerPacket((byte)ServerPacketOpcode.PlayerList, new WPacketPlayerList()), peer);
-
-            // Add the user to the global channel
-            ENetServer.Channels[(uint)SpecialChannel.Global].Users.Add(peer.ID);
         }
     }
 }
