@@ -106,7 +106,6 @@ namespace GameServer.Utilities
         public struct TokenPayload
         {
             public string username { get; set; }
-            public string password { get; set; }
             public int iat { get; set; }
             public int exp { get; set; }
             public string aud { get; set; }
