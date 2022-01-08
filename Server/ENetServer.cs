@@ -9,9 +9,10 @@ using GameServer.Console;
 using GameServer.Server.Packets;
 using Common.Netcode;
 using ENet;
+using GameServer.Server.Game;
+using Common.Game;
 
 using Version = Common.Netcode.Version;
-using GameServer.Server.Game;
 
 namespace GameServer.Server
 {
@@ -20,7 +21,10 @@ namespace GameServer.Server
         public static Version Version { get; private set; }
         public static ConcurrentQueue<ENetCommand> ENetCmds { get; private set; }
         public static ConcurrentQueue<ServerPacket> Outgoing { get; private set; }
+
         public static Dictionary<uint, ServerPlayer> Players { get; private set; }
+        public static Dictionary<uint, Channel> Channels { get; private set; }
+        public static uint ChannelId = 0;
 
         private static ConcurrentBag<Event> Incoming { get; set; }
         private static Dictionary<ENetOpcode, ENetCmd> ENetCmd { get; set; }
@@ -33,7 +37,10 @@ namespace GameServer.Server
             ENetCmds = new();
             Outgoing = new();
             Players = new();
-
+            Channels = new() { 
+                { ChannelId++, new Channel { Name = "Global" } },
+                { ChannelId++, new Channel { Name = "Game"   } }
+            };
             Incoming = new();
             ENetCmd = typeof(ENetCmd).Assembly.GetTypes().Where(x => typeof(ENetCmd).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<ENetCmd>().ToDictionary(x => x.Opcode, x => x);
             HandlePacket = typeof(HandlePacket).Assembly.GetTypes().Where(x => typeof(HandlePacket).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<HandlePacket>().ToDictionary(x => x.Opcode, x => x);
@@ -109,13 +116,13 @@ namespace GameServer.Server
                     else if (eventType == EventType.Disconnect) 
                     {
                         // Disconnect
-                        Logger.Log($"Player '{Players[peer.ID].Username}' disconnected");
+                        Logger.Log($"Player '{ENetServer.Players[peer.ID].Username}' disconnected");
                         HandlePlayerLeftServerCleanup(peer.ID);
                     }
                     else if (eventType == EventType.Timeout) 
                     {
                         // Timeout
-                        Logger.Log($"Player '{Players[peer.ID].Username}' timed out");
+                        Logger.Log($"Player '{ENetServer.Players[peer.ID].Username}' timed out");
                         HandlePlayerLeftServerCleanup(peer.ID);
                     }
                 }
@@ -128,6 +135,7 @@ namespace GameServer.Server
         {
             Players[peerId].SaveConfig();
             Players.Remove(peerId);
+            //Channels[(uint)SpecialChannel.Global].Users.Remove(peerId);
             Outgoing.Enqueue(new ServerPacket((byte)ServerPacketOpcode.PlayerJoinLeave, new WPacketPlayerJoinLeave
             {
                 JoinLeaveOpcode = JoinLeaveOpcode.Leave,
@@ -138,7 +146,7 @@ namespace GameServer.Server
         private static Peer[] GetOtherPeers(uint peerId)
         {
             var peers = new List<Peer>();
-            foreach (var pair in Players) 
+            foreach (var pair in ENetServer.Players) 
                 if (pair.Key != peerId)
                     peers.Add(pair.Value.Peer);
 

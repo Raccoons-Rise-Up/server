@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Common.Game;
 using Common.Netcode;
@@ -13,9 +14,16 @@ namespace GameServer.Server.Game
 {
     public class ServerPlayer : Player
     {
-        public ServerPlayer(Peer peer, string username) : base(peer, username) 
+        [JsonIgnore] public Peer Peer { get; set; }
+        [JsonIgnore] public Status Status { get; set; }
+
+        public ServerPlayer(Peer peer, string username)
         {
-        
+            Peer = peer;
+            if (peer.IsSet)
+                Ip = peer.IP;
+
+            Username = username;
         }
 
         public void SaveConfig() 

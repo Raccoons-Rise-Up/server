@@ -5,7 +5,9 @@ using GameServer.Utils;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Runtime;
 using GameServer.Server.Game;
+using Common.Game;
 
 namespace GameServer.Server.Packets
 {
@@ -52,6 +54,9 @@ namespace GameServer.Server.Packets
             // Check if username exists in database
             var playerUsername = token.Payload.username;
 
+            // Add player to global channel
+            //ENetServer.Channels[(uint)SpecialChannel.Global].Users.Add(peer.ID);
+
             // These values will be sent to the client
             WPacketLogin packetData;
 
@@ -66,7 +71,8 @@ namespace GameServer.Server.Packets
 
                 packetData = new WPacketLogin
                 {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessReturningPlayer,
+                    ClientId = peer.ID
                 };
 
                 //player.InGame = true;
@@ -81,10 +87,13 @@ namespace GameServer.Server.Packets
                 // NEW PLAYER
                 packetData = new WPacketLogin
                 {
-                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer
+                    LoginOpcode = LoginResponseOpcode.LoginSuccessNewPlayer,
+                    ClientId = peer.ID
                 };
 
                 // Add the player to the list of players currently on the server
+                // Generate new GUID
+                //var guid = new Guid(playerUsername).ToString();
                 ENetServer.Players.Add(peer.ID, new ServerPlayer(peer, playerUsername));
 
                 Logger.Log($"User '{playerUsername}' logged in for the first time");
