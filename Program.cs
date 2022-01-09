@@ -14,19 +14,10 @@ namespace GameServer
     {
         private static void Main(string[] args)
         {
-            StartLogger();
-            StartServer();
-        }
-
-        private static void StartLogger() 
-        {
-            new Thread(Logger.InputThread).Start();
-            new Thread(Logger.MessagesThread).Start();
-        }
-
-        public static void StartServer() 
-        {
-            new Thread(() => ENetServer.ENetThreadWorker(25565, 100)).Start();
+            Parallel.Invoke(
+                () => Logger.InputThread(), 
+                () => Logger.MessagesThread(), 
+                () => ENetServer.ENetThreadWorker(25565, 100));
         }
     }
 }
