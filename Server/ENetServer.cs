@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Version = Common.Netcode.Version;
+
+using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -11,8 +14,8 @@ using Common.Netcode;
 using ENet;
 using GameServer.Server.Game;
 using Common.Game;
-
-using Version = Common.Netcode.Version;
+using GameServer.Server.MongoDb;
+using MongoDB.Driver;
 
 namespace GameServer.Server
 {
@@ -33,6 +36,10 @@ namespace GameServer.Server
         public static void ENetThreadWorker(ushort port, int maxClients) 
         {
             Thread.CurrentThread.Name = "SERVER";
+
+            if (!Database.Connect()) // do not continue if failed to connect to database
+                return;
+
             Version = new() { Major = 0, Minor = 1, Patch = 0 };
             ENetCmds = new();
             Outgoing = new();

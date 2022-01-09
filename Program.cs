@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GameServer.Console;
 using GameServer.Server;
 using GameServer.Utils;
+using MongoDB.Driver;
 
 namespace GameServer
 {
