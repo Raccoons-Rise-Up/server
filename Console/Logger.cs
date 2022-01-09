@@ -25,12 +25,12 @@ namespace GameServer.Console
 
         public static void LogError(object obj) 
         {
-            Log(obj, "ERROR", "&8");
+            Log(obj, "ERROR", "&9");
         }
 
         public static void LogWarning(object obj)
         {
-            Log(obj, "WARN", "&9");
+            Log(obj, "WARN", "&y");
         }
 
         public static void LogRaw(object obj, string color = "&r") 
