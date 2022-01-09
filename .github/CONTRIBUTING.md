@@ -28,4 +28,8 @@ db.createUser(
 ```
 7. Restart database instance with `--auth` param `"C:\Program Files\MongoDB\Server\5.0\bin\mongod.exe" --dbpath="c:\data\db" --auth --bind_ip 127.0.0.1 --port 27017`
 8. Connect with MongoSh again to test it out `mongosh.exe --port 27017 -u "myAwesomeUsername" -p "abc123" --authenticationDatabase "admin"`
-9. MongoDb is now ready to go, just remember to edit the connection string in the game server with the proper username and password
+9. Create `auth.txt` in `bin/Debug/net5.0` with the following contents
+```
+myAwesomeUsername
+abc123
+```
