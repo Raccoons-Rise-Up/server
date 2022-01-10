@@ -52,8 +52,9 @@ namespace GameServer.Server.Packets
                 if(preventCapsCombo){
                     message = Regex.Replace(message, blockedString, blockedStringReplacement[replacementIndex], RegexOptions.IgnoreCase);
                 }
-
-                message = message.Replace(blockedString, blockedStringReplacement[replacementIndex]);
+                else{
+                    message = message.Replace(blockedString, blockedStringReplacement[replacementIndex]);
+                }
             }
             }
             
