@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using Common.Game;
 using ENet;
 using GameServer.Logging;
+using System.IO;
 
 namespace GameServer.Server.Packets
 {
@@ -15,14 +17,14 @@ namespace GameServer.Server.Packets
 
         public HandlePacketChatMessage() => Opcode = ClientPacketOpcode.ChatMessage;
 
-        private readonly string[] BlockedStrings = new string[] 
-        {
-            "fuck",
-            "nigga",
-            "nigger",
-            "cunt",
-            "bitch"
-        };
+        // Toggleable profanifty options
+        public bool useProfanityFilter = false;
+        public bool preventCapsCombo = false;
+
+        // read in bad words from file and split them into string array
+        private readonly static string blockedStringFile = File.ReadAllText(@"\Blocked-Strings-List");
+        private readonly string[] blockedStrings = blockedStringFile.Split("\\n");
+
 
         public override void Handle(Event netEvent, ref PacketReader packetReader)
         {
@@ -38,10 +40,24 @@ namespace GameServer.Server.Packets
             // Remove any trailing spaces at start and end
             message = message.Trim();
 
-            // Swear filter
-            foreach (var blockedString in BlockedStrings)
-                message = message.Replace(blockedString, "meowww");
+            private  string[] blockedStringReplacement = { "meowww", "meow", "meeow", "purrr", "meowwww", "pur" };
+            
+            if(useProfanityFilter){
+            foreach (var blockedString in blockedStrings){
+                
+                Random random = new Random();
+                var replacementIndex = random.Next(blockedStringReplacement.Length);
 
+                // if you want to block any combination of caps
+                if(preventCapsCombo){
+                    message = Regex.Replace(message, blockedString, blockedStringReplacement[replacementIndex], RegexOptions.IgnoreCase);
+                }
+                else{
+                    message = message.Replace(blockedString, blockedStringReplacement[replacementIndex]);
+                }
+            }
+            }
+            
             // Add message to channel
             ENetServer.Channels[data.ChannelId].Messages.Add(new UIMessage {
                 UserId = peer.ID,
