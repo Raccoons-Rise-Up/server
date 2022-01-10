@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Common.Networking.Packet;
 using Common.Networking.IO;
 using Common.Game;
@@ -18,7 +19,7 @@ namespace GameServer.Server.Packets
 
         // Toggleable profanifty options
         public bool useProfanityFilter = false;
-        public bool preventAllCaps = false;
+        public bool preventCapsCombo = false;
 
         // read in bad words from file and split them into string array
         private readonly static string blockedStringFile = File.ReadAllText(@"\Blocked-Strings-List");
@@ -43,11 +44,14 @@ namespace GameServer.Server.Packets
             
             if(useProfanityFilter){
             foreach (var blockedString in blockedStrings){
-
-                if(preventAllCaps){ message = message.ToLower();}
                 
                 Random random = new Random();
                 var replacementIndex = random.Next(blockedStringReplacement.Length);
+
+                // if you want to block any combination of caps
+                if(preventCapsCombo){
+                    message = Regex.Replace(message, blockedString, blockedStringReplacement[replacementIndex], RegexOptions.IgnoreCase);
+                }
 
                 message = message.Replace(blockedString, blockedStringReplacement[replacementIndex]);
             }
