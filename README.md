@@ -87,4 +87,4 @@ Please see the projects [current issues](https://github.com/Kittens-Rise-Up/serv
 ## Contributing
 Please see [CONTRIBUTING.md](https://github.com/Raccoons-Rise-Up/server/blob/main/.github/CONTRIBUTING.md)
 
-If you want to know more of what needs to be done please talk to `valkyrienyanko` in the [Raccoons Rise Up](https://app.revolt.chat/invite/jHXEbbfq) Revolt chat.
+If you want to know more of what needs to be done please talk to `valkyrienyanko` in the [Raccoons Rise Up](https://app.revolt.chat/invite/B8geJcGP) Revolt chat.
