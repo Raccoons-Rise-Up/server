@@ -16,11 +16,16 @@ using GameServer.Server.Game;
 using Common.Game;
 using GameServer.Server.MongoDb;
 using MongoDB.Driver;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace GameServer.Server
 {
-    public struct Test 
+    public class TestModel 
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
         public string Name { get; set; }
     }
     public class ENetServer
@@ -51,16 +56,18 @@ namespace GameServer.Server
             }
 
             var db = Database.DbClient.GetDatabase("database");
-            var test = db.GetCollection<Test>("players");
-            test.InsertOne(new Test {
+            var collection = db.GetCollection<TestModel>("players");
+            await collection.InsertOneAsync(new TestModel {
                 Name = "Tester"
             });
-            var results = test.Find(_ => true);
+
+            var results = await collection.FindAsync(_ => true);
+
             foreach (var result in results.ToList()) 
             {
                 Logger.Log(result.Name);
             }
-            Logger.Log(test);
+            Logger.Log(collection);
 
             Version = new() { Major = 0, Minor = 1, Patch = 0 };
             ENetCmds = new();

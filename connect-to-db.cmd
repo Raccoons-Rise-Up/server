@@ -1,3 +1,3 @@
 @echo off
-mongosh.exe --port 27017 -u "valk" -p "nimda" --authenticationDatabase "admin"
+mongosh.exe --port 27017 -u "Admin" -p "nimda" --authenticationDatabase "admin"
 pause
