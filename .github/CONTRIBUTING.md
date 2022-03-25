@@ -7,6 +7,10 @@
 5. Run the project with `dotnet run`
 
 ## MongoDb
+
+[Shell Reference](https://www.mongodb.com/docs/manual/reference/mongo-shell/)  
+[Database Reference](https://www.mongodb.com/docs/manual/reference/command/)  
+
 1. [Install MongoDB Community Edition](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/#install-mongodb-community-edition)
 2. [Install MongoSh](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/#install-mongosh)
 3. Create database directory
