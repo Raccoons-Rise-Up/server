@@ -19,6 +19,10 @@ using MongoDB.Driver;
 
 namespace GameServer.Server
 {
+    public struct Test 
+    {
+        public string Name { get; set; }
+    }
     public class ENetServer
     {
         public static Version Version { get; private set; }
@@ -33,12 +37,30 @@ namespace GameServer.Server
         private static Dictionary<ENetOpcode, ENetCmd> ENetCmd { get; set; }
         private static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; set; }
 
-        public static void ENetThreadWorker(ushort port, int maxClients) 
+        public static async void ENetThreadWorker(ushort port, int maxClients) 
         {
             Thread.CurrentThread.Name = "SERVER";
 
-            if (!Database.Connect()) // do not continue if failed to connect to database
+            if (!Database.Connect()) 
+            {
+                Logger.Log("Failed to connect to database");
+                Logger.LogRaw("\nExiting application in 3 seconds...");
+                await Task.Delay(3000);
+                Environment.Exit(0);
                 return;
+            }
+
+            var db = Database.DbClient.GetDatabase("database");
+            var test = db.GetCollection<Test>("players");
+            test.InsertOne(new Test {
+                Name = "Tester"
+            });
+            var results = test.Find(_ => true);
+            foreach (var result in results.ToList()) 
+            {
+                Logger.Log(result.Name);
+            }
+            Logger.Log(test);
 
             Version = new() { Major = 0, Minor = 1, Patch = 0 };
             ENetCmds = new();
@@ -143,11 +165,11 @@ namespace GameServer.Server
             Players[peerId].SaveConfig();
             Players.Remove(peerId);
             //Channels[(uint)SpecialChannel.Global].Users.Remove(peerId);
-            Outgoing.Enqueue(new ServerPacket((byte)ServerPacketOpcode.PlayerJoinLeave, new WPacketPlayerJoinLeave
+            /*Outgoing.Enqueue(new ServerPacket((byte)ServerPacketOpcode.PlayerJoinLeave, new WPacketPlayerJoinLeave
             {
                 JoinLeaveOpcode = JoinLeaveOpcode.Leave,
                 PlayerId = peerId
-            }, GetOtherPeers(peerId)));
+            }, GetOtherPeers(peerId)));*/
         }
 
         private static Peer[] GetOtherPeers(uint peerId)

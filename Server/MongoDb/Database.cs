@@ -11,10 +11,7 @@ namespace GameServer.Server.MongoDb
 {
     public class Database
     {
-        public Database() 
-        {
-
-        }
+        public static MongoClient DbClient;
 
         public static bool Connect() 
         {
@@ -37,20 +34,13 @@ namespace GameServer.Server.MongoDb
                 return false;
             }
 
-            var settings = MongoClientSettings.FromConnectionString($"mongodb://{username.Trim()}:{password.Trim()}@localhost:27017");
-            var client = new MongoClient(settings);
+            var settings = MongoClientSettings.FromConnectionString($"mongodb://{username.Trim()}:{password.Trim()}@localhost:27017/admin?authSource=admin");
+            DbClient = new MongoClient(settings);
 
             try
             {
-                var dbList = client.ListDatabases().ToList();
-
-                Logger.Log("The list of databases on this server is: ");
-                foreach (var db in dbList)
-                {
-                    Logger.Log(db);
-                }
-
-                return true;
+                var database = DbClient.GetDatabase("admin");
+                return database.RunCommandAsync((Command<MongoDB.Bson.BsonDocument>)"{ping:1}").Wait(1000);
             }
             catch (Exception e) 
             {
