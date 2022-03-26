@@ -21,13 +21,6 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace GameServer.Server
 {
-    public class TestModel 
-    {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
-        public string Name { get; set; }
-    }
     public class ENetServer
     {
         public static Version Version { get; private set; }
@@ -42,32 +35,9 @@ namespace GameServer.Server
         private static Dictionary<ENetOpcode, ENetCmd> ENetCmd { get; set; }
         private static Dictionary<ClientPacketOpcode, HandlePacket> HandlePacket { get; set; }
 
-        public static async void ENetThreadWorker(ushort port, int maxClients) 
+        public static void ENetThreadWorker(ushort port, int maxClients) 
         {
-            Thread.CurrentThread.Name = "SERVER";
-
-            if (!Database.Connect()) 
-            {
-                Logger.Log("Failed to connect to database");
-                Logger.LogRaw("\nExiting application in 3 seconds...");
-                await Task.Delay(3000);
-                Environment.Exit(0);
-                return;
-            }
-
-            var db = Database.DbClient.GetDatabase("database");
-            var collection = db.GetCollection<TestModel>("players");
-            await collection.InsertOneAsync(new TestModel {
-                Name = "Tester"
-            });
-
-            var results = await collection.FindAsync(_ => true);
-
-            foreach (var result in results.ToList()) 
-            {
-                Logger.Log(result.Name);
-            }
-            Logger.Log(collection);
+            Database.Connect();
 
             Version = new() { Major = 0, Minor = 1, Patch = 0 };
             ENetCmds = new();

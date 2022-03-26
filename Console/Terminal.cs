@@ -131,7 +131,6 @@ namespace GameServer.Console
 
         internal static bool Handler(CtrlType sig)
         {
-            Thread.CurrentThread.Name = "CONSOLE"; // Abrubtly exiting seems to clear the current thread name
             PlayerUtils.SaveAllOnlinePlayersToDatabase();
             Logger.LogRaw("\nExiting application in 3 seconds...");
             Thread.Sleep(3000);

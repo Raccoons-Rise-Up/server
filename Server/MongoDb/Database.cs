@@ -11,9 +11,10 @@ namespace GameServer.Server.MongoDb
 {
     public class Database
     {
-        public static MongoClient DbClient;
+        public static MongoClient Client { get; set; }
+        public static IMongoDatabase Db { get; set; }
 
-        public static bool Connect() 
+        public static void Connect() 
         {
             var authFileName = "auth.txt";
             var authFullPath = $"{Directory.GetCurrentDirectory()}\\{authFileName}";
@@ -21,7 +22,8 @@ namespace GameServer.Server.MongoDb
             if (!File.Exists(authFileName))
             {
                 Logger.LogError($"The following file does not exist and needs to be created: {authFullPath}");
-                return false;
+                ExitApp();
+                return;
             }
 
             var auth = File.ReadAllLines(authFileName);
@@ -31,22 +33,41 @@ namespace GameServer.Server.MongoDb
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 Logger.LogError($"MongoDb username or password not defined in auth.txt in {authFullPath}");
-                return false;
+                ExitApp();
+                return;
             }
 
             var settings = MongoClientSettings.FromConnectionString($"mongodb://{username.Trim()}:{password.Trim()}@localhost:27017/admin?authSource=admin");
-            DbClient = new MongoClient(settings);
+            Client = new MongoClient(settings);
 
             try
             {
-                var database = DbClient.GetDatabase("admin");
-                return database.RunCommandAsync((Command<MongoDB.Bson.BsonDocument>)"{ping:1}").Wait(1000);
+                var database = Client.GetDatabase("admin");
+
+                var connected = database.RunCommandAsync((Command<MongoDB.Bson.BsonDocument>)"{ping:1}").Wait(1000);
+
+                if (!connected) 
+                {
+                    ExitApp();
+                    return;
+                }
             }
             catch (Exception e) 
             {
                 Logger.LogError($"{e.Message}\n\nPerhaps the wrong username and password were used in {authFullPath}");
-                return false;
+                ExitApp();
+                return;
             }
+
+            Db = Client.GetDatabase("database");
+        }
+
+        private static async void ExitApp() 
+        {
+            Logger.Log("Failed to connect to database");
+            Logger.LogRaw("\nExiting application in 3 seconds...");
+            await Task.Delay(3000);
+            Environment.Exit(0);
         }
     }
 }

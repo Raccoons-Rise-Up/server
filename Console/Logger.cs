@@ -43,16 +43,13 @@ namespace GameServer.Console
         public static void Log(object obj, string logLevel = "INFO", string color = "&r")
         {
             var time = $"{DateTime.Now:HH:mm:ss}";
-            var thread = Thread.CurrentThread.Name;
-            var str = $"{color}{time} [{thread}] [{logLevel}] {obj}";
+            var str = $"{color}{time} [{logLevel}] {obj}";
 
             Messages.Enqueue(new LoggerMessage(str));
         }
 
         public static void MessagesThread()
         {
-            Thread.CurrentThread.Name = "CONSOLE";
-
             Messages = new();
             ThreadLock = new();
 
@@ -75,8 +72,6 @@ namespace GameServer.Console
 
         public static void InputThread()
         {
-            Thread.CurrentThread.Name = "CONSOLE";
-
             Commands = typeof(Command).Assembly.GetTypes().Where(x => typeof(Command).IsAssignableFrom(x) && !x.IsAbstract).Select(Activator.CreateInstance).Cast<Command>()
                 .ToDictionary(x => x.GetType().Name.Replace(typeof(Command).Name, "").ToLower(), x => x);
 
