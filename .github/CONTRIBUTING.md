@@ -37,6 +37,5 @@ Admin
 nimda
 ```
 
-
 [Shell Reference](https://www.mongodb.com/docs/manual/reference/mongo-shell/)  
 [Database Reference](https://www.mongodb.com/docs/manual/reference/command/)  
