@@ -1,4 +1,10 @@
 # Game Server
+I'm thinking of switching over from .NET Console App to Godot 4 C# because I just opened this project in VS2022 and the console logger cursor was not working correctly.
+
+Pros of going to Godot
+- Can make use of Godot specific functions like GetNoise2D() which could be easily synced with client GetNoise2D() so everyone seeds the same seed
+- Can make use of Godots awesome UI (who knows might even use ImGui with Godot)
+
 ## Table of Contents
 1. [About](#what-is-this)
 2. [Server](#server)
